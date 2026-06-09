@@ -1,1 +1,1 @@
-# -AI-Assisted-Climate-Weather-Exploration-for-Liquid-Galaxy
+# AI-Assisted-Climate-Weather-Exploration-for-Liquid-Galaxy
