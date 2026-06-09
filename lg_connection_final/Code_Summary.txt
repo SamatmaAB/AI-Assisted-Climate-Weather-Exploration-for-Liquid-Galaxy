@@ -1,0 +1,43 @@
+LIQUID GALAXY CONTROLLER - CODE SUMMARY
+=========================================
+
+1. OVERVIEW
+-----------
+This Flutter application provides a remote control interface for a Liquid Galaxy (LG) multi-screen rig. It communicates with the rig's master node over SSH to manipulate the visualization state, specifically focusing on KML (Keyhole Markup Language) injection and camera control.
+
+2. CORE COMPONENTS
+------------------
+
+A. SSH CONNECTION (lib/connections/ssh.dart)
+The SSH class is the engine of the application. It uses the `dartssh2` package to establish a secure tunnel to the LG rig.
+- Connection Management: It retrieves rig credentials (IP, Port, Username, Password) from shared preferences and maintains an active SSH session.
+- Execution Engine: A private `_execute` method handles sending raw shell commands to the rig, with built-in logic to reconnect if the session drops.
+
+B. KML INJECTION
+The app generates KML strings dynamically and "injects" them into the rig by writing to the `/var/www/html/kml/` directory on the master rig.
+- Logo Deployment: The `sendLogo()` method creates a `ScreenOverlay` KML that places the Liquid Galaxy logo on the left screen (slave_1).
+- 3D Shape Generation: The `sendPyramid()` method mathematically constructs a four-sided pyramid. It uses triangular `Polygon` geometries with unique opaque styles (Red, Green, Blue, Yellow) for each face.
+- Robust File Writing: To prevent shell character corruption, KMLs are sent using "heredoc" (`cat <<'EOF'`) syntax, ensuring the remote file matches the local string exactly.
+
+C. CAMERA CONTROL (FLY-TO)
+The `flyTo()` method controls the global view of the rig.
+- Logic: It writes a `flytoview` instruction to the rig's `/tmp/query.txt` file.
+- Implementation: When "Fly to Home City" or "Send Pyramid" is pressed, the camera is moved to specific coordinates (Mysore, India) with defined Tilt, Range, and Heading to ensure a 3D perspective across all screens.
+
+D. USER INTERFACE (lib/screens/home_screen.dart)
+The UI provides an intuitive dashboard for these actions.
+- Adaptive Layout: Uses a `GridView` in landscape and a `ListView` in portrait to ensure usability across different device form factors.
+- Connection Status: A real-time flag indicates whether the app is currently connected to the rig.
+
+3. WORKFLOW SUMMARY
+-------------------
+1. User configures rig IP and credentials in Settings.
+2. The app establishes an SSH connection.
+3. When an action (e.g., "Send Pyramid") is triggered:
+   a. A KML string is generated with precise coordinates and styles.
+   b. The KML is pushed to the rig via SSH to a specific slave or master file.
+   c. A camera command is sent to position the rig's view on the new object.
+4. "Clean" buttons overwrite the active KML files with empty documents to reset the rig state.
+
+=========================================
+Generated for GSoC Liquid Galaxy Project Task 2

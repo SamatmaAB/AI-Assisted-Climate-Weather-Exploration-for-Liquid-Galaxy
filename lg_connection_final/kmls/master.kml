@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>Coloured Pyramid</name>
+  <Style id="redFace"><PolyStyle><color>ff0000ff</color><fill>1</fill><outline>1</outline></PolyStyle></Style>
+  <Style id="greenFace"><PolyStyle><color>ff00ff00</color><fill>1</fill><outline>1</outline></PolyStyle></Style>
+  <Style id="blueFace"><PolyStyle><color>ffff0000</color><fill>1</fill><outline>1</outline></PolyStyle></Style>
+  <Style id="yellowFace"><PolyStyle><color>ff00ffff</color><fill>1</fill><outline>1</outline></PolyStyle></Style>
+
+  <Placemark>
+    <styleUrl>#redFace</styleUrl>
+    <Polygon>
+      <altitudeMode>relativeToGround</altitudeMode>
+      <outerBoundaryIs><LinearRing><coordinates>76.6582000,12.3012000,0 76.6598000,12.3012000,0 76.6590000,12.3020000,250.0 76.6582000,12.3012000,0</coordinates></LinearRing></outerBoundaryIs>
+    </Polygon>
+  </Placemark>
+  <Placemark>
+    <styleUrl>#greenFace</styleUrl>
+    <Polygon>
+      <altitudeMode>relativeToGround</altitudeMode>
+      <outerBoundaryIs><LinearRing><coordinates>76.6598000,12.3012000,0 76.6598000,12.3028000,0 76.6590000,12.3020000,250.0 76.6598000,12.3012000,0</coordinates></LinearRing></outerBoundaryIs>
+    </Polygon>
+  </Placemark>
+  <Placemark>
+    <styleUrl>#blueFace</styleUrl>
+    <Polygon>
+      <altitudeMode>relativeToGround</altitudeMode>
+      <outerBoundaryIs><LinearRing><coordinates>76.6598000,12.3028000,0 76.6582000,12.3028000,0 76.6590000,12.3020000,250.0 76.6598000,12.3028000,0</coordinates></LinearRing></outerBoundaryIs>
+    </Polygon>
+  </Placemark>
+  <Placemark>
+    <styleUrl>#yellowFace</styleUrl>
+    <Polygon>
+      <altitudeMode>relativeToGround</altitudeMode>
+      <outerBoundaryIs><LinearRing><coordinates>76.6582000,12.3028000,0 76.6582000,12.3012000,0 76.6590000,12.3020000,250.0 76.6582000,12.3028000,0</coordinates></LinearRing></outerBoundaryIs>
+    </Polygon>
+  </Placemark>
+</Document>
+</kml>
