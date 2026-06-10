@@ -1,6 +1,6 @@
 # Earth Systems Explorer Context
 
-This app is being built from the GSOC 2026 proposal "Earth Systems Explorer: Immersive Visualization of Global Climate Processes using Liquid Galaxy."
+This app is being built for the "Earth Systems Explorer: Immersive Visualization of Global Climate Processes using Liquid Galaxy."
 
 ## Product Goal
 
