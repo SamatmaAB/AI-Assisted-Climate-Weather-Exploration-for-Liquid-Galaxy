@@ -3,47 +3,55 @@
 [![GSoC 2026](https://img.shields.io/badge/GSoC-2026-blue.svg)](https://summerofcode.withgoogle.com/)
 [![Flutter](https://img.shields.io/badge/Flutter-v3.24+-02569B?logo=flutter)](https://flutter.dev)
 
-**Earth Systems Explorer** is a Flutter-based mobile control interface for Liquid Galaxy designed to visualize and explore complex global climate systems. By combining high-resolution geospatial data with immersive multi-screen visualization, it provides a powerful platform for understanding planetary-scale atmospheric and oceanic processes.
+**Earth Systems Explorer** is a high-performance Flutter-based control interface for the Liquid Galaxy multi-display system. It allows users to explore complex global climate systems through immersive 3D geospatial tours, dynamic KML visualization layers, and real-time AI-powered narration.
 
 ## 🌍 Core Experience
 
-The application serves as a command center for a Liquid Galaxy rig, allowing users to:
-- **Trigger Guided Tours:** Select climate phenomena to initiate synchronized geospatial tours.
+Designed as a planetary command center, the application enables:
+- **Trigger Guided Tours:** Select climate phenomena to initiate synchronized geospatial voyages across the Liquid Galaxy rig nodes.
 - **Visualize Climate Layers:** Deploy dynamic KML layers representing ocean currents, wind patterns, and thermal anomalies.
-- **AI Narration:** Experience interactive storytelling powered by the Gemini API, explaining the science behind the visuals.
-- **Precision Control:** Navigate with "Fly-to" instructions and manage the Liquid Galaxy rig (Logo display, KML clearing, Reboot/Shutdown).
+- **AI-Powered Narration:** Experience interactive storytelling via the **Gemini API**, explaining the science behind global weather impacts in real-time.
+- **Orbit & Navigation:** Execute automated 360-degree orbital camera movements and synchronize the rig's view with an integrated Google Map viewport.
+- **Precision Rig Control:** Full management of the rig state, including camera "Fly-to" instructions, Logo overlays, and system maintenance (Reboot/Shutdown).
 
-## 📊 Key Climate Visualizations
+## ✨ UI & UX Highlights
 
-- **Ocean Dynamics:** Visualization of the Gulf Stream, Kuroshio Current, and global thermohaline circulation.
-- **Atmospheric Circulation:** Real-time representation of Trade Winds, Westerlies, and Jet Streams.
-- **ENSO States:** Comparison of Normal, El Niño, and La Niña conditions in the Pacific.
-- **Regional Impacts:** Detailed analysis of the Indian Monsoon and specific city-level weather impacts (e.g., flooding in Mumbai).
+- **Localized Glow Aesthetic:** An ultra-modern, high-contrast pure black interface (`#020617`) where interactive elements feature vibrant, localized glow effects. This maximizes focus on data and controls while providing a sleek, distraction-free experience.
+- **Synced Navigation:** An integrated viewport that synchronizes mobile map interactions in real-time with the Liquid Galaxy rig's perspective.
+- **Temporal Analysis:** Integrated timeline controls allowing users to visualize and simulate climate data changes across different years (2000–2026).
+- **Glassmorphism Design:** Reusable UI components utilizing advanced transparency and background blur for a futuristic, premium feel.
+- **Adaptive Layout:** Fully responsive design optimized for both phone and tablet form factors in portrait and landscape.
+
+## 📊 Primary Climate Visualizations
+
+- **Ocean Dynamics:** In-depth visualization of the Gulf Stream, Kuroshio Current, and global thermohaline circulation.
+- **Atmospheric Circulation:** High-res representation of Trade Winds, Westerlies, and Jet Streams using vector-optimized paths.
+- **ENSO States:** Interactive comparisons of Normal, El Niño, and La Niña conditions across the Pacific.
+- **Regional Impacts:** Detailed analysis of the Indian Monsoon and specific city-level weather phenomena like Mumbai rainfall.
 
 ## 🛠️ Technical Stack
 
 - **Frontend:** [Flutter](https://flutter.dev) (Dart)
-- **Communication:** SSH via [dartssh2](https://pub.dev/packages/dartssh2) for Liquid Galaxy integration.
+- **Communication:** SSH via [dartssh2](https://pub.dev/packages/dartssh2) for secure cluster management.
 - **Visualization:** KML (Keyhole Markup Language) rendered on Google Earth.
-- **AI Integration:** 
-  - **Gemini API:** For dynamic story generation and climate explanations.
-  - **Deepgram:** For voice commands and text-to-speech narration.
-- **Data Sources:** NOAA, NASA Earth Observations (NEO), and atmospheric circulation models.
+- **Intelligence:** 
+  - **Gemini API:** Dynamic story generation and scientific data interpretation.
+  - **Deepgram:** Voice-to-command processing and narrated text-to-speech.
+- **Data Sources:** NOAA, NASA Earth Observations (NEO), and atmospheric models.
 
 ## 📂 Project Structure
 
-- `lg_connection_final/`: The main Flutter project directory.
-  - `lib/connections/`: SSH logic and KML generation services.
-  - `lib/screens/`: UI components for Explore, Data, Control, and Settings.
-  - `lib/components/`: Reusable Glassmorphism-style UI elements.
-  - `kmls/`: Static and template KML assets.
+- `lg_connection_final/`: Main Flutter application.
+  - `lib/connections/`: SSH services and KML generation logic.
+  - `lib/screens/`: High-level views (Explore, Data, Control, Settings).
+  - `lib/components/`: Reusable Glassmorphic UI widgets.
+  - `kmls/`: Static and template geospatial assets.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Flutter SDK (^3.1.5)
-- A Liquid Galaxy rig setup (or a compatible environment with Google Earth and SSH access).
-- SSH credentials for the master rig.
+- Access to a Liquid Galaxy rig (or compatible environment with SSH).
 
 ### Installation
 1. Clone the repository:
@@ -69,7 +77,7 @@ This project was developed as part of the **Google Summer of Code 2026** program
 
 - **Organization:** [Liquid Galaxy Project](https://www.liquidgalaxy.eu/)
 - **Data Providers:** NOAA & NASA
-- **Icons:** Cupertino and Google Fonts (Outfit)
+- **Design:** Powered by Outfit and Cupertino design systems.
 
 ---
 *Precision planetary monitoring and immersive data visualization.*
