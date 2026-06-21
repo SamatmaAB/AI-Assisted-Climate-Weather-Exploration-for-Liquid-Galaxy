@@ -1,6 +1,5 @@
 # Earth Systems Explorer: Immersive Visualization of Global Climate Processes for Liquid Galaxy
 
-[![GSoC 2026](https://img.shields.io/badge/GSoC-2026-blue.svg)](https://summerofcode.withgoogle.com/)
 [![Flutter](https://img.shields.io/badge/Flutter-v3.24+-02569B?logo=flutter)](https://flutter.dev)
 
 **Earth Systems Explorer** is a high-performance Flutter-based control interface for the Liquid Galaxy multi-display system. It allows users to explore complex global climate systems through immersive 3D geospatial tours, dynamic KML visualization layers, and real-time AI-powered narration.
