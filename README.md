@@ -41,11 +41,12 @@ Designed as a planetary command center, the application enables:
 
 ## 📂 Project Structure
 
-- `lg_connection_final/`: Main Flutter application.
+- `lib/`: Main source code.
   - `lib/connections/`: SSH services and KML generation logic.
   - `lib/screens/`: High-level views (Explore, Data, Control, Settings).
   - `lib/components/`: Reusable Glassmorphic UI widgets.
-  - `kmls/`: Static and template geospatial assets.
+- `kmls/`: Static and template geospatial assets.
+- `assets/`: Images and static resources.
 
 ## 🚀 Getting Started
 
@@ -60,7 +61,7 @@ Designed as a planetary command center, the application enables:
    ```
 2. Navigate to the project directory:
    ```bash
-   cd lg_connection_final
+   cd AI-Assisted-Climate-Weather-Exploration-for-Liquid-Galaxy
    ```
 3. Install dependencies:
    ```bash
