@@ -44,10 +44,10 @@ class _MainContainerState extends State<MainContainer> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(CupertinoIcons.house_fill, 'Explore', 0, electricBlue),
+              _buildNavItem(CupertinoIcons.house_fill, 'Home', 0, electricBlue),
               _buildNavItem(CupertinoIcons.circle_grid_hex, 'Data', 1, electricBlue),
-              _buildNavItem(CupertinoIcons.layers_fill, 'Control', 2, electricBlue),
-              _buildNavItem(CupertinoIcons.settings_solid, 'Settings', 3, electricBlue),
+              _buildNavItem(CupertinoIcons.layers_fill, 'Rig', 2, electricBlue),
+              _buildNavItem(CupertinoIcons.settings_solid, 'Setup', 3, electricBlue),
             ],
           ),
         ),

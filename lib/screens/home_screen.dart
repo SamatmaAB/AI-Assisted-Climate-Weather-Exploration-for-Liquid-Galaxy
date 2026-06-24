@@ -1,12 +1,12 @@
 import 'dart:async';
-import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lg_connection/components/glass_card.dart';
-import 'package:lg_connection/screens/category_detail_screen.dart';
 import 'package:lg_connection/connections/ssh.dart';
+import 'package:lg_connection/screens/category_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,17 +15,26 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  double _timelineValue = 2013;
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   final SSH ssh = SSH();
 
   GoogleMapController? _mapController;
-  LatLng _lastTarget = const LatLng(0, 0);
-  double _lastZoom = 2;
+  LatLng _lastTarget = const LatLng(20.5937, 78.9629);
+  double _lastZoom = 4;
   double _lastTilt = 0;
   double _lastBearing = 0;
   Timer? _debounce;
+  bool _isVisualisingMonsoon = false;
+  bool _isVisualisingKuroshio = false;
+
+  static const _slate950 = Color(0xFF020617);
+  static const _electricBlue = Color(0xFF3B82F6);
+  static const _neonGreen = Color(0xFF22C55E);
+  static const _cyanWhite = Color(0xFFE0F7FA);
+  static const _goldAccent = Color(0xFFFFC107);
+  static const _criticalRed = Color(0xFFEF4444);
 
   @override
   void initState() {
@@ -34,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    
+
     ssh.connectToLG();
   }
 
@@ -45,9 +54,54 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     super.dispose();
   }
 
+  void _showFeedback(String message, bool isSuccess) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isSuccess ? _electricBlue : _criticalRed,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 110, left: 20, right: 20),
+      ),
+    );
+  }
+
+  Future<void> _visualiseIndianMonsoon() async {
+    if (_isVisualisingMonsoon) return;
+
+    setState(() => _isVisualisingMonsoon = true);
+    try {
+      await ssh.visualizeIndianMonsoon();
+      _showFeedback('Indian Monsoon sent to Liquid Galaxy', true);
+    } catch (e) {
+      _showFeedback('Could not send Indian Monsoon KML', false);
+    } finally {
+      if (mounted) {
+        setState(() => _isVisualisingMonsoon = false);
+      }
+    }
+  }
+
+  Future<void> _visualiseKuroshioCurrent() async {
+    if (_isVisualisingKuroshio) return;
+
+    setState(() => _isVisualisingKuroshio = true);
+    try {
+      await ssh.visualizeKuroshioCurrent();
+      _showFeedback('Kuroshio Current sent to Liquid Galaxy', true);
+    } catch (e) {
+      _showFeedback('Could not send Kuroshio KML', false);
+    } finally {
+      if (mounted) {
+        setState(() => _isVisualisingKuroshio = false);
+      }
+    }
+  }
+
   void _syncToLG() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () {
+    _debounce = Timer(const Duration(milliseconds: 350), () {
       ssh.flyToCoordinates(
         _lastTarget.latitude,
         _lastTarget.longitude,
@@ -60,98 +114,114 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    const slate950 = Color(0xFF020617);
-    const electricBlue = Color(0xFF3B82F6);
-    const neonGreen = Color(0xFF22C55E);
-    const cyanWhite = Color(0xFFE0F7FA);
-    const goldAccent = Color(0xFFFFC107);
-    const purpleAccent = Color(0xFF9C27B0);
-    const orangeAccent = Color(0xFFFF9800);
-
     return Scaffold(
-      backgroundColor: slate950,
+      backgroundColor: _slate950,
       body: Container(
-        color: slate950,
+        color: _slate950,
         child: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 22),
             physics: const BouncingScrollPhysics(),
             children: [
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
               ValueListenableBuilder<bool>(
                 valueListenable: ssh.isConnected,
                 builder: (context, connected, child) {
-                  return _buildLiveStatus(connected ? neonGreen : Colors.redAccent, connected);
+                  return _buildLiveStatus(
+                    connected ? _neonGreen : _criticalRed,
+                    connected,
+                  );
                 },
               ),
-              const SizedBox(height: 16),
-              
+              const SizedBox(height: 18),
               Text(
-                'Earth Systems',
+                'Liquid Galaxy',
                 style: GoogleFonts.outfit(
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 38,
+                  fontWeight: FontWeight.w800,
                   color: Colors.white,
-                  letterSpacing: -1.5,
                   height: 1.0,
                 ),
               ),
               Text(
-                'Explorer',
+                'Climate View',
                 style: GoogleFonts.outfit(
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                  color: electricBlue,
-                  letterSpacing: -1.5,
+                  fontSize: 38,
+                  fontWeight: FontWeight.w800,
+                  color: _electricBlue,
                   height: 1.0,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Text(
-                'Precision planetary monitoring and immersive data visualization.',
+                'Choose a visualization and project it directly to the rig.',
                 style: GoogleFonts.outfit(
-                  color: Colors.white.withOpacity(0.6),
-                  fontSize: 16,
+                  color: Colors.white.withOpacity(0.62),
+                  fontSize: 15,
                   fontWeight: FontWeight.w300,
                 ),
               ),
-              
-              const SizedBox(height: 40),
-              
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                childAspectRatio: 0.85,
+              const SizedBox(height: 28),
+              _buildVisualizationAction(
+                title: 'Visualise Indian Monsoon',
+                description:
+                    'Loads the pre-generated KML and overwrites master.kml on Liquid Galaxy.',
+                icon: CupertinoIcons.cloud_rain,
+                color: _electricBlue,
+                isLoading: _isVisualisingMonsoon,
+                onTap: _visualiseIndianMonsoon,
+              ),
+              const SizedBox(height: 16),
+              _buildVisualizationAction(
+                title: 'Visualise Kuroshio Current',
+                description:
+                    'Loads the pre-generated Kuroshio KML and overwrites master.kml on Liquid Galaxy.',
+                icon: CupertinoIcons.waveform,
+                color: _goldAccent,
+                isLoading: _isVisualisingKuroshio,
+                onTap: _visualiseKuroshioCurrent,
+              ),
+              const SizedBox(height: 16),
+              _buildQuickAction(
+                label: 'Clear',
+                icon: CupertinoIcons.trash,
+                color: _criticalRed,
+                onTap: () async {
+                  await ssh.clearKML();
+                  _showFeedback('KML cleared from Liquid Galaxy', true);
+                },
+              ),
+              const SizedBox(height: 30),
+              _buildSectionHeader('Map Sync', CupertinoIcons.map),
+              const SizedBox(height: 14),
+              _buildMapPreview(),
+              const SizedBox(height: 16),
+              _buildOrbitButton(),
+              const SizedBox(height: 30),
+              _buildSectionHeader('More Patterns', CupertinoIcons.square_grid_2x2),
+              const SizedBox(height: 14),
+              Row(
                 children: [
-                  _buildScientificCard(context, 'Global Winds', CupertinoIcons.wind, electricBlue, 'Global Wind Systems'),
-                  _buildScientificCard(context, 'Ocean Currents', CupertinoIcons.waveform, goldAccent, 'Ocean Currents'),
-                  _buildScientificCard(context, 'Storm Tracking', CupertinoIcons.cloud_rain, purpleAccent, 'Cyclone Formation'),
-                  // Changed orangeAccent to neonGreen here
-                  _buildScientificCard(context, 'Thermal Data', CupertinoIcons.thermometer, neonGreen, 'Extreme Weather'),
+                  Expanded(
+                    child: _buildExploreCard(
+                      'Winds',
+                      CupertinoIcons.wind,
+                      _electricBlue,
+                      'Global Wind Systems',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildExploreCard(
+                      'Currents',
+                      CupertinoIcons.waveform,
+                      _goldAccent,
+                      'Ocean Currents',
+                    ),
+                  ),
                 ],
               ),
-              
-              const SizedBox(height: 40),
-              
-              _buildSectionHeader('Synced Navigation'),
-              const SizedBox(height: 16),
-              _buildMapPreview(electricBlue, cyanWhite),
-              
-              const SizedBox(height: 20),
-              _buildOrbitButton(electricBlue, neonGreen),
-              
-              const SizedBox(height: 40),
-              _buildSectionHeader('Temporal Analysis'),
-              const SizedBox(height: 16),
-              _buildTimelineCard(electricBlue),
-              
-              const SizedBox(height: 32),
-              _buildGuidedStoryButton(electricBlue, neonGreen),
-              
-              const SizedBox(height: 140),
+              const SizedBox(height: 130),
             ],
           ),
         ),
@@ -171,93 +241,108 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               color: statusColor,
               shape: BoxShape.circle,
               boxShadow: [
-                BoxShadow(color: statusColor.withOpacity(0.5), blurRadius: 10, spreadRadius: 2),
+                BoxShadow(
+                  color: statusColor.withOpacity(0.5),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
               ],
             ),
           ),
         ),
         const SizedBox(width: 10),
         Text(
-          connected ? 'STATION ONLINE' : 'STATION OFFLINE',
+          connected ? 'RIG CONNECTED' : 'CONNECT IN SETTINGS',
           style: GoogleFonts.outfit(
             color: statusColor,
             fontSize: 11,
             fontWeight: FontWeight.w800,
-            letterSpacing: 2.0,
+            letterSpacing: 1.7,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Row(
-      children: [
-        const Icon(CupertinoIcons.camera, color: Colors.white70, size: 16),
-        const SizedBox(width: 8),
-        Text(
-          title.toUpperCase(),
-          style: GoogleFonts.outfit(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.0,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildScientificCard(BuildContext context, String title, IconData icon, Color accentColor, String categoryName) {
+  Widget _buildVisualizationAction({
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color color,
+    required bool isLoading,
+    required FutureOr<void> Function() onTap,
+  }) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            // Increased opacity from 0.15 to 0.22 for slightly higher intensity
-            color: accentColor.withOpacity(0.22),
-            blurRadius: 25,
-            spreadRadius: -4,
+            color: color.withOpacity(0.22),
+            blurRadius: 28,
+            spreadRadius: -8,
           ),
         ],
       ),
       child: GlassCard(
-        onTap: () {
-          Navigator.push(context, CupertinoPageRoute(builder: (context) => CategoryDetailScreen(categoryName: categoryName)));
-        },
+        onTap: isLoading
+            ? null
+            : () {
+                onTap();
+              },
         padding: const EdgeInsets.all(22),
         borderRadius: 24,
-        borderColor: accentColor.withOpacity(0.2),
-        backgroundColor: Colors.white.withOpacity(0.04),
+        borderColor: color.withOpacity(0.28),
+        backgroundColor: Colors.white.withOpacity(0.045),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: accentColor.withOpacity(0.2)),
-              ),
-              child: Icon(icon, color: accentColor, size: 24),
+            Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: color.withOpacity(0.25)),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 24,
+                  ),
+                ),
+                const Spacer(),
+                isLoading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CupertinoActivityIndicator(color: Colors.white),
+                      )
+                    : const Icon(
+                        CupertinoIcons.arrow_right_circle_fill,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+              ],
             ),
-            const Spacer(),
+            const SizedBox(height: 22),
             Text(
               title,
               style: GoogleFonts.outfit(
                 color: Colors.white,
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                height: 1.05,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
-              'Live Telemetry',
+              description,
               style: GoogleFonts.outfit(
-                color: accentColor.withOpacity(0.5),
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
+                color: Colors.white.withOpacity(0.58),
+                fontSize: 13,
+                height: 1.35,
               ),
             ),
           ],
@@ -266,19 +351,83 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildMapPreview(Color electricBlue, Color cyanWhite) {
+  Widget _buildQuickAction({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required FutureOr<void> Function() onTap,
+    bool isLoading = false,
+  }) {
+    return GlassCard(
+      onTap: isLoading
+          ? null
+          : () {
+              onTap();
+            },
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      borderRadius: 18,
+      borderColor: color.withOpacity(0.22),
+      backgroundColor: Colors.white.withOpacity(0.035),
+      child: Row(
+        children: [
+          isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CupertinoActivityIndicator(color: Colors.white),
+                )
+              : Icon(icon, color: color, size: 20),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.white60, size: 16),
+        const SizedBox(width: 8),
+        Text(
+          title.toUpperCase(),
+          style: GoogleFonts.outfit(
+            color: Colors.white.withOpacity(0.62),
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMapPreview() {
     return GlassCard(
       padding: EdgeInsets.zero,
-      borderRadius: 24,
-      borderColor: cyanWhite.withOpacity(0.1),
-      child: Container(
-        height: 300,
+      borderRadius: 22,
+      borderColor: _cyanWhite.withOpacity(0.1),
+      child: SizedBox(
+        height: 260,
         child: Stack(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(22),
               child: GoogleMap(
-                initialCameraPosition: CameraPosition(target: _lastTarget, zoom: _lastZoom),
+                initialCameraPosition: CameraPosition(
+                  target: _lastTarget,
+                  zoom: _lastZoom,
+                ),
                 onMapCreated: (controller) => _mapController = controller,
                 onCameraMove: (position) {
                   _lastTarget = position.target;
@@ -296,50 +445,37 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
             Positioned(
               top: 12,
-              left: 12,
+              right: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.black.withOpacity(0.62),
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: Row(
                   children: [
-                    Text('Open in Maps', style: GoogleFonts.outfit(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12)),
-                    const SizedBox(width: 4),
-                    const Icon(CupertinoIcons.arrow_up_right, color: Colors.blue, size: 14),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: _neonGreen,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 7),
+                    Text(
+                      'Drag to fly',
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ],
                 ),
-              ),
-            ),
-            Positioned(
-              top: 12,
-              right: 12,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
-                    const SizedBox(width: 6),
-                    Text('Live Sync', style: GoogleFonts.outfit(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 12,
-              right: 12,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(CupertinoIcons.fullscreen, color: Colors.black54, size: 20),
               ),
             ),
           ],
@@ -348,127 +484,92 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildOrbitButton(Color startColor, Color endColor) {
+  Widget _buildOrbitButton() {
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          colors: [_electricBlue, _neonGreen],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: startColor.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
+            color: _electricBlue.withOpacity(0.24),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [startColor, endColor],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: CupertinoButton(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          onPressed: () => ssh.buildOrbit(),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(CupertinoIcons.arrow_2_circlepath, color: Colors.white),
-              const SizedBox(width: 12),
-              Text('Orbit Location', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
-            ],
-          ),
+      child: CupertinoButton(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        onPressed: () async {
+          await ssh.buildOrbit();
+          _showFeedback('Orbit command sent', true);
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(CupertinoIcons.arrow_2_circlepath, color: Colors.white),
+            const SizedBox(width: 10),
+            Text(
+              'Orbit Current View',
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildTimelineCard(Color electricBlue) {
+  Widget _buildExploreCard(
+    String title,
+    IconData icon,
+    Color color,
+    String categoryName,
+  ) {
     return GlassCard(
-      padding: const EdgeInsets.all(24),
-      borderRadius: 24,
-      borderColor: const Color(0xFFE0F7FA).withOpacity(0.1),
+      onTap: () {
+        Navigator.push(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => CategoryDetailScreen(
+              categoryName: categoryName,
+            ),
+          ),
+        );
+      },
+      padding: const EdgeInsets.all(18),
+      borderRadius: 18,
+      borderColor: color.withOpacity(0.22),
+      backgroundColor: Colors.white.withOpacity(0.035),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Timeline',
-                style: GoogleFonts.outfit(
-                  color: Colors.white70,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                '${_timelineValue.toInt()}',
-                style: GoogleFonts.outfit(
-                  color: electricBlue,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 18),
+          Text(
+            title,
+            style: GoogleFonts.outfit(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-          const SizedBox(height: 12),
-          CupertinoSlider(
-            min: 2000,
-            max: 2026,
-            value: _timelineValue,
-            activeColor: electricBlue,
-            thumbColor: Colors.white,
-            onChanged: (val) => setState(() => _timelineValue = val),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('2000', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 12)),
-              Text('2026', style: GoogleFonts.outfit(color: Colors.white38, fontSize: 12)),
-            ],
+          const SizedBox(height: 3),
+          Text(
+            'Open',
+            style: GoogleFonts.outfit(
+              color: color.withOpacity(0.72),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGuidedStoryButton(Color startColor, Color endColor) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: startColor.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [startColor, endColor],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: CupertinoButton(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          onPressed: () {},
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(CupertinoIcons.play_fill, color: Colors.white),
-              const SizedBox(width: 12),
-              Text('Start Guided Story', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-            ],
-          ),
-        ),
       ),
     );
   }

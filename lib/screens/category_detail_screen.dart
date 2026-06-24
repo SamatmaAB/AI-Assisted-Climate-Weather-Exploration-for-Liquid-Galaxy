@@ -146,7 +146,7 @@ class CategoryDetailScreen extends StatelessWidget {
                     if (categoryName == 'Global Wind Systems') ...[
                       _buildActionItem(
                         title: 'Visualize Indian Monsoon',
-                        subtitle: 'Run analysis and project monsoon KML',
+                        subtitle: 'Load the ready KML and project it to the rig',
                         icon: CupertinoIcons.wind,
                         color: orangeAccent,
                         onTap: () => ssh.visualizeIndianMonsoon(),
@@ -167,7 +167,7 @@ class CategoryDetailScreen extends StatelessWidget {
 
                     _buildActionItem(
                       title: 'Project KML Layer',
-                      subtitle: 'Generate Bezier-arrow KML and send it to Liquid Galaxy',
+                      subtitle: 'Send a prepared KML layer to Liquid Galaxy',
                       icon: CupertinoIcons.device_desktop,
                       color: electricBlue,
                       onTap: () {},
@@ -242,7 +242,7 @@ class CategoryDetailScreen extends StatelessWidget {
                 Icon(CupertinoIcons.chevron_left_slash_chevron_right, color: accent.withOpacity(0.8), size: 18),
                 const SizedBox(width: 12),
                 Text(
-                  'KML GENERATION SPECS',
+                  'KML TRANSFER SPECS',
                   style: GoogleFonts.outfit(
                     color: accent.withOpacity(0.8),
                     fontSize: 12,
@@ -253,14 +253,14 @@ class CategoryDetailScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            _buildSpecRow(CupertinoIcons.graph_square, 'Geometry', 'Bezier Splines'),
+            _buildSpecRow(CupertinoIcons.doc_text, 'Source', 'Ready KML Asset'),
             const SizedBox(height: 18),
             _buildSpecRow(CupertinoIcons.location, 'Markers', 'High-Res Glyphs'),
             const SizedBox(height: 18),
             _buildSpecRow(CupertinoIcons.arrow_2_circlepath, 'Sync', '3 Rig Nodes'),
             const SizedBox(height: 24),
             Text(
-              'High-fidelity vector math used to project accurate environmental flows.',
+              'Prepared KML files are loaded by Flutter and sent directly to the rig.',
               style: GoogleFonts.outfit(
                 color: Colors.white.withOpacity(0.5),
                 fontSize: 14,
