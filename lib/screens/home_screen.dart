@@ -28,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen>
   Timer? _debounce;
   bool _isVisualisingMonsoon = false;
   bool _isVisualisingKuroshio = false;
+  bool _isVisualisingGulfStream = false;
 
   static const _slate950 = Color(0xFF020617);
   static const _electricBlue = Color(0xFF3B82F6);
@@ -95,6 +96,22 @@ class _HomeScreenState extends State<HomeScreen>
     } finally {
       if (mounted) {
         setState(() => _isVisualisingKuroshio = false);
+      }
+    }
+  }
+  Future<void> _visualiseGulfStream() async {
+    if (_isVisualisingGulfStream) return;
+
+    setState(() => _isVisualisingGulfStream = true);
+
+    try {
+      await ssh.visualizeGulfStream();
+      _showFeedback('Gulf Stream sent to Liquid Galaxy', true);
+    } catch (e) {
+      _showFeedback('Could not send Gulf Stream KML', false);
+    } finally {
+      if (mounted) {
+        setState(() => _isVisualisingGulfStream = false);
       }
     }
   }
@@ -180,6 +197,16 @@ class _HomeScreenState extends State<HomeScreen>
                 color: _goldAccent,
                 isLoading: _isVisualisingKuroshio,
                 onTap: _visualiseKuroshioCurrent,
+              ),
+              const SizedBox(height: 16),
+              _buildVisualizationAction(
+                title: 'Visualise Gulf Stream',
+                description:
+                'Loads the pre-generated Gulf Stream KML and overwrites master.kml on Liquid Galaxy.',
+                icon: CupertinoIcons.arrow_2_circlepath,
+                color: Colors.orange,
+                isLoading: _isVisualisingGulfStream,
+                onTap: _visualiseGulfStream,
               ),
               const SizedBox(height: 16),
               _buildQuickAction(
