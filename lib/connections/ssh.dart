@@ -238,7 +238,7 @@ class SSH {
 
   Future<void> shutdownLG() async {
     await initConnectionDetails();
-    await executeCommand('echo "$_passwordOrKey" | sudo -S lg-poweroff');
+    await executeCommand('echo "$_passwordOrKey" | sudo -S poweroff');
   }
 
   Future<void> rebootLG() async {
@@ -246,7 +246,7 @@ class SSH {
     int rigs = int.tryParse(_numberOfRigs) ?? 3;
     for (var i = 1; i <= rigs; i++) {
       await executeCommand(
-          'sshpass -p $_passwordOrKey ssh -t lg@lg$i "lg-reboot"');
+          'sshpass -p $_passwordOrKey ssh -t lg@lg$i "sudo reboot"');
     }
   }
 
