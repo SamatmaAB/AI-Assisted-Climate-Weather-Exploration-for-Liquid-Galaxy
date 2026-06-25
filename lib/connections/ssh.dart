@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +10,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SSH {
   static final SSH _instance = SSH._internal();
+  static int _lastRandomNumber = 2;
+  static int _uploadCounter = 0;
+  static const int _maxUploadsBeforeReconnect = 3;
   factory SSH() => _instance;
   SSH._internal();
 
@@ -103,16 +107,80 @@ class SSH {
     await executeCommand("cat <<'EOF' > /var/www/html/kml/$fileName\n$kml\nEOF");
   }
 
-  Future<void> sendKMLAsset(String assetPath, String targetFileName) async {
+  Future<void> uploadKML(
+      String content,
+      String fileName,
+      ) async {
+    if (_client == null || !isConnected.value) {
+      bool connected = await connectToLG();
+      if (!connected) {
+        throw Exception('Not connected to LG');
+      }
+    }
+
+    _uploadCounter++;
+    if (_uploadCounter >= _maxUploadsBeforeReconnect) {
+      _uploadCounter = 0;
+      _client?.close();
+      _client = null;
+      isConnected.value = false;
+
+      bool connected = await connectToLG();
+      if (!connected) {
+        throw Exception('Failed to reconnect');
+      }
+    }
+
+    _lastRandomNumber = _lastRandomNumber == 1 ? 2 : 1;
+
+    final fileNameWithRandom = fileName.replaceAll(
+      '.kml',
+      '_$_lastRandomNumber.kml',
+    );
+
+    final sftp = await _client!.sftp();
+
+    final file = await sftp.open(
+      '/var/www/html/$fileNameWithRandom',
+      mode:
+      SftpFileOpenMode.truncate |
+      SftpFileOpenMode.create |
+      SftpFileOpenMode.write,
+    );
+
+    final bytes = Uint8List.fromList(
+      utf8.encode(content),
+    );
+
+    await file.write(
+      Stream.fromIterable([bytes]),
+      offset: 0,
+    );
+
+    await file.close();
+
+    await executeCommand(
+      'echo "http://$_host:81/$fileNameWithRandom" > /var/www/html/kmls.txt',
+    );
+
+    await refreshKML();
+  }
+
+  Future<void> sendKMLAsset(
+      String assetPath,
+      String targetFileName,
+      ) async {
     final kml = await rootBundle.loadString(assetPath);
-    await _sendKML(kml, targetFileName);
+    await uploadKML(kml, targetFileName);
   }
 
-  Future<void> sendKMLFromFile(String path, String targetFileName) async {
+  Future<void> sendKMLFromFile(
+      String path,
+      String targetFileName,
+      ) async {
     final kml = await File(path).readAsString();
-    await _sendKML(kml, targetFileName);
+    await uploadKML(kml, targetFileName);
   }
-
   Future<void> flyTo(String lookAt) async {
     await executeCommand('echo "flytoview=$lookAt" > /tmp/query.txt');
   }
@@ -132,9 +200,9 @@ class SSH {
   }
 
   Future<void> clearKML() async {
-    String emptyKML =
-        '<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document></Document></kml>';
-    await _sendKML(emptyKML, 'master.kml');
+    await executeCommand(
+      'echo "" > /var/www/html/kmls.txt',
+    );
     await refreshKML();
   }
 
@@ -170,7 +238,7 @@ class SSH {
 
   Future<void> shutdownLG() async {
     await initConnectionDetails();
-    await executeCommand('echo "$_passwordOrKey" | sudo -S poweroff');
+    await executeCommand('echo "$_passwordOrKey" | sudo -S lg-poweroff');
   }
 
   Future<void> rebootLG() async {
@@ -178,7 +246,7 @@ class SSH {
     int rigs = int.tryParse(_numberOfRigs) ?? 3;
     for (var i = 1; i <= rigs; i++) {
       await executeCommand(
-          'sshpass -p $_passwordOrKey ssh -t lg@lg$i "sudo reboot"');
+          'sshpass -p $_passwordOrKey ssh -t lg@lg$i "lg-reboot"');
     }
   }
 
@@ -199,24 +267,33 @@ class SSH {
   }
 
   Future<bool> cleanVisualization() async {
-    return await executeCommand('> /var/www/html/kmls.txt');
-  }
+    bool result =
+    await executeCommand('echo "" > /var/www/html/kmls.txt');
 
+    if (result) {
+      await refreshKML();
+    }
+
+    return result;
+  }
   Future<void> cleanSlaves() async {
     await clearLogo();
   }
 
   Future<void> visualizeIndianMonsoon() async {
     await stopTour();
+    await Future.delayed(
+      const Duration(milliseconds: 200),
+    );
     await cleanVisualization();
+    await Future.delayed(
+      const Duration(milliseconds: 100),
+    );
     await cleanSlaves();
-    await clearKML();
-
     await sendKMLAsset(
       'assets/kml/indian_monsoon.kml',
-      'master.kml',
+      'indian_monsoon.kml',
     );
-
     String lookAt =
         '<LookAt><longitude>78.9629</longitude><latitude>20.5937</latitude><altitude>0</altitude><heading>0</heading><tilt>45</tilt><range>5000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>';
 
@@ -227,13 +304,18 @@ class SSH {
 
   Future<void> visualizeKuroshioCurrent() async {
     await stopTour();
+    await Future.delayed(
+      const Duration(milliseconds: 200),
+    );
     await cleanVisualization();
+    await Future.delayed(
+      const Duration(milliseconds: 100),
+    );
     await cleanSlaves();
-    await clearKML();
 
     await sendKMLAsset(
       'assets/kml/kuroshio_current.kml',
-      'master.kml',
+      'kuroshio_current.kml',
     );
 
     String lookAt =
