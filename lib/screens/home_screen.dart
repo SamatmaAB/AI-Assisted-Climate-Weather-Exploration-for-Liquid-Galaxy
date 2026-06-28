@@ -9,6 +9,8 @@ import 'package:lg_connection/connections/ssh.dart';
 import 'package:lg_connection/screens/category_detail_screen.dart';
 import 'package:lg_connection/screens/chatbot_screen.dart';
 
+import 'package:lg_connection/services/gemini_service.dart';
+import 'package:lg_connection/services/climate_cache_service.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -29,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen>
   Timer? _debounce;
   bool _isVisualisingMonsoon = false;
   bool _isVisualisingKuroshio = false;
+  bool _isVisualisingGulfStream = false;
 
   static const _slate950 = Color(0xFF020617);
   static const _electricBlue = Color(0xFF3B82F6);
@@ -67,35 +70,269 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
+  void _showAiLoading() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        backgroundColor: _slate950,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            children: [
+              const CupertinoActivityIndicator(
+                color: _electricBlue,
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Text(
+                  'Generating climate explanation...',
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  Future<String> _getClimateInfo(
+      String phenomenon,
+      ) async {
+    final cached =
+    await ClimateCacheService.get(
+      phenomenon,
+    );
+
+    if (cached != null) {
+      return cached;
+    }
+    try{
+    _showAiLoading();
+    final text =
+    await GeminiService().ask(
+      '''
+You are an Earth Systems Observatory assistant.
+
+Explain the following phenomenon:
+
+$phenomenon
+
+Include:
+• What it is
+• How it works
+• Why it is important
+• Its impact on weather and climate.
+
+Keep the explanation under 200 words and easy to understand.
+''',
+    );
+
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+
+    await ClimateCacheService.save(
+      phenomenon,
+      text,
+    );
+
+    return text;
+  }
+    catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      rethrow;
+    }}
+
+  Future<void> _showClimatePopup(
+      String title,
+      String text,
+      ) async {
+    if (!mounted) return;
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: _slate950,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(30),
+        ),
+      ),
+      builder: (_) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.55,
+          maxChildSize: 0.85,
+          builder: (context, controller) {
+            return Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 45,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius:
+                        BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    title,
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+            Expanded(
+            child: GlassCard(
+            padding: const EdgeInsets.all(18),
+            borderRadius: 22,
+            borderColor:
+            Colors.white.withOpacity(0.08),
+            backgroundColor:
+            Colors.white.withOpacity(0.03),
+            child: SingleChildScrollView(
+                      controller: controller,
+                      child: Text(
+                        text,
+                        style: GoogleFonts.outfit(
+                          color: Colors.white70,
+                          fontSize: 16,
+                          height: 1.7,
+                        ),
+                      ),),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   Future<void> _visualiseIndianMonsoon() async {
     if (_isVisualisingMonsoon) return;
 
     setState(() => _isVisualisingMonsoon = true);
+
     try {
       await ssh.visualizeIndianMonsoon();
-      _showFeedback('Indian Monsoon sent to Liquid Galaxy', true);
+
+      _showFeedback(
+        'Indian Monsoon sent to Liquid Galaxy',
+        true,
+      );
+
+      final text =
+      await _getClimateInfo(
+        'Indian Monsoon',
+      );
+
+      await _showClimatePopup(
+        'Indian Monsoon',
+        text,
+      );
     } catch (e) {
-      _showFeedback('Could not send Indian Monsoon KML', false);
+      _showFeedback(
+        'Could not send Indian Monsoon KML',
+        false,
+      );
     } finally {
       if (mounted) {
-        setState(() => _isVisualisingMonsoon = false);
+        setState(
+              () => _isVisualisingMonsoon = false,
+        );
       }
     }
   }
-
   Future<void> _visualiseKuroshioCurrent() async {
     if (_isVisualisingKuroshio) return;
 
     setState(() => _isVisualisingKuroshio = true);
+
     try {
       await ssh.visualizeKuroshioCurrent();
-      _showFeedback('Kuroshio Current sent to Liquid Galaxy', true);
+
+      _showFeedback(
+        'Kuroshio Current sent to Liquid Galaxy',
+        true,
+      );
+
+      final text =
+      await _getClimateInfo(
+        'Kuroshio Current',
+      );
+
+      await _showClimatePopup(
+        'Kuroshio Current',
+        text,
+      );
     } catch (e) {
-      _showFeedback('Could not send Kuroshio KML', false);
+      _showFeedback(
+        'Could not send Kuroshio KML',
+        false,
+      );
     } finally {
       if (mounted) {
-        setState(() => _isVisualisingKuroshio = false);
+        setState(
+              () => _isVisualisingKuroshio = false,
+        );
+      }
+    }
+  }
+
+  Future<void> _visualiseGulfStream() async {
+    if (_isVisualisingGulfStream) return;
+
+    setState(() => _isVisualisingGulfStream = true);
+
+    try {
+      await ssh.visualizeGulfStream();
+
+      _showFeedback(
+        'Gulf Stream sent to Liquid Galaxy',
+        true,
+      );
+
+      final text =
+      await _getClimateInfo(
+        'Gulf Stream',
+      );
+
+      await _showClimatePopup(
+        'Gulf Stream',
+        text,
+      );
+    } catch (e) {
+      _showFeedback(
+        'Could not send Gulf Stream KML',
+        false,
+      );
+    } finally {
+      if (mounted) {
+        setState(
+              () => _isVisualisingGulfStream = false,
+        );
       }
     }
   }
@@ -187,6 +424,16 @@ class _HomeScreenState extends State<HomeScreen>
                 color: _goldAccent,
                 isLoading: _isVisualisingKuroshio,
                 onTap: _visualiseKuroshioCurrent,
+              ),
+              const SizedBox(height: 16),
+              _buildVisualizationAction(
+                title: 'Visualise Gulf Stream',
+                description:
+                'Loads the pre-generated Gulf Stream KML and overwrites master.kml on Liquid Galaxy.',
+                icon: CupertinoIcons.arrow_2_circlepath,
+                color: Colors.orange,
+                isLoading: _isVisualisingGulfStream,
+                onTap: _visualiseGulfStream,
               ),
               const SizedBox(height: 16),
               _buildQuickAction(
