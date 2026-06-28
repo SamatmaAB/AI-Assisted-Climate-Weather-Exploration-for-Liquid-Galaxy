@@ -1,15 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:lg_connection/models/qa_item.dart';
 import 'package:lg_connection/screens/main_container.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
+
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
-  ]).then((_) {
-    runApp(const MyApp());
-  });
+  ]);
+
+  // Initialize Hive
+  await Hive.initFlutter();
+
+  // Register adapters
+  Hive.registerAdapter(QAItemAdapter());
+
+  // Open boxes
+  await Hive.openBox<QAItem>('qaBox');
+  await Hive.openBox('settingsBox');
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

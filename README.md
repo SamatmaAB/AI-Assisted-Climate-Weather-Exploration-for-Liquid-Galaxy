@@ -71,13 +71,4 @@ Designed as a planetary command center, the application enables:
    flutter run
    ```
 
-## 📝 Credits & Acknowledgments
 
-This project was developed as part of the **Google Summer of Code 2026** program for the **Liquid Galaxy project**.
-
-- **Organization:** [Liquid Galaxy Project](https://www.liquidgalaxy.eu/)
-- **Data Providers:** NOAA & NASA
-- **Design:** Powered by Outfit and Cupertino design systems.
-
----
-*Precision planetary monitoring and immersive data visualization.*
