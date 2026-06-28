@@ -125,14 +125,20 @@ class _HomeScreenState extends State<HomeScreen>
             physics: const BouncingScrollPhysics(),
             children: [
               const SizedBox(height: 28),
-              ValueListenableBuilder<bool>(
-                valueListenable: ssh.isConnected,
-                builder: (context, connected, child) {
-                  return _buildLiveStatus(
-                    connected ? _neonGreen : _criticalRed,
-                    connected,
-                  );
-                },
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ValueListenableBuilder<bool>(
+                    valueListenable: ssh.isConnected,
+                    builder: (context, connected, child) {
+                      return _buildLiveStatus(
+                        connected ? _neonGreen : _criticalRed,
+                        connected,
+                      );
+                    },
+                  ),
+                  _buildChatbotEntryButton(),
+                ],
               ),
               const SizedBox(height: 18),
               Text(
@@ -184,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               const SizedBox(height: 16),
               _buildQuickAction(
-                label: 'Clear',
+                label: 'Clear All Layers',
                 icon: CupertinoIcons.trash,
                 color: _criticalRed,
                 onTap: () async {
@@ -222,20 +228,10 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ],
               ),
-              const SizedBox(height: 130),
+              const SizedBox(height: 140),
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            CupertinoPageRoute(builder: (context) => const ChatbotScreen()),
-          );
-        },
-        backgroundColor: _electricBlue,
-        child: const Icon(CupertinoIcons.sparkles, color: Colors.white),
       ),
     );
   }
@@ -263,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         const SizedBox(width: 10),
         Text(
-          connected ? 'RIG CONNECTED' : 'CONNECT IN SETTINGS',
+          connected ? 'RIG CONNECTED' : 'OFFLINE',
           style: GoogleFonts.outfit(
             color: statusColor,
             fontSize: 11,
@@ -272,6 +268,40 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildChatbotEntryButton() {
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      onPressed: () {
+        Navigator.push(
+          context,
+          CupertinoPageRoute(builder: (context) => const ChatbotScreen()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: _electricBlue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: _electricBlue.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            const Icon(CupertinoIcons.sparkles, color: _electricBlue, size: 16),
+            const SizedBox(width: 8),
+            Text(
+              'Climate AI',
+              style: GoogleFonts.outfit(
+                color: _electricBlue,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

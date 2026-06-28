@@ -13,7 +13,9 @@ class SSH {
   static int _lastRandomNumber = 2;
   static int _uploadCounter = 0;
   static const int _maxUploadsBeforeReconnect = 3;
+
   factory SSH() => _instance;
+
   SSH._internal();
 
   late String _host;
@@ -104,13 +106,12 @@ class SSH {
 
   Future<void> _sendKML(String kml, String fileName) async {
     // Robustly write multi-line KML content using a heredoc.
-    await executeCommand("cat <<'EOF' > /var/www/html/kml/$fileName\n$kml\nEOF");
+    await executeCommand(
+        "cat <<'EOF' > /var/www/html/kml/$fileName\n$kml\nEOF");
   }
 
-  Future<void> uploadKML(
-      String content,
-      String fileName,
-      ) async {
+  Future<void> uploadKML(String content,
+      String fileName,) async {
     if (_client == null || !isConnected.value) {
       bool connected = await connectToLG();
       if (!connected) {
@@ -166,21 +167,18 @@ class SSH {
     await refreshKML();
   }
 
-  Future<void> sendKMLAsset(
-      String assetPath,
-      String targetFileName,
-      ) async {
+  Future<void> sendKMLAsset(String assetPath,
+      String targetFileName,) async {
     final kml = await rootBundle.loadString(assetPath);
     await uploadKML(kml, targetFileName);
   }
 
-  Future<void> sendKMLFromFile(
-      String path,
-      String targetFileName,
-      ) async {
+  Future<void> sendKMLFromFile(String path,
+      String targetFileName,) async {
     final kml = await File(path).readAsString();
     await uploadKML(kml, targetFileName);
   }
+
   Future<void> flyTo(String lookAt) async {
     await executeCommand('echo "flytoview=$lookAt" > /tmp/query.txt');
   }
@@ -276,6 +274,7 @@ class SSH {
 
     return result;
   }
+
   Future<void> cleanSlaves() async {
     await clearLogo();
   }
@@ -320,6 +319,41 @@ class SSH {
 
     String lookAt =
         '<LookAt><longitude>135.0</longitude><latitude>35.0</latitude><altitude>0</altitude><heading>0</heading><tilt>30</tilt><range>4000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>';
+
+    await flyTo(lookAt);
+
+    await refreshKML();
+  }
+
+
+  Future<void> visualizeGulfStream() async {
+    await stopTour();
+    await Future.delayed(
+      const Duration(milliseconds: 200),
+    );
+
+    await cleanVisualization();
+    await Future.delayed(
+      const Duration(milliseconds: 100),
+    );
+
+    await cleanSlaves();
+
+    await sendKMLAsset(
+      'assets/kml/gulf_stream.kml',
+      'gulf_stream.kml',
+    );
+
+    String lookAt =
+        '<LookAt>'
+        '<longitude>-50.0</longitude>'
+        '<latitude>40.0</latitude>'
+        '<altitude>0</altitude>'
+        '<heading>0</heading>'
+        '<tilt>35</tilt>'
+        '<range>7000000</range>'
+        '<gx:altitudeMode>relativeToGround</gx:altitudeMode>'
+        '</LookAt>';
 
     await flyTo(lookAt);
 

@@ -13,9 +13,10 @@ class ChatbotScreen extends StatefulWidget {
 
 class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final List<Map<String, dynamic>> _messages = [
     {
-      'text': 'Hello! I am your Earth Systems assistant. How can I help you explore climate patterns today?',
+      'text': 'Hello! I am your Earth Systems assistant. I can help you visualize climate patterns on your Liquid Galaxy rig. How can I assist you today?',
       'isUser': false,
     },
   ];
@@ -23,28 +24,54 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   static const _slate950 = Color(0xFF020617);
   static const _electricBlue = Color(0xFF3B82F6);
   static const _neonGreen = Color(0xFF22C55E);
+  static const _deepBlue = Color(0xFF1E3A8A);
 
-  void _sendMessage() {
-    if (_messageController.text.trim().isEmpty) return;
+  void _sendMessage({String? text}) {
+    final messageText = text ?? _messageController.text.trim();
+    if (messageText.isEmpty) return;
 
     setState(() {
       _messages.add({
-        'text': _messageController.text,
+        'text': messageText,
         'isUser': true,
       });
-      _messageController.clear();
+      if (text == null) _messageController.clear();
       
-      // Mock response
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          setState(() {
-            _messages.add({
-              'text': 'I am analyzing the atmospheric data. I can help you project KML layers like the Indian Monsoon or Kuroshio Current onto your Liquid Galaxy rig.',
-              'isUser': false,
-            });
-          });
+      // Auto-scroll to bottom
+      _scrollToBottom();
+      
+      // Mock response logic
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!mounted) return;
+        String response = 'I am processing your request. ';
+        if (messageText.toLowerCase().contains('monsoon')) {
+          response = 'The Indian Monsoon is a critical weather system. I can help you project its KML visualization to the Liquid Galaxy.';
+        } else if (messageText.toLowerCase().contains('current')) {
+          response = 'Ocean currents like the Kuroshio Current regulate global temperatures. Would you like to see its path?';
+        } else {
+          response = 'I can help you explore atmospheric and oceanic data. Try asking about the Monsoon or Kuroshio Current.';
         }
+
+        setState(() {
+          _messages.add({
+            'text': response,
+            'isUser': false,
+          });
+        });
+        _scrollToBottom();
       });
+    });
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -52,77 +79,146 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _slate950,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(80),
-        child: ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: AppBar(
-              backgroundColor: Colors.white.withOpacity(0.02),
-              elevation: 0,
-              centerTitle: false,
-              leading: CupertinoButton(
-                child: const Icon(CupertinoIcons.chevron_back, color: Colors.white),
+      body: Stack(
+        children: [
+          // Background Glows
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                color: _electricBlue.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80), child: Container()),
+            ),
+          ),
+          
+          Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    final message = _messages[index];
+                    return _buildChatBubble(message['text'], message['isUser']);
+                  },
+                ),
+              ),
+              _buildSuggestions(),
+              _buildMessageInput(),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10, bottom: 15, left: 10, right: 20),
+          color: Colors.white.withOpacity(0.02),
+          child: Row(
+            children: [
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                child: const Icon(CupertinoIcons.chevron_back, color: Colors.white, size: 28),
                 onPressed: () => Navigator.pop(context),
               ),
-              title: Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [_electricBlue, _neonGreen],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(CupertinoIcons.sparkles, color: Colors.white, size: 20),
+              const SizedBox(width: 5),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [_electricBlue, _neonGreen],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(color: _electricBlue.withOpacity(0.3), blurRadius: 10, spreadRadius: 2),
+                  ],
+                ),
+                child: const Icon(CupertinoIcons.sparkles, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 15),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Climate AI',
+                    style: GoogleFonts.outfit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  Row(
                     children: [
-                      Text(
-                        'Climate AI',
-                        style: GoogleFonts.outfit(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(color: _neonGreen, shape: BoxShape.circle),
                       ),
+                      const SizedBox(width: 6),
                       Text(
-                        'Assistant is active',
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          color: _neonGreen,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        'Live Analysis Active',
+                        style: GoogleFonts.outfit(fontSize: 12, color: _neonGreen.withOpacity(0.8), fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
                 ],
               ),
-            ),
+            ],
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20),
-              physics: const BouncingScrollPhysics(),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _buildChatBubble(message['text'], message['isUser']);
-              },
+    );
+  }
+
+  Widget _buildSuggestions() {
+    final suggestions = ['Indian Monsoon', 'Kuroshio Current', 'Clear Rig', 'Help'];
+    return Container(
+      height: 45,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: suggestions.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: GestureDetector(
+              onTap: () => _sendMessage(text: 'Tell me about ${suggestions[index]}'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                ),
+                child: Center(
+                  child: Text(
+                    suggestions[index],
+                    style: GoogleFonts.outfit(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
             ),
-          ),
-          _buildMessageInput(),
-        ],
+          );
+        },
       ),
     );
   }
@@ -131,23 +227,32 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        child: GlassCard(
-          padding: const EdgeInsets.all(16),
-          borderRadius: 20,
-          borderColor: isUser ? _electricBlue.withOpacity(0.3) : Colors.white.withOpacity(0.05),
-          backgroundColor: isUser ? _electricBlue.withOpacity(0.1) : Colors.white.withOpacity(0.02),
-          child: Text(
-            text,
-            style: GoogleFonts.outfit(
-              color: Colors.white.withOpacity(0.9),
-              fontSize: 15,
-              height: 1.4,
+        margin: const EdgeInsets.only(bottom: 18),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+        child: Column(
+          crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            GlassCard(
+              padding: const EdgeInsets.all(16),
+              borderRadius: 22,
+              borderColor: isUser ? _electricBlue.withOpacity(0.4) : Colors.white.withOpacity(0.08),
+              backgroundColor: isUser ? _electricBlue.withOpacity(0.15) : Colors.white.withOpacity(0.04),
+              child: Text(
+                text,
+                style: GoogleFonts.outfit(
+                  color: Colors.white.withOpacity(0.95),
+                  fontSize: 15,
+                  height: 1.45,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
             ),
-          ),
+            const SizedBox(height: 4),
+            Text(
+              isUser ? 'You' : 'AI Assistant',
+              style: GoogleFonts.outfit(color: Colors.white30, fontSize: 10, fontWeight: FontWeight.w500),
+            ),
+          ],
         ),
       ),
     );
@@ -155,31 +260,29 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   Widget _buildMessageInput() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+      padding: EdgeInsets.fromLTRB(20, 10, 20, MediaQuery.of(context).padding.bottom + 15),
       decoration: BoxDecoration(
         color: _slate950,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 25, offset: const Offset(0, -5)),
         ],
       ),
       child: Row(
         children: [
           Expanded(
-            child: GlassCard(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              borderRadius: 30,
-              borderColor: Colors.white.withOpacity(0.1),
-              backgroundColor: Colors.white.withOpacity(0.05),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.04),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
+              ),
               child: TextField(
                 controller: _messageController,
                 style: GoogleFonts.outfit(color: Colors.white),
                 decoration: InputDecoration(
-                  hintText: 'Ask about climate...',
-                  hintStyle: GoogleFonts.outfit(color: Colors.white38),
+                  hintText: 'Ask your climate assistant...',
+                  hintStyle: GoogleFonts.outfit(color: Colors.white24, fontSize: 14),
                   border: InputBorder.none,
                 ),
                 onSubmitted: (_) => _sendMessage(),
@@ -188,13 +291,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           ),
           const SizedBox(width: 12),
           GestureDetector(
-            onTap: _sendMessage,
+            onTap: () => _sendMessage(),
             child: Container(
-              width: 54,
-              height: 54,
-              decoration: const BoxDecoration(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
                 color: _electricBlue,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: _electricBlue.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
               ),
               child: const Icon(CupertinoIcons.paperplane_fill, color: Colors.white, size: 22),
             ),
