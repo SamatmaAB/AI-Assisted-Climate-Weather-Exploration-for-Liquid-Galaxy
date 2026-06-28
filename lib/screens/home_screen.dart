@@ -7,6 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lg_connection/components/glass_card.dart';
 import 'package:lg_connection/connections/ssh.dart';
 import 'package:lg_connection/screens/category_detail_screen.dart';
+import 'package:lg_connection/screens/chatbot_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -225,6 +226,16 @@ class _HomeScreenState extends State<HomeScreen>
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            CupertinoPageRoute(builder: (context) => const ChatbotScreen()),
+          );
+        },
+        backgroundColor: _electricBlue,
+        child: const Icon(CupertinoIcons.sparkles, color: Colors.white),
       ),
     );
   }

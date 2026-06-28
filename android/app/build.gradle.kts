@@ -20,6 +20,10 @@ android {
         jvmTarget = "17"
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.example.lgconnectionfinal"
         minSdk = flutter.minSdkVersion
