@@ -56,7 +56,7 @@ Designed as a planetary command center, the application enables:
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/shrinivas-v/AI-Assisted-Climate-Weather-Exploration-for-Liquid-Galaxy.git
+   git clone https://github.com/SamatmaAB/AI-Assisted-Climate-Weather-Exploration-for-Liquid-Galaxy.git
    ```
 2. Navigate to the project directory:
    ```bash
