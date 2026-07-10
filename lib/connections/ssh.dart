@@ -178,11 +178,16 @@ class SSH {
     final kml = await File(path).readAsString();
     await uploadKML(kml, targetFileName);
   }
-
   Future<void> flyTo(String lookAt) async {
-    await executeCommand('echo "flytoview=$lookAt" > /tmp/query.txt');
-  }
+    final command = 'echo "flytoview=$lookAt" > /tmp/query.txt';
 
+    debugPrint("========== FLY TO ==========");
+    debugPrint(command);
+
+    final result = await executeCommand(command);
+
+    debugPrint("FlyTo Success: $result");
+  }
   Future<void> flyToCoordinates(double latitude, double longitude, double zoom,
       double tilt, double bearing) async {
     double range = 591657550.5 / pow(2, zoom - 1);
@@ -293,12 +298,14 @@ class SSH {
       'assets/kml/indian_monsoon.kml',
       'indian_monsoon.kml',
     );
+    await Future.delayed(
+      const Duration(milliseconds: 500),
+    );
     String lookAt =
         '<LookAt><longitude>78.9629</longitude><latitude>20.5937</latitude><altitude>0</altitude><heading>0</heading><tilt>45</tilt><range>5000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>';
 
     await flyTo(lookAt);
 
-    await refreshKML();
   }
 
   Future<void> visualizeKuroshioCurrent() async {
@@ -316,13 +323,14 @@ class SSH {
       'assets/kml/kuroshio_current.kml',
       'kuroshio_current.kml',
     );
-
+    await Future.delayed(
+      const Duration(milliseconds: 500),
+    );
     String lookAt =
         '<LookAt><longitude>135.0</longitude><latitude>35.0</latitude><altitude>0</altitude><heading>0</heading><tilt>30</tilt><range>4000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>';
 
     await flyTo(lookAt);
 
-    await refreshKML();
   }
 
 
@@ -343,7 +351,9 @@ class SSH {
       'assets/kml/gulf_stream.kml',
       'gulf_stream.kml',
     );
-
+    await Future.delayed(
+      const Duration(milliseconds: 500),
+    );
     String lookAt =
         '<LookAt>'
         '<longitude>-50.0</longitude>'
@@ -357,6 +367,5 @@ class SSH {
 
     await flyTo(lookAt);
 
-    await refreshKML();
   }
 }
