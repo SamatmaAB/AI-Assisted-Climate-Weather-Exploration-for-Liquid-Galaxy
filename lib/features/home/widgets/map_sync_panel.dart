@@ -3,19 +3,26 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lg_connection/core/common_widgets/glass_card.dart';
 import 'package:lg_connection/core/theme/app_colors.dart';
+import 'package:lg_connection/shared/services/map_sync_service.dart';
 
-/// A panel containing a Google Map preview that syncs its camera to Liquid Galaxy.
-class MapSyncPanel extends StatelessWidget {
+/// A panel containing a Google Map preview that is read-only and syncs its camera
+/// dynamically to follow Liquid Galaxy updates.
+class MapSyncPanel extends StatefulWidget {
   final LatLng initialTarget;
   final double initialZoom;
-  final ArgumentCallback<CameraPosition> onCameraMove;
 
   const MapSyncPanel({
     super.key,
     required this.initialTarget,
     required this.initialZoom,
-    required this.onCameraMove,
   });
+
+  @override
+  State<MapSyncPanel> createState() => _MapSyncPanelState();
+}
+
+class _MapSyncPanelState extends State<MapSyncPanel> {
+  final MapSyncService _mapSyncService = MapSyncService();
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +38,22 @@ class MapSyncPanel extends StatelessWidget {
               borderRadius: BorderRadius.circular(22),
               child: GoogleMap(
                 initialCameraPosition: CameraPosition(
-                  target: initialTarget,
-                  zoom: initialZoom,
+                  target: widget.initialTarget,
+                  zoom: widget.initialZoom,
                 ),
-                onCameraMove: onCameraMove,
                 mapType: MapType.satellite,
                 myLocationButtonEnabled: false,
                 zoomControlsEnabled: false,
                 compassEnabled: false,
                 mapToolbarEnabled: false,
+                // Disable all map gestures to make it strictly read-only
+                rotateGesturesEnabled: false,
+                scrollGesturesEnabled: false,
+                tiltGesturesEnabled: false,
+                zoomGesturesEnabled: false,
+                onMapCreated: (controller) {
+                  _mapSyncService.setMapController(controller);
+                },
               ),
             ),
             Positioned(
@@ -60,13 +74,13 @@ class MapSyncPanel extends StatelessWidget {
                       width: 6,
                       height: 6,
                       decoration: const BoxDecoration(
-                        color: AppColors.neonGreen,
+                        color: AppColors.electricBlue,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 7),
                     Text(
-                      'Drag to fly',
+                      'Galaxy Sync Active',
                       style: GoogleFonts.outfit(
                         color: Colors.white,
                         fontSize: 11,
@@ -81,5 +95,11 @@ class MapSyncPanel extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _mapSyncService.setMapController(null);
+    super.dispose();
   }
 }

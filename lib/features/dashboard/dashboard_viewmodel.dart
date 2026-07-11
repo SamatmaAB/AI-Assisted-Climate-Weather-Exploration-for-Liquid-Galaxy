@@ -2,10 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
+import 'package:lg_connection/shared/services/map_sync_service.dart';
 
 /// ViewModel for managing dashboard and category-specific actions.
 class DashboardViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
+  final MapSyncService _mapSyncService = MapSyncService();
 
   /// Visualizes the Indian Monsoon on Liquid Galaxy.
   Future<void> visualizeIndianMonsoon() async {
@@ -27,7 +29,7 @@ class DashboardViewModel extends ChangeNotifier {
 
   /// Commands the rig to fly to a specific KML LookAt string.
   Future<void> flyTo(String lookAt) async {
-    await _sshClient.runCommand(SSHCommands.flyTo(lookAt));
+    await _mapSyncService.flyToLookAt(lookAt);
   }
 
   /// Clears all KML layers from the rig.
@@ -57,6 +59,6 @@ class DashboardViewModel extends ChangeNotifier {
     await _sshClient.runCommand(SSHCommands.refreshKML());
     
     await Future.delayed(const Duration(milliseconds: 500));
-    await _sshClient.runCommand(SSHCommands.flyTo(lookAt));
+    await _mapSyncService.flyToLookAt(lookAt);
   }
 }

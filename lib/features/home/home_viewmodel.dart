@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -6,48 +5,24 @@ import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
 import 'package:lg_connection/shared/services/ai_service.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
+import 'package:lg_connection/shared/services/map_sync_service.dart';
 
 /// ViewModel for the Home Screen, managing state and business logic.
 class HomeViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final AIService _aiService = AIService();
+  final MapSyncService _mapSyncService = MapSyncService();
 
-  // Map State
-  LatLng lastTarget = const LatLng(20.5937, 78.9629);
-  double lastZoom = 4;
-  double lastTilt = 0;
-  double lastBearing = 0;
-  Timer? _debounce;
-
-  // Loading States for Visualizations
-  bool isVisualisingMonsoon = false;
-  bool isVisualisingKuroshio = false;
-  bool isVisualisingGulfStream = false;
+  // Map State - Delegated to MapSyncService
+  LatLng get lastTarget => _mapSyncService.lastTarget;
+  double get lastZoom => _mapSyncService.lastZoom;
+  double get lastTilt => _mapSyncService.lastTilt;
+  double get lastBearing => _mapSyncService.lastBearing;
 
   ValueListenable<bool> get isConnected => _sshClient.isConnected;
 
-  /// Updates the camera position and triggers a debounced sync to Liquid Galaxy.
-  void updateCameraPosition(CameraPosition position) {
-    lastTarget = position.target;
-    lastZoom = position.zoom;
-    lastTilt = position.tilt;
-    lastBearing = position.bearing;
-    _syncToLG();
-  }
-
-  void _syncToLG() {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 350), () {
-      _sshClient.runCommand(
-        SSHCommands.flyToCoordinates(
-          lastTarget.latitude,
-          lastTarget.longitude,
-          lastZoom,
-          lastTilt,
-          lastBearing,
-        ),
-      );
-    });
+  HomeViewModel() {
+    _mapSyncService.addListener(notifyListeners);
   }
 
   /// Commands the Liquid Galaxy to orbit the current view.
@@ -121,6 +96,11 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
+  // Loading States for Visualizations
+  bool isVisualisingMonsoon = false;
+  bool isVisualisingKuroshio = false;
+  bool isVisualisingGulfStream = false;
+
   /// Orchestrates the process of stopping tours, clearing old KMLs, uploading new ones, and flying to the location.
   Future<void> _runVisualizationSequence({
     required String assetPath,
@@ -134,8 +114,6 @@ class HomeViewModel extends ChangeNotifier {
     
     // Upload KML
     final kmlContent = await rootBundle.loadString(assetPath);
-    // In original code, it was uploaded to /var/www/html/ and also kmls.txt was updated.
-    // Replicating that behavior via LGSSHClient.
     await _sshClient.uploadFile(
       content: kmlContent,
       targetPath: '/var/www/html/$fileName',
@@ -145,12 +123,12 @@ class HomeViewModel extends ChangeNotifier {
     await _sshClient.runCommand(SSHCommands.refreshKML());
     
     await Future.delayed(const Duration(milliseconds: 500));
-    await _sshClient.runCommand(SSHCommands.flyTo(lookAt));
+    await _mapSyncService.flyToLookAt(lookAt);
   }
 
   @override
   void dispose() {
-    _debounce?.cancel();
+    _mapSyncService.removeListener(notifyListeners);
     super.dispose();
   }
 }
