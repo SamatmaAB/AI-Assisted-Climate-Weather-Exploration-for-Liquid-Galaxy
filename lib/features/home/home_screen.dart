@@ -227,7 +227,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 MapSyncPanel(
                   initialTarget: _viewModel.lastTarget,
                   initialZoom: _viewModel.lastZoom,
-                  onCameraMove: _viewModel.updateCameraPosition,
                 ),
                 const SizedBox(height: 16),
                 _buildOrbitButton(),
