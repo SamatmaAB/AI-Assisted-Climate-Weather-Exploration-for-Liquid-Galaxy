@@ -19,6 +19,18 @@ class LGSSHClient {
   late String _port;
   late String _username;
   late String _passwordOrKey;
+  late int _numberOfRigs;
+
+  Timer? _heartbeatTimer;
+  int _reconnectAttempts = 0;
+  static const int _maxReconnectAttempts = 3;
+
+  /// Exposes the number of configured LG screens (read from SharedPreferences).
+  int get numberOfRigs => _numberOfRigs;
+
+  /// Exposes the configured password so ViewModels can build sudo commands for
+  /// slave rigs (e.g. shutdown, reboot, force-refresh via myplaces.kml).
+  String get password => _passwordOrKey;
 
   /// Initializes connection details from SharedPreferences.
   Future<void> initConnectionDetails() async {
@@ -27,6 +39,8 @@ class LGSSHClient {
     _port = prefs.getString('sshPort') ?? '22';
     _username = prefs.getString('username') ?? 'lg';
     _passwordOrKey = prefs.getString('password') ?? 'lg';
+    _numberOfRigs =
+        int.tryParse(prefs.getString('numberOfRigs') ?? '3') ?? 3;
   }
 
   /// Establishes an SSH connection to the Liquid Galaxy master rig.
@@ -49,14 +63,19 @@ class LGSSHClient {
         socket,
         username: _username,
         onPasswordRequest: () => _passwordOrKey,
+        // Sends SSH keep-alive packets every 10 s to prevent idle disconnects.
+        keepAliveInterval: const Duration(seconds: 10),
       );
 
       await _client!.authenticated;
       isConnected.value = true;
+      _reconnectAttempts = 0;
+
+      // Start heartbeat BEFORE listening to done so we detect drops early.
+      _startHeartbeat();
 
       _client!.done.then((_) {
-        isConnected.value = false;
-        _client = null;
+        _handleDisconnection();
       });
 
       return true;
@@ -64,6 +83,47 @@ class LGSSHClient {
       debugPrint('SSH Connection failed: $e');
       isConnected.value = false;
       return false;
+    }
+  }
+
+  /// Starts a 5-second periodic heartbeat. If the ping times out the connection
+  /// is treated as lost and auto-reconnect is triggered.
+  void _startHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+      if (_client == null) return;
+      try {
+        await _client!
+            .execute('echo "ping"')
+            .timeout(const Duration(seconds: 3));
+      } catch (_) {
+        _handleDisconnection();
+      }
+    });
+  }
+
+  /// Called when the SSH connection is lost. Cleans up state and schedules up
+  /// to [_maxReconnectAttempts] reconnect retries (3 s apart).
+  void _handleDisconnection() {
+    if (!isConnected.value) return;
+    isConnected.value = false;
+    _client?.close();
+    _client = null;
+    _heartbeatTimer?.cancel();
+    debugPrint('SSH: Connection lost.');
+
+    if (_reconnectAttempts < _maxReconnectAttempts) {
+      _reconnectAttempts++;
+      debugPrint(
+        'SSH: Reconnect attempt $_reconnectAttempts of $_maxReconnectAttempts in 3 s…',
+      );
+      Future.delayed(const Duration(seconds: 3), () async {
+        final ok = await connect();
+        if (ok) _reconnectAttempts = 0;
+      });
+    } else {
+      debugPrint('SSH: Max reconnect attempts reached. Giving up.');
+      _reconnectAttempts = 0;
     }
   }
 
@@ -85,7 +145,7 @@ class LGSSHClient {
     }
   }
 
-  /// Simple command execution that waits for completion.
+  /// Simple command execution that awaits session completion and returns success.
   Future<bool> runCommand(String command) async {
     final session = await execute(command);
     if (session == null) return false;
@@ -93,7 +153,8 @@ class LGSSHClient {
     return true;
   }
 
-  /// Uploads a file to the Liquid Galaxy rig via SFTP.
+  /// Uploads file content to the Liquid Galaxy rig via SFTP.
+  /// Used for larger KML assets (visualization overlays in home_viewmodel).
   Future<bool> uploadFile({
     required String content,
     required String targetPath,
@@ -107,7 +168,10 @@ class LGSSHClient {
       final sftp = await _client!.sftp();
       final file = await sftp.open(
         targetPath,
-        mode: SftpFileOpenMode.truncate | SftpFileOpenMode.create | SftpFileOpenMode.write,
+        mode:
+            SftpFileOpenMode.truncate |
+            SftpFileOpenMode.create |
+            SftpFileOpenMode.write,
       );
 
       final bytes = Uint8List.fromList(utf8.encode(content));
@@ -120,8 +184,10 @@ class LGSSHClient {
     }
   }
 
-  /// Closes the current SSH connection.
+  /// Closes the current SSH connection and cancels the heartbeat timer.
   void disconnect() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
     _client?.close();
     _client = null;
     isConnected.value = false;

@@ -23,6 +23,12 @@ class _ControlsScreenState extends State<ControlsScreen> {
     _viewModel = ControlsViewModel();
   }
 
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
   void _showFeedback(String message, bool isSuccess) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).clearSnackBars();
@@ -67,7 +73,12 @@ class _ControlsScreenState extends State<ControlsScreen> {
               const SizedBox(height: 32),
               _buildSubHeader('VISUAL CONTROLS'),
               const SizedBox(height: 16),
-              _buildVisualControls(),
+              ListenableBuilder(
+                listenable: _viewModel,
+                builder: (context, _) {
+                  return _buildVisualControls();
+                },
+              ),
               
               const SizedBox(height: 32),
               ValueListenableBuilder<bool>(
@@ -133,8 +144,11 @@ class _ControlsScreenState extends State<ControlsScreen> {
             icon: CupertinoIcons.trash,
             color: AppColors.electricBlue,
             onPressed: () async {
-              await _viewModel.clearKML();
-              _showFeedback('KMLs cleared successfully', true);
+              final ok = await _viewModel.clearKML();
+              _showFeedback(
+                ok ? 'All KMLs cleared successfully' : 'Clear KML failed — check connection',
+                ok,
+              );
             },
           ),
         ),
@@ -151,20 +165,31 @@ class _ControlsScreenState extends State<ControlsScreen> {
             icon: CupertinoIcons.photo,
             color: AppColors.neonGreen,
             onPressed: () async {
-              await _viewModel.sendLogo();
-              _showFeedback('Logo sent to slave rig', true);
+              final ok = await _viewModel.sendLogo();
+              _showFeedback(
+                ok ? 'Logo sent to slave rig' : 'Failed to send logo — check connection',
+                ok,
+              );
             },
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: TaskButton(
-            label: 'Orbit',
-            icon: CupertinoIcons.eye,
-            color: AppColors.purpleAccent,
+            label: _viewModel.isOrbiting ? 'Stop Orbit' : 'Orbit',
+            icon: _viewModel.isOrbiting ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
+            color: _viewModel.isOrbiting ? AppColors.criticalRed : AppColors.purpleAccent,
             onPressed: () async {
+              final wasOrbiting = _viewModel.isOrbiting;
               await _viewModel.startOrbit();
-              _showFeedback('Orbiting started', true);
+              if (_viewModel.isOrbiting != wasOrbiting) {
+                _showFeedback(
+                  _viewModel.isOrbiting ? 'Orbiting started' : 'Orbiting stopped',
+                  true,
+                );
+              } else if (!wasOrbiting) {
+                _showFeedback('Failed to start orbit — check connection', false);
+              }
             },
           ),
         ),
