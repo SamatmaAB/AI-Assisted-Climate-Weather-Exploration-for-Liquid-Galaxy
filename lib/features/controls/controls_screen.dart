@@ -120,8 +120,11 @@ class _ControlsScreenState extends State<ControlsScreen> {
             icon: CupertinoIcons.power,
             color: AppColors.criticalRed,
             onPressed: () async {
-              await _viewModel.shutdown();
-              _showFeedback('Shutdown command sent to all rigs', true);
+              final ok = await _viewModel.shutdown();
+              _showFeedback(
+                ok ? 'Shutdown command sent to all rigs' : 'Shutdown failed — check connection',
+                ok,
+              );
             },
           ),
         ),
@@ -132,8 +135,11 @@ class _ControlsScreenState extends State<ControlsScreen> {
             icon: CupertinoIcons.refresh_bold,
             color: AppColors.warningOrange,
             onPressed: () async {
-              await _viewModel.reboot();
-              _showFeedback('Reboot command sent to all rigs', true);
+              final ok = await _viewModel.reboot();
+              _showFeedback(
+                ok ? 'Reboot command sent to all rigs' : 'Reboot failed — check connection',
+                ok,
+              );
             },
           ),
         ),

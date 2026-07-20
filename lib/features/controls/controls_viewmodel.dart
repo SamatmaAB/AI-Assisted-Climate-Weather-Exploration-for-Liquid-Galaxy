@@ -11,24 +11,114 @@ class ControlsViewModel extends ChangeNotifier {
 
   ValueListenable<bool> get isConnected => _sshClient.isConnected;
 
-  /// Sends a shutdown command to all configured rigs.
-  /// Uses the password stored in SharedPreferences — not a hardcoded value.
-  Future<void> shutdown() async {
+  /// Sends a shutdown command to all configured rigs similarly to the LgService reference.
+  Future<bool> shutdown() async {
     final password = _sshClient.password;
     final screens = _sshClient.numberOfRigs;
-    // Shut down outer screens first, master (lg1) last.
-    for (var i = screens; i >= 1; i--) {
-      await _sshClient.runCommand(SSHCommands.shutdownRig(password, i));
+    bool allSuccessful = true;
+
+    try {
+      // Loop through all screens from outer to lg1
+      for (var i = screens; i >= 1; i--) {
+        final shutdownCommand =
+            'sshpass -p $password ssh -t lg$i "echo $password | sudo -S shutdown now"';
+        final session = await _sshClient.execute(shutdownCommand);
+        allSuccessful = allSuccessful && (session != null);
+
+        if (i > 1) {
+          await Future.delayed(const Duration(milliseconds: 200));
+        }
+      }
+
+      // Explicitly trigger master rig lg1 shutdown again
+      final shutdownCommandLg1 =
+          'sshpass -p $password ssh -t lg1 "echo $password | sudo -S shutdown now"';
+      final lg1Session = await _sshClient.execute(shutdownCommandLg1);
+      allSuccessful = allSuccessful && (lg1Session != null);
+
+      await Future.delayed(const Duration(milliseconds: 100));
+      _sshClient.disconnect();
+      return allSuccessful;
+    } catch (e) {
+      debugPrint('Error during shutdown: $e');
+      _sshClient.disconnect();
+      return false;
     }
   }
 
-  /// Sends a reboot command to all configured rigs.
-  /// Uses the password stored in SharedPreferences — not a hardcoded value.
-  Future<void> reboot() async {
+  /// Sends a reboot command to all configured rigs and registers a delayed reconnection check.
+  Future<bool> reboot() async {
     final password = _sshClient.password;
     final screens = _sshClient.numberOfRigs;
-    for (var i = screens; i >= 1; i--) {
-      await _sshClient.runCommand(SSHCommands.rebootRig(password, i));
+    bool allSuccessful = true;
+
+    try {
+      for (var i = screens; i >= 1; i--) {
+        final rebootCommand =
+            'sshpass -p $password ssh -t lg$i "echo $password | sudo -S reboot"';
+        final session = await _sshClient.execute(rebootCommand);
+        allSuccessful = allSuccessful && (session != null);
+
+        if (i > 1) {
+          await Future.delayed(const Duration(milliseconds: 200));
+        }
+      }
+
+      // Explicitly trigger master rig lg1 reboot again
+      final rebootCommandLg1 =
+          'sshpass -p $password ssh -t lg1 "echo $password | sudo -S reboot"';
+      final lg1Session = await _sshClient.execute(rebootCommandLg1);
+      allSuccessful = allSuccessful && (lg1Session != null);
+
+      await Future.delayed(const Duration(milliseconds: 100));
+      _sshClient.disconnect();
+
+      // Start the background reconnection check after the rigs reboot (46 seconds delay).
+      unawaited(
+        Future.delayed(const Duration(seconds: 46), () async {
+          int retries = 0;
+          const maxRetries = 10;
+          const retryDelay = Duration(seconds: 5);
+
+          while (retries < maxRetries && !_sshClient.isConnected.value) {
+            try {
+              debugPrint('Reconnection attempt ${retries + 1} of $maxRetries');
+              final connected = await _sshClient.connect();
+              if (connected) {
+                debugPrint('Reconnection successful');
+                await Future.delayed(const Duration(seconds: 1));
+                await _sshClient.runCommand(
+                  SSHCommands.flyTo(
+                    '<LookAt>'
+                    '<longitude>-3.7492199</longitude>'
+                    '<latitude>40.4636688</latitude>'
+                    '<altitude>0</altitude>'
+                    '<heading>0</heading>'
+                    '<tilt>60</tilt>'
+                    '<range>1500000</range>'
+                    '<gx:altitudeMode>relativeToGround</gx:altitudeMode>'
+                    '</LookAt>',
+                  ),
+                );
+                return;
+              }
+            } catch (e) {
+              debugPrint('Reconnection attempt ${retries + 1} failed: $e');
+            }
+
+            if (!_sshClient.isConnected.value && retries < maxRetries - 1) {
+              await Future.delayed(retryDelay);
+            }
+            retries++;
+          }
+        }),
+      );
+
+      return allSuccessful;
+    } catch (e) {
+      debugPrint('Error during reboot: $e');
+      _sshClient.disconnect();
+      return false;
     }
   }
 
