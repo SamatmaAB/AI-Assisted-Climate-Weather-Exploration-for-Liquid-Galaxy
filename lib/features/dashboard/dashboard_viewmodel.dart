@@ -27,6 +27,33 @@ class DashboardViewModel extends ChangeNotifier {
     );
   }
 
+  /// Visualizes El Niño on Liquid Galaxy.
+  Future<void> visualizeElNino() async {
+    await _runVisualizationSequence(
+      assetPath: 'assets/kml/el_nino.kml',
+      fileName: 'el_nino.kml',
+      lookAt: '<LookAt><longitude>-160.0</longitude><latitude>0.0</latitude><altitude>0</altitude><heading>0</heading><tilt>30</tilt><range>10000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>',
+    );
+  }
+
+  /// Visualizes La Niña on Liquid Galaxy.
+  Future<void> visualizeLaNina() async {
+    await _runVisualizationSequence(
+      assetPath: 'assets/kml/la_nina.kml',
+      fileName: 'la_nina.kml',
+      lookAt: '<LookAt><longitude>-160.0</longitude><latitude>0.0</latitude><altitude>0</altitude><heading>0</heading><tilt>30</tilt><range>10000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>',
+    );
+  }
+
+  /// Visualizes Mumbai Monsoon on Liquid Galaxy.
+  Future<void> visualizeMumbaiMonsoon() async {
+    await _runVisualizationSequence(
+      assetPath: 'assets/kml/mumbai_monsoon.kml',
+      fileName: 'mumbai_monsoon.kml',
+      lookAt: '<LookAt><longitude>72.834654</longitude><latitude>18.921984</latitude><altitude>0</altitude><heading>0</heading><tilt>65</tilt><range>4000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>',
+    );
+  }
+
   /// Commands the rig to fly to a specific KML LookAt string.
   Future<void> flyTo(String lookAt) async {
     await _mapSyncService.flyToLookAt(lookAt);

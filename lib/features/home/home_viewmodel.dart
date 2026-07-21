@@ -96,10 +96,58 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> visualizeElNino() async {
+    isVisualisingElNino = true;
+    notifyListeners();
+    try {
+      await _runVisualizationSequence(
+        assetPath: 'assets/kml/el_nino.kml',
+        fileName: 'el_nino.kml',
+        lookAt: '<LookAt><longitude>-160.0</longitude><latitude>0.0</latitude><altitude>0</altitude><heading>0</heading><tilt>30</tilt><range>10000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>',
+      );
+    } finally {
+      isVisualisingElNino = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> visualizeLaNina() async {
+    isVisualisingLaNina = true;
+    notifyListeners();
+    try {
+      await _runVisualizationSequence(
+        assetPath: 'assets/kml/la_nina.kml',
+        fileName: 'la_nina.kml',
+        lookAt: '<LookAt><longitude>-160.0</longitude><latitude>0.0</latitude><altitude>0</altitude><heading>0</heading><tilt>30</tilt><range>10000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>',
+      );
+    } finally {
+      isVisualisingLaNina = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> visualizeMumbaiMonsoon() async {
+    isVisualisingMumbaiMonsoon = true;
+    notifyListeners();
+    try {
+      await _runVisualizationSequence(
+        assetPath: 'assets/kml/mumbai_monsoon.kml',
+        fileName: 'mumbai_monsoon.kml',
+        lookAt: '<LookAt><longitude>72.834654</longitude><latitude>18.921984</latitude><altitude>0</altitude><heading>0</heading><tilt>65</tilt><range>4000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>',
+      );
+    } finally {
+      isVisualisingMumbaiMonsoon = false;
+      notifyListeners();
+    }
+  }
+
   // Loading States for Visualizations
   bool isVisualisingMonsoon = false;
   bool isVisualisingKuroshio = false;
   bool isVisualisingGulfStream = false;
+  bool isVisualisingElNino = false;
+  bool isVisualisingLaNina = false;
+  bool isVisualisingMumbaiMonsoon = false;
 
   /// Orchestrates the process of stopping tours, clearing old KMLs, uploading new ones, and flying to the location.
   Future<void> _runVisualizationSequence({

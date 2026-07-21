@@ -147,6 +147,16 @@ class CategoryDetailScreen extends StatelessWidget {
         ),
       );
       actions.add(const SizedBox(height: 14));
+      actions.add(
+        ActionItemCard(
+          title: 'Visualize Mumbai Monsoon',
+          subtitle: 'Project Mumbai monsoon KML & fly to Gateway of India',
+          icon: CupertinoIcons.cloud_heavyrain,
+          color: AppColors.neonGreen,
+          onTap: () => _viewModel.visualizeMumbaiMonsoon(),
+        ),
+      );
+      actions.add(const SizedBox(height: 14));
     }
 
     if (categoryName == 'Ocean Currents') {
@@ -157,6 +167,26 @@ class CategoryDetailScreen extends StatelessWidget {
           icon: CupertinoIcons.waveform,
           color: AppColors.goldAccent,
           onTap: () => _viewModel.visualizeKuroshioCurrent(),
+        ),
+      );
+      actions.add(const SizedBox(height: 14));
+      actions.add(
+        ActionItemCard(
+          title: 'El Niño Pacific Conveyor',
+          subtitle: 'Visualize warm ocean current anomaly in the Pacific',
+          icon: CupertinoIcons.sun_max,
+          color: AppColors.goldAccent,
+          onTap: () => _viewModel.visualizeElNino(),
+        ),
+      );
+      actions.add(const SizedBox(height: 14));
+      actions.add(
+        ActionItemCard(
+          title: 'La Niña Pacific Trade Wind',
+          subtitle: 'Visualize cold upwelling anomaly in the Pacific',
+          icon: CupertinoIcons.wind,
+          color: AppColors.cyanWhite,
+          onTap: () => _viewModel.visualizeLaNina(),
         ),
       );
       actions.add(const SizedBox(height: 14));

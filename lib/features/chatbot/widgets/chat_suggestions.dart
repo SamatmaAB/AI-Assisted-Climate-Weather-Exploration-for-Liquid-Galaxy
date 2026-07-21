@@ -12,7 +12,7 @@ class ChatSuggestions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final suggestions = ['Indian Monsoon', 'Kuroshio Current', 'Clear Rig', 'Help'];
+    final suggestions = ['Indian Monsoon', 'Kuroshio Current', 'El Niño', 'La Niña', 'Mumbai Monsoon', 'Clear Rig', 'Help'];
     
     return Container(
       height: 45,
