@@ -5,11 +5,13 @@ class CategoryMetadata {
   final String description;
   final IconData icon;
   final Color themeColor;
+  final String? tourKmlPath;
 
   CategoryMetadata({
     required this.subTitle,
     required this.description,
     required this.icon,
     required this.themeColor,
+    this.tourKmlPath,
   });
 }

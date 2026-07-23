@@ -213,7 +213,7 @@ class CategoryDetailScreen extends StatelessWidget {
           if (categoryName == 'Global Wind Systems') {
             _viewModel.flyTo('<LookAt><longitude>78.9629</longitude><latitude>20.5937</latitude><altitude>0</altitude><heading>0</heading><tilt>45</tilt><range>5000000</range><gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode></LookAt>');
           } else if (categoryName == 'Ocean Currents') {
-            _viewModel.flyTo('<LookAt><longitude>135.0</longitude><latitude>35.0</latitude><altitude>0</altitude><heading>0</heading><tilt>30</tilt><range>4000000</range><gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode></LookAt>');
+            _viewModel.flyTo('<LookAt><longitude>135.0</longitude><latitude>28.0</latitude><altitude>0</altitude><heading>0</heading><tilt>45</tilt><range>6000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>');
           }
         },
       ),

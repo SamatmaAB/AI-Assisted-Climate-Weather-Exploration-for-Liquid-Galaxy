@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"
+     xmlns:gx="http://www.google.com/kml/ext/2.2"
+     xmlns:kml="http://www.opengis.net/kml/2.2"
+     xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+  <name>Gulf Stream Guided Tour</name>
+  <open>1</open>
+  <gx:Tour>
+    <name>Gulf Stream Guided Tour</name>
+    <gx:Playlist>
+
+        <!-- Stop: North Atlantic Basin Overview -->
+        <gx:FlyTo>
+          <gx:duration>8.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>-45.0</longitude>
+            <latitude>35.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>0.0</heading>
+            <tilt>45.0</tilt>
+            <range>9000000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Stop: Gulf of Mexico & Florida Straits Origin -->
+        <gx:FlyTo>
+          <gx:duration>7.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>-83.0</longitude>
+            <latitude>24.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>45.0</heading>
+            <tilt>55.0</tilt>
+            <range>2000000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Stop: Cape Hatteras Coastal Separation -->
+        <gx:FlyTo>
+          <gx:duration>7.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>-73.0</longitude>
+            <latitude>35.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>60.0</heading>
+            <tilt>50.0</tilt>
+            <range>2000000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Stop: North Atlantic Drift Crossing -->
+        <gx:FlyTo>
+          <gx:duration>8.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>-35.0</longitude>
+            <latitude>50.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>75.0</heading>
+            <tilt>55.0</tilt>
+            <range>3500000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Stop: European Warming Drift to Norway -->
+        <gx:FlyTo>
+          <gx:duration>7.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>5.0</longitude>
+            <latitude>60.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>30.0</heading>
+            <tilt>50.0</tilt>
+            <range>2500000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+    </gx:Playlist>
+  </gx:Tour>
+</Document>
+</kml>

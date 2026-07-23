@@ -4,12 +4,19 @@ import math
 # CONFIG
 # =====================================================
 
-CITY_ICON = "https://i.imgur.com/CNAwh6Z.png"
+RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
+DROUGHT_ICON = "https://i.imgur.com/p7WHxlT.png"
+FLOOD_ICON = "https://i.imgur.com/FE0MzOA.jpeg"
+
+MONSOON_ICON = "https://i.imgur.com/qoXQjzD.png"
+STORM_ICON = "https://i.imgur.com/UbtYVUx.png"
+WARM_ICON = "https://i.imgur.com/RXrha0q.png"
+
 
 SHAFT_WIDTH = 0.45
 HEAD_LENGTH = 2.2
 HEAD_WIDTH = 1.15
-CITY_SCALE = 2.0
+CITY_SCALE = 3
 
 # =====================================================
 # COLOR UTILITIES
@@ -87,41 +94,61 @@ def truncate_for_head(points, head_length):
 
 
 # =====================================================
-# SHAFT SEGMENT
+# =====================================================
+# VERTEX BOUNDARY & SHAFT QUAD
 # =====================================================
 
-def create_segment_polygon(p1, p2, color):
-    dx = p2[0] - p1[0]
-    dy = p2[1] - p1[1]
+def compute_boundary_vertices(points, shaft_width=SHAFT_WIDTH):
+    n = len(points)
+    if n < 2:
+        return [], []
 
-    length = math.hypot(dx, dy)
+    seg_normals = []
+    for i in range(n - 1):
+        dx = points[i + 1][0] - points[i][0]
+        dy = points[i + 1][1] - points[i][1]
+        length = math.hypot(dx, dy)
+        if length > 0:
+            nx = -dy / length
+            ny = dx / length
+        else:
+            nx, ny = 0.0, 0.0
+        seg_normals.append((nx, ny))
 
-    if length == 0:
-        return ""
+    vertex_normals = []
+    for i in range(n):
+        if i == 0:
+            vertex_normals.append(seg_normals[0])
+        elif i == n - 1:
+            vertex_normals.append(seg_normals[-1])
+        else:
+            n_prev = seg_normals[i - 1]
+            n_next = seg_normals[i]
+            nx_sum = n_prev[0] + n_next[0]
+            ny_sum = n_prev[1] + n_next[1]
+            norm = math.hypot(nx_sum, ny_sum)
+            if norm > 0:
+                vertex_normals.append((nx_sum / norm, ny_sum / norm))
+            else:
+                vertex_normals.append(n_prev)
 
-    nx = -dy / length
-    ny = dx / length
+    left_boundary = []
+    right_boundary = []
+    for i in range(n):
+        nx, ny = vertex_normals[i]
+        left_boundary.append((
+            points[i][0] + nx * shaft_width,
+            points[i][1] + ny * shaft_width
+        ))
+        right_boundary.append((
+            points[i][0] - nx * shaft_width,
+            points[i][1] - ny * shaft_width
+        ))
 
-    left1 = (
-        p1[0] + nx * SHAFT_WIDTH,
-        p1[1] + ny * SHAFT_WIDTH
-    )
+    return left_boundary, right_boundary
 
-    right1 = (
-        p1[0] - nx * SHAFT_WIDTH,
-        p1[1] - ny * SHAFT_WIDTH
-    )
 
-    left2 = (
-        p2[0] + nx * SHAFT_WIDTH,
-        p2[1] + ny * SHAFT_WIDTH
-    )
-
-    right2 = (
-        p2[0] - nx * SHAFT_WIDTH,
-        p2[1] - ny * SHAFT_WIDTH
-    )
-
+def create_quad_polygon(left1, left2, right2, right1, color):
     return f"""
 <Placemark>
 <Style>
@@ -160,10 +187,14 @@ def create_segment_polygon(p1, p2, color):
 # SHAFT
 # =====================================================
 
-def create_shaft(points, start_rgb, end_rgb):
-    kml = ""
+def create_shaft(points, start_rgb, end_rgb, shaft_width=SHAFT_WIDTH):
+    left_boundary, right_boundary = compute_boundary_vertices(points, shaft_width)
 
+    kml = ""
     total = len(points) - 1
+
+    if total <= 0:
+        return "", (0, 0), (0, 0)
 
     for i in range(total):
         t = i / total
@@ -174,20 +205,23 @@ def create_shaft(points, start_rgb, end_rgb):
             t
         )
 
-        kml += create_segment_polygon(
-            points[i],
-            points[i + 1],
+        kml += create_quad_polygon(
+            left_boundary[i],
+            left_boundary[i + 1],
+            right_boundary[i + 1],
+            right_boundary[i],
             color
         )
 
-    return kml
+    return kml, left_boundary[-1], right_boundary[-1]
+
 
 
 # =====================================================
 # ARROWHEAD
 # =====================================================
 
-def create_head(base, tip, color):
+def create_head(base, tip, color, shaft_left_end=None, shaft_right_end=None):
 
     angle = math.atan2(
         tip[1] - base[1],
@@ -209,6 +243,43 @@ def create_head(base, tip, color):
         back_x - nx * HEAD_WIDTH,
         back_y - ny * HEAD_WIDTH
     )
+
+    if shaft_left_end and shaft_right_end:
+        return f"""
+<Placemark>
+
+<Style>
+<LineStyle>
+<width>0</width>
+</LineStyle>
+
+<PolyStyle>
+<color>{color}</color>
+<outline>0</outline>
+</PolyStyle>
+</Style>
+
+<Polygon>
+<tessellate>1</tessellate>
+
+<outerBoundaryIs>
+<LinearRing>
+<coordinates>
+
+{tip[0]},{tip[1]},0
+{left[0]},{left[1]},0
+{shaft_left_end[0]},{shaft_left_end[1]},0
+{shaft_right_end[0]},{shaft_right_end[1]},0
+{right[0]},{right[1]},0
+{tip[0]},{tip[1]},0
+
+</coordinates>
+</LinearRing>
+</outerBoundaryIs>
+
+</Polygon>
+</Placemark>
+"""
 
     return f"""
 <Placemark>
@@ -268,7 +339,7 @@ def create_arrow(
         HEAD_LENGTH
     )
 
-    shaft = create_shaft(
+    shaft, shaft_left_end, shaft_right_end = create_shaft(
         shaft_curve,
         start_rgb,
         end_rgb
@@ -283,7 +354,9 @@ def create_arrow(
     head = create_head(
         shaft_curve[-1],
         curve[-1],
-        head_color
+        head_color,
+        shaft_left_end,
+        shaft_right_end
     )
 
     return shaft + head
@@ -293,7 +366,7 @@ def create_arrow(
 # CITY MARKERS
 # =====================================================
 
-def city(name, lon, lat):
+def city(name, lon, lat, icon=WARM_ICON):
     return f"""
 <Placemark>
 
@@ -304,7 +377,7 @@ def city(name, lon, lat):
 <scale>{CITY_SCALE}</scale>
 
 <Icon>
-<href>{CITY_ICON}</href>
+<href>{icon}</href>
 </Icon>
 
 </IconStyle>
@@ -375,12 +448,25 @@ def gulf_stream():
         end_rgb=(0, 100, 255)
     )
 
-    # Cities
-    kml += city("Miami", -80.19, 25.76)
-    kml += city("New York", -74.00, 40.71)
-    kml += city("St. John's", -52.71, 47.56)
-    kml += city("London", -0.12, 51.50)
-    kml += city("Bergen", 5.32, 60.39)
+    # Cities & Climate / Weather Feature Symbols
+    kml += city("Miami", -80.19, 25.76, WARM_ICON)
+    kml += city("New York", -74.00, 40.71, STORM_ICON)
+    kml += city("St. John's", -52.71, 47.56, RAIN_ICON)
+    kml += city("London", -0.12, 51.50, RAIN_ICON)
+    kml += city("Bergen", 5.32, 60.39, FLOOD_ICON)
+
+    # Weather & Climate Symbols
+    kml += city("Florida Straits Heat Flow", -81.5, 24.0, WARM_ICON)
+    kml += city("Hatteras Storm Corridor", -75.0, 35.5, STORM_ICON)
+    kml += city("Mid-Atlantic Storm Track", -76.0, 36.8, STORM_ICON)
+    kml += city("Georges Bank Fog & Rain", -67.0, 41.5, RAIN_ICON)
+    kml += city("Grand Banks Front Storms", -50.0, 43.5, STORM_ICON)
+    kml += city("Sargasso Warm Pool", -65.0, 30.0, WARM_ICON)
+    kml += city("North Atlantic Drift", -35.0, 50.0, WARM_ICON)
+    kml += city("Irish Sea Heavy Rain", -6.0, 53.5, RAIN_ICON)
+    kml += city("Norwegian Fjords Flood Zone", 6.0, 62.5, FLOOD_ICON)
+    kml += city("Spitsbergen Arctic Warming", 16.0, 78.0, WARM_ICON)
+    kml += city("Icelandic Low Storm Basin", -18.0, 64.0, STORM_ICON)
 
     return kml
 

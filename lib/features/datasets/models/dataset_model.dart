@@ -10,6 +10,7 @@ class Dataset {
   final String url;
   final String description;
   final List<String> visualizationPoints;
+  final String? tourKmlPath;
 
   Dataset({
     required this.title,
@@ -20,5 +21,6 @@ class Dataset {
     required this.url,
     required this.description,
     required this.visualizationPoints,
+    this.tourKmlPath,
   });
 }

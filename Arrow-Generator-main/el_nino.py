@@ -6,14 +6,14 @@ import random
 # =====================================================
 
 RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
-DROUGHT_ICON = "https://i.imgur.com/BNMYBFx.png"
-FLOOD_ICON = "https://i.imgur.com/hJkMlqT.png"
+DROUGHT_ICON = "https://i.imgur.com/p7WHxlT.png"
+FLOOD_ICON = "https://i.imgur.com/FE0MzOA.jpeg"
 
-MONSOON_ICON = RAIN_ICON
-STORM_ICON = RAIN_ICON
-WARM_ICON = DROUGHT_ICON
+MONSOON_ICON = "https://i.imgur.com/qoXQjzD.png"
+STORM_ICON = "https://i.imgur.com/UbtYVUx.png"
+WARM_ICON = "https://i.imgur.com/RXrha0q.png"
 
-ICON_SCALE = 4.5
+ICON_SCALE = 5.5
 
 # Arrow configuration for main ENSO flow  (-15% from previous)
 SHAFT_WIDTH = 0.51
@@ -197,37 +197,61 @@ def truncate_for_head(points, head_length):
 
 
 # =====================================================
-# SHAFT SEGMENT
+# =====================================================
+# VERTEX BOUNDARY & SHAFT QUAD
 # =====================================================
 
-def create_segment_polygon(p1, p2, color, shaft_width=SHAFT_WIDTH):
-    dx = p2[0] - p1[0]
-    dy = p2[1] - p1[1]
-    length = math.hypot(dx, dy)
+def compute_boundary_vertices(points, shaft_width=SHAFT_WIDTH):
+    n = len(points)
+    if n < 2:
+        return [], []
 
-    if length == 0:
-        return ""
+    seg_normals = []
+    for i in range(n - 1):
+        dx = points[i + 1][0] - points[i][0]
+        dy = points[i + 1][1] - points[i][1]
+        length = math.hypot(dx, dy)
+        if length > 0:
+            nx = -dy / length
+            ny = dx / length
+        else:
+            nx, ny = 0.0, 0.0
+        seg_normals.append((nx, ny))
 
-    nx = -dy / length
-    ny = dx / length
+    vertex_normals = []
+    for i in range(n):
+        if i == 0:
+            vertex_normals.append(seg_normals[0])
+        elif i == n - 1:
+            vertex_normals.append(seg_normals[-1])
+        else:
+            n_prev = seg_normals[i - 1]
+            n_next = seg_normals[i]
+            nx_sum = n_prev[0] + n_next[0]
+            ny_sum = n_prev[1] + n_next[1]
+            norm = math.hypot(nx_sum, ny_sum)
+            if norm > 0:
+                vertex_normals.append((nx_sum / norm, ny_sum / norm))
+            else:
+                vertex_normals.append(n_prev)
 
-    left1 = (
-        normalize_lon(p1[0] + nx * shaft_width),
-        p1[1] + ny * shaft_width
-    )
-    right1 = (
-        normalize_lon(p1[0] - nx * shaft_width),
-        p1[1] - ny * shaft_width
-    )
-    left2 = (
-        normalize_lon(p2[0] + nx * shaft_width),
-        p2[1] + ny * shaft_width
-    )
-    right2 = (
-        normalize_lon(p2[0] - nx * shaft_width),
-        p2[1] - ny * shaft_width
-    )
+    left_boundary = []
+    right_boundary = []
+    for i in range(n):
+        nx, ny = vertex_normals[i]
+        left_boundary.append((
+            normalize_lon(points[i][0] + nx * shaft_width),
+            points[i][1] + ny * shaft_width
+        ))
+        right_boundary.append((
+            normalize_lon(points[i][0] - nx * shaft_width),
+            points[i][1] - ny * shaft_width
+        ))
 
+    return left_boundary, right_boundary
+
+
+def create_quad_polygon(left1, left2, right2, right1, color):
     ring_coords = [left1, left2, right2, right1, left1]
     if has_antimeridian_jump(ring_coords):
         return ""
@@ -271,11 +295,13 @@ def create_segment_polygon(p1, p2, color, shaft_width=SHAFT_WIDTH):
 # =====================================================
 
 def create_shaft(points, start_rgb, end_rgb, shaft_width=SHAFT_WIDTH):
+    left_boundary, right_boundary = compute_boundary_vertices(points, shaft_width)
+
     kml = ""
     total = len(points) - 1
 
     if total <= 0:
-        return ""
+        return "", (0, 0), (0, 0)
 
     for i in range(total):
         t = i / total
@@ -284,21 +310,24 @@ def create_shaft(points, start_rgb, end_rgb, shaft_width=SHAFT_WIDTH):
             end_rgb,
             t
         )
-        kml += create_segment_polygon(
-            points[i],
-            points[i + 1],
-            color,
-            shaft_width=shaft_width
+        kml += create_quad_polygon(
+            left_boundary[i],
+            left_boundary[i + 1],
+            right_boundary[i + 1],
+            right_boundary[i],
+            color
         )
 
-    return kml
+    return kml, left_boundary[-1], right_boundary[-1]
+
 
 
 # =====================================================
 # ARROWHEAD
 # =====================================================
 
-def create_head(base, tip, color, head_length=HEAD_LENGTH, head_width=HEAD_WIDTH):
+def create_head(base, tip, color, head_length=HEAD_LENGTH, head_width=HEAD_WIDTH,
+                shaft_left_end=None, shaft_right_end=None):
     angle = math.atan2(
         tip[1] - base[1],
         tip[0] - base[0]
@@ -319,6 +348,53 @@ def create_head(base, tip, color, head_length=HEAD_LENGTH, head_width=HEAD_WIDTH
         normalize_lon(back_x - nx * head_width),
         back_y - ny * head_width
     )
+
+    if shaft_left_end and shaft_right_end:
+        ring_coords = [tip_kml, left, shaft_left_end, shaft_right_end, right, tip_kml]
+        if has_antimeridian_jump(ring_coords):
+            return ""
+
+        return f"""
+<Placemark>
+
+<Style>
+
+<LineStyle>
+<width>0</width>
+</LineStyle>
+
+<PolyStyle>
+<color>{color}</color>
+<outline>0</outline>
+</PolyStyle>
+
+</Style>
+
+<Polygon>
+
+<tessellate>1</tessellate>
+
+<outerBoundaryIs>
+<LinearRing>
+
+<coordinates>
+
+{tip_kml[0]},{tip_kml[1]},0
+{left[0]},{left[1]},0
+{shaft_left_end[0]},{shaft_left_end[1]},0
+{shaft_right_end[0]},{shaft_right_end[1]},0
+{right[0]},{right[1]},0
+{tip_kml[0]},{tip_kml[1]},0
+
+</coordinates>
+
+</LinearRing>
+</outerBoundaryIs>
+
+</Polygon>
+
+</Placemark>
+"""
 
     ring_coords = [tip_kml, left, right, tip_kml]
     if has_antimeridian_jump(ring_coords):
@@ -392,7 +468,7 @@ def create_arrow(
         head_length
     )
 
-    shaft = create_shaft(
+    shaft, shaft_left_end, shaft_right_end = create_shaft(
         shaft_curve,
         start_rgb,
         end_rgb,
@@ -410,7 +486,9 @@ def create_arrow(
         curve[-1],
         head_color,
         head_length=head_length,
-        head_width=head_width
+        head_width=head_width,
+        shaft_left_end=shaft_left_end,
+        shaft_right_end=shaft_right_end
     )
 
     return shaft + head

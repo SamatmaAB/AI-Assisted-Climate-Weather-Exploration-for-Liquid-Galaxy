@@ -12,6 +12,7 @@ class CategoryMetadataProvider {
           description: 'Arabian Sea and Bay of Bengal moisture flows toward India.',
           icon: CupertinoIcons.wind,
           themeColor: AppColors.goldAccent,
+          tourKmlPath: 'assets/kml/indianmonsoon_tour.kml',
         );
       case 'Ocean Currents':
         return CategoryMetadata(
@@ -19,6 +20,7 @@ class CategoryMetadataProvider {
           description: 'Western boundary currents transporting heat toward the poles.',
           icon: CupertinoIcons.waveform,
           themeColor: AppColors.cyanWhite,
+          tourKmlPath: 'assets/kml/kuroshio_tour.kml',
         );
       case 'Cyclone Formation':
         return CategoryMetadata(
@@ -26,6 +28,7 @@ class CategoryMetadataProvider {
           description: 'Real-time tracking of pressure systems and storm paths.',
           icon: CupertinoIcons.cloud_rain,
           themeColor: AppColors.purpleAccent,
+          tourKmlPath: 'assets/kml/gulf_stream_tour.kml',
         );
       case 'Extreme Weather':
         return CategoryMetadata(
@@ -33,6 +36,7 @@ class CategoryMetadataProvider {
           description: 'Monitoring global temperature anomalies and heat distribution.',
           icon: CupertinoIcons.thermometer,
           themeColor: AppColors.neonGreen,
+          tourKmlPath: 'assets/kml/el_nino_tour.kml',
         );
       default:
         return CategoryMetadata(
@@ -40,6 +44,7 @@ class CategoryMetadataProvider {
           description: 'Advanced planetary data visualization and monitoring.',
           icon: CupertinoIcons.wind,
           themeColor: AppColors.electricBlue,
+          tourKmlPath: 'assets/kml/indianmonsoon_tour.kml',
         );
     }
   }

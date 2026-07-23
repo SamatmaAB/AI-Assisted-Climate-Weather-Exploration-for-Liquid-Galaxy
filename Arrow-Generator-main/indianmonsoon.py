@@ -47,45 +47,60 @@ def interpolate_color(t):
 
 
 # -----------------------------
-# 3. ONE RIBBON SEGMENT
 # -----------------------------
-def create_segment_polygon(
-        p1,
-        p2,
-        color,
-        width=0.45):
+# 3. VERTEX BOUNDARY & SHAFT QUAD
+# -----------------------------
+def compute_boundary_vertices(points, width=0.35):
+    n = len(points)
+    if n < 2:
+        return [], []
 
-    dx = p2[0] - p1[0]
-    dy = p2[1] - p1[1]
+    seg_normals = []
+    for i in range(n - 1):
+        dx = points[i + 1][0] - points[i][0]
+        dy = points[i + 1][1] - points[i][1]
+        length = math.hypot(dx, dy)
+        if length > 0:
+            nx = -dy / length
+            ny = dx / length
+        else:
+            nx, ny = 0.0, 0.0
+        seg_normals.append((nx, ny))
 
-    length = math.sqrt(dx * dx + dy * dy)
+    vertex_normals = []
+    for i in range(n):
+        if i == 0:
+            vertex_normals.append(seg_normals[0])
+        elif i == n - 1:
+            vertex_normals.append(seg_normals[-1])
+        else:
+            n_prev = seg_normals[i - 1]
+            n_next = seg_normals[i]
+            nx_sum = n_prev[0] + n_next[0]
+            ny_sum = n_prev[1] + n_next[1]
+            norm = math.hypot(nx_sum, ny_sum)
+            if norm > 0:
+                vertex_normals.append((nx_sum / norm, ny_sum / norm))
+            else:
+                vertex_normals.append(n_prev)
 
-    if length == 0:
-        return ""
+    left_boundary = []
+    right_boundary = []
+    for i in range(n):
+        nx, ny = vertex_normals[i]
+        left_boundary.append((
+            points[i][0] + nx * width,
+            points[i][1] + ny * width
+        ))
+        right_boundary.append((
+            points[i][0] - nx * width,
+            points[i][1] - ny * width
+        ))
 
-    nx = -dy / length
-    ny = dx / length
+    return left_boundary, right_boundary
 
-    left1 = (
-        p1[0] + nx * width,
-        p1[1] + ny * width
-    )
 
-    right1 = (
-        p1[0] - nx * width,
-        p1[1] - ny * width
-    )
-
-    left2 = (
-        p2[0] + nx * width,
-        p2[1] + ny * width
-    )
-
-    right2 = (
-        p2[0] - nx * width,
-        p2[1] - ny * width
-    )
-
+def create_quad_polygon(left1, left2, right2, right1, color):
     return f"""
     <Placemark>
 
@@ -126,11 +141,16 @@ def create_segment_polygon(
 # -----------------------------
 # 4. FULL GRADIENT RIBBON
 # -----------------------------
-def create_gradient_ribbon(points):
+def create_gradient_ribbon(points, width=0.35):
+
+    left_boundary, right_boundary = compute_boundary_vertices(points, width)
 
     kml = ""
 
     total = len(points) - 1
+
+    if total <= 0:
+        return "", (0, 0), (0, 0)
 
     for i in range(total):
 
@@ -138,14 +158,16 @@ def create_gradient_ribbon(points):
 
         color = interpolate_color(t)
 
-        kml += create_segment_polygon(
-            points[i],
-            points[i + 1],
-            color,
-            width=0.35
+        kml += create_quad_polygon(
+            left_boundary[i],
+            left_boundary[i + 1],
+            right_boundary[i + 1],
+            right_boundary[i],
+            color
         )
 
-    return kml
+    return kml, left_boundary[-1], right_boundary[-1]
+
 
 
 # -----------------------------
@@ -155,7 +177,9 @@ def create_arrowhead(
         p1,
         p2,
         color,
-        size=1.5):
+        size=1.5,
+        shaft_left_end=None,
+        shaft_right_end=None):
 
     angle = math.atan2(
         p2[1] - p1[1],
@@ -171,6 +195,43 @@ def create_arrowhead(
         p2[0] - size * math.cos(angle + math.pi / 6),
         p2[1] - size * math.sin(angle + math.pi / 6)
     )
+
+    if shaft_left_end and shaft_right_end:
+        return f"""
+    <Placemark>
+
+        <Style>
+            <LineStyle>
+                <width>0</width>
+            </LineStyle>
+
+            <PolyStyle>
+                <color>{color}</color>
+                <outline>0</outline>
+            </PolyStyle>
+        </Style>
+
+        <Polygon>
+
+            <outerBoundaryIs>
+                <LinearRing>
+                    <coordinates>
+
+                        {p2[0]},{p2[1]},0
+                        {left[0]},{left[1]},0
+                        {shaft_left_end[0]},{shaft_left_end[1]},0
+                        {shaft_right_end[0]},{shaft_right_end[1]},0
+                        {right[0]},{right[1]},0
+                        {p2[0]},{p2[1]},0
+
+                    </coordinates>
+                </LinearRing>
+            </outerBoundaryIs>
+
+        </Polygon>
+
+    </Placemark>
+    """
 
     return f"""
     <Placemark>
@@ -247,16 +308,20 @@ def generate_arrow(
     arrowhead_len = size * math.cos(math.pi / 6)
     truncated_curve = truncate_curve_by_distance(curve, arrowhead_len)
 
+    ribbon_kml, shaft_left_end, shaft_right_end = create_gradient_ribbon(truncated_curve)
+
     arrow_tip_color = interpolate_color(1.0)
 
     return (
-        create_gradient_ribbon(truncated_curve)
+        ribbon_kml
         +
         create_arrowhead(
             truncated_curve[-1],
             curve[-1],
             arrow_tip_color,
-            size=size
+            size=size,
+            shaft_left_end=shaft_left_end,
+            shaft_right_end=shaft_right_end
         )
     )
 

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"
+     xmlns:gx="http://www.google.com/kml/ext/2.2"
+     xmlns:kml="http://www.opengis.net/kml/2.2"
+     xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+  <name>La Niña Guided Tour</name>
+  <open>1</open>
+  <gx:Tour>
+    <name>La Niña Guided Tour</name>
+    <gx:Playlist>
+
+        <!-- Stop: Pacific Basin Overview -->
+        <gx:FlyTo>
+          <gx:duration>8.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>-160.0</longitude>
+            <latitude>0.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>0.0</heading>
+            <tilt>45.0</tilt>
+            <range>12000000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Stop: Cold Upwelling off South America -->
+        <gx:FlyTo>
+          <gx:duration>7.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>-80.0</longitude>
+            <latitude>-10.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>315.0</heading>
+            <tilt>55.0</tilt>
+            <range>2500000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Stop: Strong Equatorial Trade Winds -->
+        <gx:FlyTo>
+          <gx:duration>8.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>-150.0</longitude>
+            <latitude>0.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>270.0</heading>
+            <tilt>50.0</tilt>
+            <range>5500000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Stop: Western Pacific Warm Pool & Heavy Rain -->
+        <gx:FlyTo>
+          <gx:duration>7.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>125.0</longitude>
+            <latitude>-2.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>240.0</heading>
+            <tilt>50.0</tilt>
+            <range>3500000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Stop: Australian Wet Zone & Asian Monsoon -->
+        <gx:FlyTo>
+          <gx:duration>7.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>140.0</longitude>
+            <latitude>-18.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>330.0</heading>
+            <tilt>45.0</tilt>
+            <range>4000000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+    </gx:Playlist>
+  </gx:Tour>
+</Document>
+</kml>

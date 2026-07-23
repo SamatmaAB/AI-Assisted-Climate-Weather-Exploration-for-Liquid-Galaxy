@@ -15,6 +15,7 @@ class DatasetsProvider {
         url: 'https://earthdata.nasa.gov',
         description: 'NASA Earthdata provides access to a wide range of Earth observation datasets collected from satellites and climate monitoring systems.',
         visualizationPoints: ['Global wind patterns', 'Atmospheric moisture transport', 'Temperature anomalies'],
+        tourKmlPath: 'assets/kml/indianmonsoon_tour.kml',
       ),
       Dataset(
         title: 'NOAA Ocean Currents',
@@ -25,6 +26,7 @@ class DatasetsProvider {
         url: 'https://earthdata.nasa.gov',
         description: 'NASA satellite missions collect global ocean data including sea surface temperature, ocean circulation, and ocean heat transport.',
         visualizationPoints: ['Warm and cold ocean currents', 'Global ocean circulation', 'Marine climate interactions'],
+        tourKmlPath: 'assets/kml/kuroshio_tour.kml',
       ),
       Dataset(
         title: 'Tropical Cyclone Track',
@@ -35,6 +37,7 @@ class DatasetsProvider {
         url: 'https://earthdata.nasa.gov',
         description: 'The cyclone track dataset contains historical records of tropical storms and hurricanes around the world, including intensity and trajectories.',
         visualizationPoints: ['Cyclone formation locations', 'Storm trajectories', 'Intensity changes'],
+        tourKmlPath: 'assets/kml/gulf_stream_tour.kml',
       ),
       Dataset(
         title: 'Atmospheric Circulation Models',
@@ -45,6 +48,7 @@ class DatasetsProvider {
         url: 'https://earthdata.nasa.gov',
         description: 'Tracking ocean temperature anomalies and atmospheric changes associated with the El Niño–Southern Oscillation.',
         visualizationPoints: ['El Niño warming events', 'La Niña cooling patterns', 'Pacific climate variability'],
+        tourKmlPath: 'assets/kml/el_nino_tour.kml',
       ),
     ];
   }
