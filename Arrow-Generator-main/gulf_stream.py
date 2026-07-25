@@ -1,4 +1,5 @@
 import math
+import os
 
 # =====================================================
 # CONFIG
@@ -502,15 +503,23 @@ def main():
         gulf_stream()
     )
 
+    filename = "gulf_stream.kml"
     with open(
-        "gulf_stream.kml",
+        filename,
         "w",
         encoding="utf-8"
     ) as f:
 
         f.write(final_kml)
 
-    print("gulf_stream.kml generated successfully")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    assets_dir = os.path.abspath(os.path.join(script_dir, "..", "assets", "kml"))
+    os.makedirs(assets_dir, exist_ok=True)
+    asset_path = os.path.join(assets_dir, filename)
+    with open(asset_path, "w", encoding="utf-8") as f:
+        f.write(final_kml)
+
+    print(f"gulf_stream.kml generated successfully in current directory and {asset_path}")
 
 
 if __name__ == "__main__":

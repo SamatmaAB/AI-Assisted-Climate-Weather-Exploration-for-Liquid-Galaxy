@@ -1,5 +1,6 @@
 import math
 import random
+import os
 
 # =====================================================
 # CONFIG & ICONS
@@ -726,10 +727,18 @@ def main():
     )
     final_kml = wrap(content)
 
-    with open("la_nina.kml", "w", encoding="utf-8") as f:
+    filename = "la_nina.kml"
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(final_kml)
 
-    print("la_nina.kml generated successfully")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    assets_dir = os.path.abspath(os.path.join(script_dir, "..", "assets", "kml"))
+    os.makedirs(assets_dir, exist_ok=True)
+    asset_path = os.path.join(assets_dir, filename)
+    with open(asset_path, "w", encoding="utf-8") as f:
+        f.write(final_kml)
+
+    print(f"la_nina.kml generated successfully in current directory and {asset_path}")
 
 
 if __name__ == "__main__":

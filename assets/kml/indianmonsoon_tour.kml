@@ -12,7 +12,7 @@
 
         <!-- Stop: South Asian Monsoon Overview -->
         <gx:FlyTo>
-          <gx:duration>8.0</gx:duration>
+          <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
           <LookAt>
             <longitude>78.0</longitude>
@@ -27,7 +27,7 @@
 
         <!-- Stop: Arabian Sea Branch & Western Ghats -->
         <gx:FlyTo>
-          <gx:duration>7.0</gx:duration>
+          <gx:duration>10.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
           <LookAt>
             <longitude>70.0</longitude>
@@ -42,7 +42,7 @@
 
         <!-- Stop: Bay of Bengal Branch Inflow -->
         <gx:FlyTo>
-          <gx:duration>7.0</gx:duration>
+          <gx:duration>10.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
           <LookAt>
             <longitude>88.0</longitude>
@@ -57,7 +57,7 @@
 
         <!-- Stop: Northeast India & Cherrapunji Heavy Rain -->
         <gx:FlyTo>
-          <gx:duration>7.0</gx:duration>
+          <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
           <LookAt>
             <longitude>91.5</longitude>
@@ -72,7 +72,7 @@
 
         <!-- Stop: Gangetic Plain Monsoon Trough & Low Pressure -->
         <gx:FlyTo>
-          <gx:duration>7.0</gx:duration>
+          <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
           <LookAt>
             <longitude>76.0</longitude>
@@ -81,6 +81,21 @@
             <heading>270.0</heading>
             <tilt>50.0</tilt>
             <range>2000000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Stop: South Asian Monsoon Conclusion -->
+        <gx:FlyTo>
+          <gx:duration>11.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>78.0</longitude>
+            <latitude>20.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>0.0</heading>
+            <tilt>45.0</tilt>
+            <range>5000000.0</range>
             <altitudeMode>relativeToGround</altitudeMode>
           </LookAt>
         </gx:FlyTo>

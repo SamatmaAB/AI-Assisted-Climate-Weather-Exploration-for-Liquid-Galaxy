@@ -12,7 +12,7 @@
 
         <!-- Stop: Western Pacific Overview -->
         <gx:FlyTo>
-          <gx:duration>8.0</gx:duration>
+          <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
           <LookAt>
             <longitude>135.0</longitude>
@@ -27,7 +27,7 @@
 
         <!-- Stop: Taiwan & Luzon Strait Origin -->
         <gx:FlyTo>
-          <gx:duration>7.0</gx:duration>
+          <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
           <LookAt>
             <longitude>122.0</longitude>
@@ -42,7 +42,7 @@
 
         <!-- Stop: Okinawa & East China Sea Path -->
         <gx:FlyTo>
-          <gx:duration>7.0</gx:duration>
+          <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
           <LookAt>
             <longitude>128.0</longitude>
@@ -57,7 +57,7 @@
 
         <!-- Stop: Kuroshio Extension off Japan & Tokyo -->
         <gx:FlyTo>
-          <gx:duration>7.0</gx:duration>
+          <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
           <LookAt>
             <longitude>140.0</longitude>
@@ -72,7 +72,7 @@
 
         <!-- Stop: North Pacific Drift Outer Reach -->
         <gx:FlyTo>
-          <gx:duration>7.0</gx:duration>
+          <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
           <LookAt>
             <longitude>158.0</longitude>
@@ -81,6 +81,21 @@
             <heading>75.0</heading>
             <tilt>45.0</tilt>
             <range>3500000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Stop: Western Pacific Conclusion -->
+        <gx:FlyTo>
+          <gx:duration>11.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>135.0</longitude>
+            <latitude>28.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>0.0</heading>
+            <tilt>45.0</tilt>
+            <range>6000000.0</range>
             <altitudeMode>relativeToGround</altitudeMode>
           </LookAt>
         </gx:FlyTo>

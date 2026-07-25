@@ -403,14 +403,7 @@ def generate_tour_kml(tour_stops, output_path, tour_name=None):
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(kml_content)
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    assets_dir = os.path.abspath(os.path.join(script_dir, "..", "assets", "kml"))
-    os.makedirs(assets_dir, exist_ok=True)
-    asset_path = os.path.join(assets_dir, os.path.basename(output_path))
-    with open(asset_path, "w", encoding="utf-8") as f:
-        f.write(kml_content)
-
-    print(f"Generated tour KML: {output_path} and saved copy to {asset_path}")
+    print(f"Generated tour KML: {output_path}")
     return os.path.abspath(output_path)
 
 

@@ -1,5 +1,6 @@
 import math
 import random
+import os
 
 # =====================================================
 # CONFIG & ICONS
@@ -7,7 +8,7 @@ import random
 
 RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
 DROUGHT_ICON = "https://i.imgur.com/p7WHxlT.png"
-FLOOD_ICON = "https://i.imgur.com/FE0MzOA.jpeg"
+FLOOD_ICON = "h"
 
 MONSOON_ICON = "https://i.imgur.com/qoXQjzD.png"
 STORM_ICON = "https://i.imgur.com/UbtYVUx.png"
@@ -687,10 +688,18 @@ def main():
     content = generate_enso_flow() + generate_peru_upwelling() + generate_climate_icons()
     final_kml = wrap(content)
 
-    with open("el_nino.kml", "w", encoding="utf-8") as f:
+    filename = "el_nino.kml"
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(final_kml)
 
-    print("el_nino.kml generated successfully")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    assets_dir = os.path.abspath(os.path.join(script_dir, "..", "assets", "kml"))
+    os.makedirs(assets_dir, exist_ok=True)
+    asset_path = os.path.join(assets_dir, filename)
+    with open(asset_path, "w", encoding="utf-8") as f:
+        f.write(final_kml)
+
+    print(f"el_nino.kml generated successfully in current directory and {asset_path}")
 
 
 if __name__ == "__main__":
