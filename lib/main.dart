@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lg_connection/core/theme/app_colors.dart';
-import 'package:lg_connection/features/main/main_container.dart';
+import 'package:lg_connection/features/startup/startup_gate.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
 
 void main() async {
@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
           surface: AppColors.slate950,
         ),
       ),
-      home: const MainContainer(),
+      home: const StartupGate(),
     );
   }
 }
