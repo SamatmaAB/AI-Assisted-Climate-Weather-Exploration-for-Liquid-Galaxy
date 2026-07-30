@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:lg_connection/core/common_widgets/glass_card.dart';
-import 'package:lg_connection/core/theme/app_colors.dart';
 import 'package:lg_connection/shared/services/map_sync_service.dart';
 
-/// A panel containing a Google Map preview that is read-only and syncs its camera
-/// dynamically to follow Liquid Galaxy updates.
+/// A panel displaying a read-only Google Map synchronized to the Liquid Galaxy
+/// camera position.
+///
+/// Map controller and sync behavior are fully preserved.
+/// Only the surrounding container has been migrated to M3 surface semantics.
 class MapSyncPanel extends StatefulWidget {
   final LatLng initialTarget;
   final double initialZoom;
@@ -26,64 +26,52 @@ class _MapSyncPanelState extends State<MapSyncPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      padding: EdgeInsets.zero,
-      borderRadius: 22,
-      borderColor: AppColors.cyanWhite.withOpacity(0.1),
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
       child: SizedBox(
         height: 260,
         child: Stack(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(22),
-              child: GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: widget.initialTarget,
-                  zoom: widget.initialZoom,
-                ),
-                mapType: MapType.satellite,
-                myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                compassEnabled: false,
-                mapToolbarEnabled: false,
-                // Disable all map gestures to make it strictly read-only
-                rotateGesturesEnabled: false,
-                scrollGesturesEnabled: false,
-                tiltGesturesEnabled: false,
-                zoomGesturesEnabled: false,
-                onMapCreated: (controller) {
-                  _mapSyncService.setMapController(controller);
-                },
+            GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: widget.initialTarget,
+                zoom: widget.initialZoom,
               ),
+              mapType: MapType.satellite,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+              compassEnabled: false,
+              mapToolbarEnabled: false,
+              rotateGesturesEnabled: false,
+              scrollGesturesEnabled: false,
+              tiltGesturesEnabled: false,
+              zoomGesturesEnabled: false,
+              onMapCreated: (controller) {
+                _mapSyncService.setMapController(controller);
+              },
             ),
+            // Sync status overlay chip
             Positioned(
               top: 12,
               right: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.62),
-                  borderRadius: BorderRadius.circular(18),
+                  color: colorScheme.surface.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: AppColors.electricBlue,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 7),
+                    Icon(Icons.sync, size: 12, color: colorScheme.primary),
+                    const SizedBox(width: 6),
                     Text(
                       'Galaxy Sync Active',
-                      style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 11,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurface,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

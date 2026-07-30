@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:lg_connection/core/common_widgets/glass_card.dart';
-import 'package:lg_connection/core/theme/app_colors.dart';
 
 /// A single message bubble in the chatbot conversation.
+///
+/// User messages use [primaryContainer] and assistant messages use [surfaceContainerHighest].
 class ChatBubble extends StatelessWidget {
   final String text;
   final bool isUser;
@@ -16,42 +15,46 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final bg = isUser ? colorScheme.primaryContainer : const Color(0xFF262A34);
+    final fg = isUser ? colorScheme.onPrimaryContainer : colorScheme.onSurface;
+
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 18),
+        margin: const EdgeInsets.only(bottom: 12),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.78,
         ),
         child: Column(
           crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
-            GlassCard(
-              padding: const EdgeInsets.all(16),
-              borderRadius: 22,
-              borderColor: isUser 
-                  ? AppColors.electricBlue.withOpacity(0.4) 
-                  : Colors.white.withOpacity(0.08),
-              backgroundColor: isUser 
-                  ? AppColors.electricBlue.withOpacity(0.15) 
-                  : Colors.white.withOpacity(0.04),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                  bottomLeft: Radius.circular(isUser ? 16 : 4),
+                  bottomRight: Radius.circular(isUser ? 4 : 16),
+                ),
+              ),
               child: Text(
                 text,
-                style: GoogleFonts.outfit(
-                  color: Colors.white.withOpacity(0.95),
-                  fontSize: 15,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: fg,
                   height: 1.45,
-                  fontWeight: FontWeight.w400,
                 ),
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              isUser ? 'You' : 'AI Assistant',
-              style: GoogleFonts.outfit(
-                color: Colors.white30,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
+              isUser ? 'You' : 'Climate AI',
+              style: textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.4),
               ),
             ),
           ],

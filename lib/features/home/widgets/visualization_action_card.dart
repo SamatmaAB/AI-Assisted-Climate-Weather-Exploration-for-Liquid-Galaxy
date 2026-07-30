@@ -1,15 +1,16 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:lg_connection/core/common_widgets/glass_card.dart';
+import 'package:lg_connection/core/theme/climate_colors.dart';
 
-/// A card representing a major climate visualization action (e.g., Monsoon, Currents).
+/// A card representing a major climate visualization action.
+///
+/// Climate domain identity is expressed through the icon tint (domain color),
+/// while the card surface itself uses M3 surface containers.
 class VisualizationActionCard extends StatelessWidget {
   final String title;
   final String description;
   final IconData icon;
-  final Color color;
+  final String climateName;
   final bool isLoading;
   final FutureOr<void> Function() onTap;
 
@@ -18,83 +19,68 @@ class VisualizationActionCard extends StatelessWidget {
     required this.title,
     required this.description,
     required this.icon,
-    required this.color,
+    required this.climateName,
     required this.isLoading,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.22),
-            blurRadius: 28,
-            spreadRadius: -8,
-          ),
-        ],
-      ),
-      child: GlassCard(
-        onTap: isLoading ? null : onTap,
-        padding: const EdgeInsets.all(22),
-        borderRadius: 24,
-        borderColor: color.withOpacity(0.28),
-        backgroundColor: Colors.white.withOpacity(0.045),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.14),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: color.withOpacity(0.25)),
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final domainColor = ClimateColors.forPhenomenon(climateName);
+
+    return Card(
+      child: InkWell(
+        onTap: isLoading ? null : () => onTap(),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // Domain-colored icon container
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: domainColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: domainColor, size: 22),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 24,
-                  ),
+                  const Spacer(),
+                  if (isLoading)
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      size: 20,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  height: 1.4,
                 ),
-                const Spacer(),
-                isLoading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CupertinoActivityIndicator(color: Colors.white),
-                      )
-                    : const Icon(
-                        CupertinoIcons.arrow_right_circle_fill,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-              ],
-            ),
-            const SizedBox(height: 22),
-            Text(
-              title,
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                height: 1.05,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              description,
-              style: GoogleFonts.outfit(
-                color: Colors.white.withOpacity(0.58),
-                fontSize: 13,
-                height: 1.35,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

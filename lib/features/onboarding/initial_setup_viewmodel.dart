@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/features/startup/startup_gate.dart';

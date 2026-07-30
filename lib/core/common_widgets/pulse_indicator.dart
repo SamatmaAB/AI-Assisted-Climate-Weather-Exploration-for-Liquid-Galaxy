@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// A circular indicator that pulses to show active connection or status.
+/// Animated pulsing dot indicating live connection or active status.
+///
+/// Uses a subtle fade animation. Color is provided by the caller using
+/// a semantic ColorScheme color.
 class PulseIndicator extends StatefulWidget {
   final Color color;
   final double size;
@@ -15,7 +18,8 @@ class PulseIndicator extends StatefulWidget {
   State<PulseIndicator> createState() => _PulseIndicatorState();
 }
 
-class _PulseIndicatorState extends State<PulseIndicator> with SingleTickerProviderStateMixin {
+class _PulseIndicatorState extends State<PulseIndicator>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -43,13 +47,6 @@ class _PulseIndicatorState extends State<PulseIndicator> with SingleTickerProvid
         decoration: BoxDecoration(
           color: widget.color,
           shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: widget.color.withOpacity(0.5),
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
         ),
       ),
     );

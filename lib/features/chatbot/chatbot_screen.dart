@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lg_connection/core/theme/app_colors.dart';
 import 'package:lg_connection/features/chatbot/chatbot_viewmodel.dart';
 import 'package:lg_connection/features/chatbot/widgets/chat_bubble.dart';
-import 'package:lg_connection/features/chatbot/widgets/chat_header.dart';
 import 'package:lg_connection/features/chatbot/widgets/chat_input_bar.dart';
 import 'package:lg_connection/features/chatbot/widgets/chat_suggestions.dart';
 
@@ -32,58 +30,47 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.slate950,
+      appBar: AppBar(
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Climate AI Assistant'),
+            Text(
+              'Ask about Earth systems and visualizations',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+            ),
+          ],
+        ),
+      ),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, child) {
-          return Stack(
+          return Column(
             children: [
-              _buildBackgroundGlow(),
-              Column(
-                children: [
-                  const ChatHeader(),
-                  Expanded(
-                    child: ListView.builder(
-                      controller: _viewModel.scrollController,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: _viewModel.messages.length,
-                      itemBuilder: (context, index) {
-                        final message = _viewModel.messages[index];
-                        return ChatBubble(
-                          text: message['text'],
-                          isUser: message['isUser'],
-                        );
-                      },
-                    ),
-                  ),
-                  ChatSuggestions(
-                    onSuggestionTap: (text) => _viewModel.sendMessage(text: text),
-                  ),
-                  ChatInputBar(
-                    controller: _viewModel.messageController,
-                    onSend: () => _viewModel.sendMessage(),
-                  ),
-                ],
+              Expanded(
+                child: ListView.builder(
+                  controller: _viewModel.scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  itemCount: _viewModel.messages.length,
+                  itemBuilder: (context, index) {
+                    final message = _viewModel.messages[index];
+                    return ChatBubble(
+                      text: message['text'],
+                      isUser: message['isUser'],
+                    );
+                  },
+                ),
+              ),
+              ChatSuggestions(
+                onSuggestionTap: (text) => _viewModel.sendMessage(text: text),
+              ),
+              ChatInputBar(
+                controller: _viewModel.messageController,
+                onSend: () => _viewModel.sendMessage(),
               ),
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildBackgroundGlow() {
-    return Positioned(
-      top: -100,
-      right: -100,
-      child: Container(
-        width: 300,
-        height: 300,
-        decoration: BoxDecoration(
-          color: AppColors.electricBlue.withOpacity(0.1),
-          shape: BoxShape.circle,
-        ),
       ),
     );
   }

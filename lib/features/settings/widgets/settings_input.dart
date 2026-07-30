@@ -1,55 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+/// A styled text input for settings forms.
+///
+/// Uses the global InputDecorationTheme. Do NOT redefine border or fill inline.
 class SettingsInput extends StatelessWidget {
   final String label;
   final TextEditingController controller;
-  final IconData icon;
+  final IconData prefixIcon;
   final bool isPassword;
+  final TextInputType? keyboardType;
 
   const SettingsInput({
     super.key,
     required this.label,
     required this.controller,
-    required this.icon,
+    required this.prefixIcon,
     this.isPassword = false,
+    this.keyboardType,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.white.withOpacity(0.4), size: 22),
-        const SizedBox(width: 20),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.outfit(
-                  color: Colors.white.withOpacity(0.35),
-                  fontSize: 12,
-                ),
-              ),
-              TextField(
-                controller: controller,
-                obscureText: isPassword,
-                style: GoogleFonts.outfit(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 16,
-                ),
-                cursorColor: Colors.white.withOpacity(0.6),
-                decoration: const InputDecoration(
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 4),
-                  border: InputBorder.none,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return TextField(
+      controller: controller,
+      obscureText: isPassword,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(prefixIcon),
+      ),
     );
   }
 }

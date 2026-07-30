@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
+import 'package:lg_connection/core/theme/theme_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// ViewModel for managing app configuration and Liquid Galaxy connection settings.
@@ -13,8 +14,8 @@ class SettingsViewModel extends ChangeNotifier {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController rigsController = TextEditingController();
 
-  bool isDarkMode = true;
-  bool isColorblindMode = false;
+  bool get isDarkMode => ThemeController.instance.isDarkMode;
+  bool get isColorblindMode => ThemeController.instance.isColorblindMode;
   bool isConnecting = false;
 
   ValueListenable<bool> get isConnected => _sshClient.isConnected;
@@ -31,8 +32,8 @@ class SettingsViewModel extends ChangeNotifier {
     portController.text = prefs.getString('sshPort') ?? '22';
     passwordController.text = prefs.getString('password') ?? 'lg';
     rigsController.text = prefs.getString('numberOfRigs') ?? '3';
-    isDarkMode = prefs.getBool('isDarkMode') ?? true;
-    isColorblindMode = prefs.getBool('isColorblindMode') ?? false;
+    // isDarkMode and isColorblindMode are owned by ThemeController;
+    // they are already loaded at startup via ThemeController.loadFromPrefs().
     notifyListeners();
   }
 
@@ -44,8 +45,7 @@ class SettingsViewModel extends ChangeNotifier {
     await prefs.setString('sshPort', portController.text);
     await prefs.setString('password', passwordController.text);
     await prefs.setString('numberOfRigs', rigsController.text);
-    await prefs.setBool('isDarkMode', isDarkMode);
-    await prefs.setBool('isColorblindMode', isColorblindMode);
+    // Theme preferences are persisted by ThemeController directly.
   }
 
   /// Triggers a connection attempt to the Liquid Galaxy rig.
@@ -64,15 +64,13 @@ class SettingsViewModel extends ChangeNotifier {
   }
 
   void toggleDarkMode(bool value) {
-    isDarkMode = value;
-    saveSettings();
-    notifyListeners();
+    ThemeController.instance.setDarkMode(value);
+    notifyListeners(); // update AppearanceCard switch immediately
   }
 
   void toggleColorblindMode(bool value) {
-    isColorblindMode = value;
-    saveSettings();
-    notifyListeners();
+    ThemeController.instance.setColorblindMode(value);
+    notifyListeners(); // update AppearanceCard switch immediately
   }
 
   @override
