@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:lg_connection/core/network/ssh_commands.dart';
 
 /// A low-level SSH client that handles connection and command execution for Liquid Galaxy.
 class LGSSHClient {
@@ -181,6 +180,84 @@ class LGSSHClient {
     } catch (e) {
       debugPrint('SFTP Upload failed: $e');
       return false;
+    }
+  }
+
+  /// Establishes an SSH connection using provided credentials without requiring prior persistence.
+  Future<bool> connectWithCredentials({
+    required String host,
+    required String port,
+    required String username,
+    required String password,
+    required int numberOfRigs,
+  }) async {
+    _host = host;
+    _port = port;
+    _username = username;
+    _passwordOrKey = password;
+    _numberOfRigs = numberOfRigs;
+
+    if (_host.isEmpty) {
+      isConnected.value = false;
+      return false;
+    }
+
+    try {
+      final socket = await SSHSocket.connect(
+        _host,
+        int.parse(_port),
+        timeout: const Duration(seconds: 5),
+      );
+
+      _client = SSHClient(
+        socket,
+        username: _username,
+        onPasswordRequest: () => _passwordOrKey,
+        keepAliveInterval: const Duration(seconds: 10),
+      );
+
+      await _client!.authenticated;
+      isConnected.value = true;
+      _reconnectAttempts = 0;
+
+      _startHeartbeat();
+
+      _client!.done.then((_) {
+        _handleDisconnection();
+      });
+
+      return true;
+    } catch (e) {
+      debugPrint('SSH Connection failed: $e');
+      isConnected.value = false;
+      return false;
+    }
+  }
+
+  /// Sends the Liquid Galaxy logo to the leftmost screen.
+  Future<bool> sendLogo() async {
+    final screens = numberOfRigs;
+    final leftScreen = SSHCommands.calculateLeftMostScreen(screens);
+
+    final ok = await runCommand(
+      SSHCommands.sendLogoToScreen(leftScreen),
+    );
+    if (ok) await forceRefresh(leftScreen);
+    return ok;
+  }
+
+  /// Forces Google Earth on a slave screen to reload its KML.
+  Future<void> forceRefresh(int screen) async {
+    final pwd = password;
+    try {
+      await runCommand(
+        SSHCommands.addRefreshInterval(screen, 2, pwd),
+      );
+      await runCommand(
+        SSHCommands.removeRefreshInterval(screen, pwd),
+      );
+    } catch (e) {
+      debugPrint('forceRefresh failed for screen $screen: $e');
     }
   }
 

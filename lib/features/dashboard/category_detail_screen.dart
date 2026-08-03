@@ -1,224 +1,204 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:lg_connection/core/theme/app_colors.dart';
+import 'package:lg_connection/core/theme/climate_colors.dart';
 import 'package:lg_connection/features/dashboard/dashboard_viewmodel.dart';
 import 'package:lg_connection/features/dashboard/data/category_metadata_provider.dart';
 import 'package:lg_connection/features/dashboard/widgets/action_item_card.dart';
 import 'package:lg_connection/features/dashboard/widgets/info_card.dart';
 import 'package:lg_connection/features/dashboard/widgets/specs_card.dart';
+import 'package:lg_connection/main.dart';
 
-/// A detailed screen for a specific climate category, providing visualizations and data info.
+/// Detailed view for a specific climate category.
 class CategoryDetailScreen extends StatelessWidget {
   final String categoryName;
-  final DashboardViewModel _viewModel = DashboardViewModel();
+  late final DashboardViewModel _viewModel = DashboardViewModel(aiRepository);
 
   CategoryDetailScreen({super.key, required this.categoryName});
 
   @override
   Widget build(BuildContext context) {
     final metadata = CategoryMetadataProvider.getMetadata(categoryName);
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final domainColor = ClimateColors.forPhenomenon(categoryName);
 
     return Scaffold(
-      backgroundColor: AppColors.slate950,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopBar(context),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                physics: const BouncingScrollPhysics(),
-                children: [
-                  const SizedBox(height: 32),
-                  _buildHeader(metadata),
-                  const SizedBox(height: 16),
-                  _buildDescription(metadata.description),
-                  const SizedBox(height: 36),
-                  SpecsCard(accentColor: metadata.themeColor),
-                  const SizedBox(height: 24),
-                  InfoCard(
-                    title: 'DATA FEED',
-                    icon: CupertinoIcons.antenna_radiowaves_left_right,
-                    color: metadata.themeColor,
-                    description: 'High-fidelity telemetry sourced from global observation networks.',
-                  ),
-                  const SizedBox(height: 20),
-                  ..._buildCategoryActions(metadata),
-                  const SizedBox(height: 140),
-                ],
-              ),
-            ),
-          ],
-        ),
+      appBar: AppBar(
+        title: Text(categoryName),
       ),
-    );
-  }
-
-  Widget _buildTopBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-      child: Row(
+      body: ListView(
+        padding: const EdgeInsets.all(20),
         children: [
-          _buildCircleButton(
-            icon: CupertinoIcons.chevron_left,
-            onTap: () => Navigator.of(context).pop(),
-            borderColor: AppColors.cyanWhite.withOpacity(0.1),
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: domainColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(metadata.icon, color: domainColor, size: 26),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      metadata.subTitle,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    Text(
+                      categoryName,
+                      style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const Spacer(),
+          const SizedBox(height: 16),
+          Text(
+            metadata.description,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurface.withValues(alpha: 0.8),
+              height: 1.6,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          SpecsCard(accentColor: domainColor),
+          const SizedBox(height: 16),
+          InfoCard(
+            title: 'DATA FEED',
+            icon: Icons.cell_tower_outlined,
+            color: domainColor,
+            description: 'High-fidelity telemetry sourced from global observation networks.',
+          ),
+          const SizedBox(height: 24),
+
+          _buildSectionHeader(context, 'AVAILABLE VISUALIZATIONS'),
+          const SizedBox(height: 12),
+          ..._buildCategoryActions(context, metadata),
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(dynamic metadata) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: metadata.themeColor.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: metadata.themeColor.withOpacity(0.15)),
-            boxShadow: [
-              BoxShadow(
-                color: metadata.themeColor.withOpacity(0.1),
-                blurRadius: 15,
-                spreadRadius: -2,
-              ),
-            ],
-          ),
-          child: Icon(metadata.icon, color: metadata.themeColor, size: 34),
-        ),
-        const SizedBox(width: 20),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                metadata.subTitle,
-                style: GoogleFonts.outfit(
-                  color: Colors.white.withOpacity(0.4),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              Text(
-                categoryName,
-                style: GoogleFonts.outfit(
-                  fontSize: 34,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: -1,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDescription(String description) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     return Text(
-      description,
-      style: GoogleFonts.outfit(
-        color: Colors.white.withOpacity(0.7),
-        fontSize: 16,
-        fontWeight: FontWeight.w300,
-        height: 1.6,
+      title,
+      style: textTheme.labelSmall?.copyWith(
+        color: colorScheme.onSurface.withValues(alpha: 0.5),
+        letterSpacing: 1.5,
+        fontWeight: FontWeight.w700,
       ),
     );
   }
 
-  List<Widget> _buildCategoryActions(dynamic metadata) {
+  List<Widget> _buildCategoryActions(BuildContext context, dynamic metadata) {
     List<Widget> actions = [];
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (categoryName == 'Global Wind Systems') {
       actions.add(
         ActionItemCard(
           title: 'Visualize Indian Monsoon',
-          subtitle: 'Load the ready KML and project it to the rig',
-          icon: CupertinoIcons.wind,
-          color: Colors.orange,
+          subtitle: 'Load the pre-generated KML and project to the rig',
+          icon: Icons.air_outlined,
+          color: ClimateColors.monsoon,
           onTap: () => _viewModel.visualizeIndianMonsoon(),
         ),
       );
-      actions.add(const SizedBox(height: 14));
+      actions.add(const SizedBox(height: 12));
+      actions.add(
+        ActionItemCard(
+          title: 'Visualize Mumbai Monsoon',
+          subtitle: 'Project Mumbai monsoon KML & fly to Gateway of India',
+          icon: Icons.grain_outlined,
+          color: ClimateColors.mumbaiMonsoon,
+          onTap: () => _viewModel.visualizeMumbaiMonsoon(),
+        ),
+      );
+      actions.add(const SizedBox(height: 12));
     }
 
     if (categoryName == 'Ocean Currents') {
       actions.add(
         ActionItemCard(
-          title: 'Kuroshio current',
+          title: 'Kuroshio Current',
           subtitle: 'Visualize the North Pacific western boundary current',
-          icon: CupertinoIcons.waveform,
-          color: AppColors.goldAccent,
+          icon: Icons.waves_outlined,
+          color: ClimateColors.kuroshio,
           onTap: () => _viewModel.visualizeKuroshioCurrent(),
         ),
       );
-      actions.add(const SizedBox(height: 14));
+      actions.add(const SizedBox(height: 12));
+      actions.add(
+        ActionItemCard(
+          title: 'El Niño Pacific Conveyor',
+          subtitle: 'Visualize warm ocean current anomaly in the Pacific',
+          icon: Icons.wb_sunny_outlined,
+          color: ClimateColors.elNino,
+          onTap: () => _viewModel.visualizeElNino(),
+        ),
+      );
+      actions.add(const SizedBox(height: 12));
+      actions.add(
+        ActionItemCard(
+          title: 'La Niña Pacific Trade Wind',
+          subtitle: 'Visualize cold upwelling anomaly in the Pacific',
+          icon: Icons.cloud_outlined,
+          color: ClimateColors.laNina,
+          onTap: () => _viewModel.visualizeLaNina(),
+        ),
+      );
+      actions.add(const SizedBox(height: 12));
     }
 
     actions.add(
       ActionItemCard(
         title: 'Project KML Layer',
         subtitle: 'Send a prepared KML layer to Liquid Galaxy',
-        icon: CupertinoIcons.device_desktop,
-        color: AppColors.electricBlue,
+        icon: Icons.fit_screen_outlined,
+        color: colorScheme.primary,
         onTap: () {},
       ),
     );
-    actions.add(const SizedBox(height: 14));
+    actions.add(const SizedBox(height: 12));
 
     actions.add(
       ActionItemCard(
         title: 'Fly To Region',
         subtitle: 'Move the rig camera to the tour viewpoint',
-        icon: CupertinoIcons.location_north_fill,
-        color: AppColors.neonGreen,
+        icon: Icons.explore_outlined,
+        color: colorScheme.secondary,
         onTap: () {
           if (categoryName == 'Global Wind Systems') {
             _viewModel.flyTo('<LookAt><longitude>78.9629</longitude><latitude>20.5937</latitude><altitude>0</altitude><heading>0</heading><tilt>45</tilt><range>5000000</range><gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode></LookAt>');
           } else if (categoryName == 'Ocean Currents') {
-            _viewModel.flyTo('<LookAt><longitude>135.0</longitude><latitude>35.0</latitude><altitude>0</altitude><heading>0</heading><tilt>30</tilt><range>4000000</range><gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode></LookAt>');
+            _viewModel.flyTo('<LookAt><longitude>135.0</longitude><latitude>28.0</latitude><altitude>0</altitude><heading>0</heading><tilt>45</tilt><range>6000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>');
           }
         },
       ),
     );
-    actions.add(const SizedBox(height: 14));
+    actions.add(const SizedBox(height: 12));
 
     actions.add(
       ActionItemCard(
         title: 'Clear Rig Layers',
         subtitle: 'Remove the active KML visualization',
-        icon: CupertinoIcons.trash,
-        color: AppColors.criticalRed,
+        icon: Icons.layers_clear_outlined,
+        color: colorScheme.error,
         onTap: () => _viewModel.clearKML(),
       ),
     );
 
     return actions;
-  }
-
-  Widget _buildCircleButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    required Color borderColor,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.03),
-          shape: BoxShape.circle,
-          border: Border.all(color: borderColor),
-        ),
-        child: Icon(icon, color: Colors.white.withOpacity(0.8), size: 20),
-      ),
-    );
   }
 }

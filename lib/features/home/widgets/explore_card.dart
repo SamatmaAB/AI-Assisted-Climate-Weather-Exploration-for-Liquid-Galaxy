@@ -1,64 +1,61 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:lg_connection/core/common_widgets/glass_card.dart';
+import 'package:lg_connection/core/theme/climate_colors.dart';
 import 'package:lg_connection/features/dashboard/category_detail_screen.dart';
 
-/// A card used in the "More Patterns" section of the home screen.
+/// A compact explore card linking to a climate category detail page.
 class ExploreCard extends StatelessWidget {
   final String title;
   final IconData icon;
-  final Color color;
+  final String climateName;
   final String categoryName;
 
   const ExploreCard({
     super.key,
     required this.title,
     required this.icon,
-    required this.color,
+    required this.climateName,
     required this.categoryName,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      onTap: () {
-        Navigator.push(
-          context,
-          CupertinoPageRoute(
-            builder: (context) => CategoryDetailScreen(
-              categoryName: categoryName,
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final domainColor = ClimateColors.forPhenomenon(climateName);
+
+    return Card(
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CategoryDetailScreen(categoryName: categoryName),
             ),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: domainColor, size: 24),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Explore',
+                style: textTheme.labelSmall?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
-        );
-      },
-      padding: const EdgeInsets.all(18),
-      borderRadius: 18,
-      borderColor: color.withOpacity(0.22),
-      backgroundColor: Colors.white.withOpacity(0.035),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 18),
-          Text(
-            title,
-            style: GoogleFonts.outfit(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            'Open',
-            style: GoogleFonts.outfit(
-              color: color.withOpacity(0.72),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

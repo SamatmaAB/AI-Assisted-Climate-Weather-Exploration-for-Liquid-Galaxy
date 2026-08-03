@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"
+     xmlns:gx="http://www.google.com/kml/ext/2.2"
+     xmlns:kml="http://www.opengis.net/kml/2.2"
+     xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+  <name>Indian Monsoon Guided Tour</name>
+  <open>1</open>
+  <gx:Tour>
+    <name>Indian Monsoon Guided Tour</name>
+    <gx:Playlist>
+
+        <!-- Scientific Stop: South Asian Monsoon Overview -->
+        <gx:FlyTo>
+          <gx:duration>11.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>78.0</longitude>
+            <latitude>20.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>0.0</heading>
+            <tilt>45.0</tilt>
+            <range>5000000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Scientific Stop: Arabian Sea Branch & Western Ghats -->
+        <gx:FlyTo>
+          <gx:duration>10.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>70.0</longitude>
+            <latitude>14.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>45.0</heading>
+            <tilt>55.0</tilt>
+            <range>2200000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Scientific Stop: Bay of Bengal Branch Inflow -->
+        <gx:FlyTo>
+          <gx:duration>10.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>88.0</longitude>
+            <latitude>16.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>15.0</heading>
+            <tilt>50.0</tilt>
+            <range>2500000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Scientific Stop: Northeast India & Cherrapunji Heavy Rain -->
+        <gx:FlyTo>
+          <gx:duration>9.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>91.5</longitude>
+            <latitude>25.5</latitude>
+            <altitude>0.0</altitude>
+            <heading>315.0</heading>
+            <tilt>60.0</tilt>
+            <range>1800000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Scientific Stop: Gangetic Plain Monsoon Trough & Low Pressure -->
+        <gx:FlyTo>
+          <gx:duration>9.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>76.0</longitude>
+            <latitude>27.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>270.0</heading>
+            <tilt>50.0</tilt>
+            <range>2000000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+        <!-- Scientific Stop: South Asian Monsoon Conclusion -->
+        <gx:FlyTo>
+          <gx:duration>11.0</gx:duration>
+          <gx:flyToMode>smooth</gx:flyToMode>
+          <LookAt>
+            <longitude>78.0</longitude>
+            <latitude>20.0</latitude>
+            <altitude>0.0</altitude>
+            <heading>0.0</heading>
+            <tilt>45.0</tilt>
+            <range>5000000.0</range>
+            <altitudeMode>relativeToGround</altitudeMode>
+          </LookAt>
+        </gx:FlyTo>
+
+    </gx:Playlist>
+  </gx:Tour>
+</Document>
+</kml>

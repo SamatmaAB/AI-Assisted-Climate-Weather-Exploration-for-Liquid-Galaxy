@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-/// Horizontal list of quick suggestion chips for the chatbot.
+/// Horizontal list of quick suggestion ActionChips for the chatbot.
 class ChatSuggestions extends StatelessWidget {
   final Function(String) onSuggestionTap;
 
@@ -12,39 +11,29 @@ class ChatSuggestions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final suggestions = ['Indian Monsoon', 'Kuroshio Current', 'Clear Rig', 'Help'];
-    
-    return Container(
-      height: 45,
-      margin: const EdgeInsets.only(bottom: 10),
+    final suggestions = [
+      'Indian Monsoon',
+      'Kuroshio Current',
+      'El Niño',
+      'La Niña',
+      'Mumbai Monsoon',
+      'Clear Rig',
+      'Help',
+    ];
+
+    return SizedBox(
+      height: 48,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: suggestions.length,
         itemBuilder: (context, index) {
           final suggestion = suggestions[index];
           return Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: GestureDetector(
-              onTap: () => onSuggestionTap('Tell me about $suggestion'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
-                ),
-                child: Center(
-                  child: Text(
-                    suggestion,
-                    style: GoogleFonts.outfit(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
+            padding: const EdgeInsets.only(right: 8),
+            child: ActionChip(
+              label: Text(suggestion),
+              onPressed: () => onSuggestionTap('Tell me about $suggestion'),
             ),
           );
         },

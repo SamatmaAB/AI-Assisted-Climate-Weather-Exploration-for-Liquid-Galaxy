@@ -1,7 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:lg_connection/core/common_widgets/glass_card.dart';
 
 /// A card for displaying high-level information or descriptions.
 class InfoCard extends StatelessWidget {
@@ -20,48 +17,35 @@ class InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.05),
-            blurRadius: 15,
-            spreadRadius: -5,
-          ),
-        ],
-      ),
-      child: GlassCard(
-        padding: const EdgeInsets.all(24),
-        borderRadius: 24,
-        borderColor: Colors.white.withOpacity(0.05),
-        backgroundColor: Colors.white.withOpacity(0.02),
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, color: color.withOpacity(0.8), size: 20),
-                const SizedBox(width: 12),
+                Icon(icon, color: color, size: 18),
+                const SizedBox(width: 10),
                 Text(
                   title,
-                  style: GoogleFonts.outfit(
-                    color: Colors.white.withOpacity(0.4),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.5),
                     letterSpacing: 1.5,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             Text(
               description,
-              style: GoogleFonts.outfit(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 16,
-                height: 1.6,
-                fontWeight: FontWeight.w300,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.8),
+                height: 1.5,
               ),
             ),
           ],

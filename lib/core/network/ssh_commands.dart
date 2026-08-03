@@ -50,6 +50,10 @@ class SSHCommands {
     return 'echo "exittour=true" > /tmp/query.txt';
   }
 
+  static String playTour(String tourName) {
+    return 'echo "playtour=$tourName" > /tmp/query.txt';
+  }
+
   // ── KML Management (kmls.txt-based overlays) ─────────────────────────────────
 
   /// Clears the main KML list file. Does NOT clear slave screen overlays.
@@ -64,6 +68,11 @@ class SSHCommands {
 
   static String setKML(String fileName) {
     return 'echo "http://lg1:81/$fileName" > /var/www/html/kmls.txt';
+  }
+
+  static String setKMLs(List<String> fileNames) {
+    final urls = fileNames.map((name) => 'http://lg1:81/$name').join('\n');
+    return 'echo "$urls" > /var/www/html/kmls.txt';
   }
 
   static String setKMLWithHost(String host, String fileName) {

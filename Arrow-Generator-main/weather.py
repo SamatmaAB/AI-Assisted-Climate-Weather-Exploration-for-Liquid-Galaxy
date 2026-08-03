@@ -1,5 +1,6 @@
 import random
 import simplekml
+import os
 
 
 # ==========================================
@@ -87,4 +88,10 @@ label.style.iconstyle.scale = 0
 
 kml.save("mumbai_monsoon.kml")
 
-print("Generated mumbai_monsoon.kml")
+script_dir = os.path.dirname(os.path.abspath(__file__))
+assets_dir = os.path.abspath(os.path.join(script_dir, "..", "assets", "kml"))
+os.makedirs(assets_dir, exist_ok=True)
+asset_path = os.path.join(assets_dir, "mumbai_monsoon.kml")
+kml.save(asset_path)
+
+print(f"Generated mumbai_monsoon.kml in current directory and {asset_path}")

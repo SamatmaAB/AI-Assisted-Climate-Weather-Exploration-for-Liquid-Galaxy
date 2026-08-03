@@ -1,7 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:lg_connection/core/theme/app_colors.dart';
 import 'package:lg_connection/features/controls/controls_viewmodel.dart';
 import 'package:lg_connection/features/controls/widgets/availability_card.dart';
 import 'package:lg_connection/features/controls/widgets/task_button.dart';
@@ -35,90 +32,75 @@ class _ControlsScreenState extends State<ControlsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isSuccess ? AppColors.electricBlue : AppColors.criticalRed,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(bottom: 110, left: 20, right: 20),
+        backgroundColor: isSuccess
+            ? Theme.of(context).colorScheme.secondaryContainer
+            : Theme.of(context).colorScheme.errorContainer,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        color: AppColors.slate950,
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            physics: const BouncingScrollPhysics(),
-            children: [
-              const SizedBox(height: 40),
-              Text(
-                'Liquid Galaxy\nServices',
-                style: GoogleFonts.outfit(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  height: 1.1,
-                  letterSpacing: -1,
-                ),
-              ),
-              const SizedBox(height: 32),
-              
-              _buildSubHeader('SYSTEM TASKS'),
-              const SizedBox(height: 16),
-              _buildSystemTasks(),
-              
-              const SizedBox(height: 32),
-              _buildSubHeader('VISUAL CONTROLS'),
-              const SizedBox(height: 16),
-              ListenableBuilder(
-                listenable: _viewModel,
-                builder: (context, _) {
-                  return _buildVisualControls();
-                },
-              ),
-              
-              const SizedBox(height: 32),
-              ValueListenableBuilder<bool>(
-                valueListenable: _viewModel.isConnected,
-                builder: (context, connected, _) {
-                  return AvailabilityCard(
-                    isConnected: connected,
-                    statusColor: connected ? AppColors.neonGreen : AppColors.criticalRed,
-                  );
-                },
-              ),
-              
-              const SizedBox(height: 140),
-            ],
-          ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          children: [
+            const SizedBox(height: 32),
+            Text(
+              'Liquid Galaxy\nServices',
+              style: textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w700, height: 1.1),
+            ),
+            const SizedBox(height: 28),
+
+            _buildSectionLabel(context, 'System Tasks'),
+            const SizedBox(height: 12),
+            _buildSystemTasks(colorScheme),
+
+            const SizedBox(height: 28),
+            _buildSectionLabel(context, 'Visual Controls'),
+            const SizedBox(height: 12),
+            ListenableBuilder(
+              listenable: _viewModel,
+              builder: (context, _) => _buildVisualControls(colorScheme),
+            ),
+
+            const SizedBox(height: 28),
+            ValueListenableBuilder<bool>(
+              valueListenable: _viewModel.isConnected,
+              builder: (context, connected, _) {
+                return AvailabilityCard(isConnected: connected);
+              },
+            ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSubHeader(String title) {
+  Widget _buildSectionLabel(BuildContext context, String title) {
     return Text(
-      title,
-      style: GoogleFonts.outfit(
-        color: Colors.white.withOpacity(0.4),
-        fontSize: 12,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.5,
-      ),
+      title.toUpperCase(),
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.w700,
+          ),
     );
   }
 
-  Widget _buildSystemTasks() {
+  Widget _buildSystemTasks(ColorScheme colorScheme) {
     return Row(
       children: [
         Expanded(
           child: TaskButton(
             label: 'Shutdown',
-            icon: CupertinoIcons.power,
-            color: AppColors.criticalRed,
+            icon: Icons.power_settings_new_outlined,
+            role: TaskButtonRole.destructive,
             onPressed: () async {
               final ok = await _viewModel.shutdown();
               _showFeedback(
@@ -128,12 +110,12 @@ class _ControlsScreenState extends State<ControlsScreen> {
             },
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: TaskButton(
             label: 'Reboot',
-            icon: CupertinoIcons.refresh_bold,
-            color: AppColors.warningOrange,
+            icon: Icons.restart_alt_outlined,
+            role: TaskButtonRole.warning,
             onPressed: () async {
               final ok = await _viewModel.reboot();
               _showFeedback(
@@ -143,12 +125,12 @@ class _ControlsScreenState extends State<ControlsScreen> {
             },
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: TaskButton(
             label: 'Clear KML',
-            icon: CupertinoIcons.trash,
-            color: AppColors.electricBlue,
+            icon: Icons.layers_clear_outlined,
+            role: TaskButtonRole.normal,
             onPressed: () async {
               final ok = await _viewModel.clearKML();
               _showFeedback(
@@ -162,14 +144,14 @@ class _ControlsScreenState extends State<ControlsScreen> {
     );
   }
 
-  Widget _buildVisualControls() {
+  Widget _buildVisualControls(ColorScheme colorScheme) {
     return Row(
       children: [
         Expanded(
           child: TaskButton(
             label: 'Show Logo',
-            icon: CupertinoIcons.photo,
-            color: AppColors.neonGreen,
+            icon: Icons.image_outlined,
+            role: TaskButtonRole.normal,
             onPressed: () async {
               final ok = await _viewModel.sendLogo();
               _showFeedback(
@@ -179,12 +161,14 @@ class _ControlsScreenState extends State<ControlsScreen> {
             },
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: TaskButton(
             label: _viewModel.isOrbiting ? 'Stop Orbit' : 'Orbit',
-            icon: _viewModel.isOrbiting ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
-            color: _viewModel.isOrbiting ? AppColors.criticalRed : AppColors.purpleAccent,
+            icon: _viewModel.isOrbiting
+                ? Icons.stop_circle_outlined
+                : Icons.rotate_90_degrees_ccw_outlined,
+            role: _viewModel.isOrbiting ? TaskButtonRole.destructive : TaskButtonRole.normal,
             onPressed: () async {
               final wasOrbiting = _viewModel.isOrbiting;
               await _viewModel.startOrbit();
@@ -199,12 +183,12 @@ class _ControlsScreenState extends State<ControlsScreen> {
             },
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: TaskButton(
             label: 'Refresh',
-            icon: CupertinoIcons.arrow_2_circlepath,
-            color: AppColors.refreshCyan,
+            icon: Icons.refresh_outlined,
+            role: TaskButtonRole.normal,
             onPressed: () async {
               await _viewModel.refreshSystem();
               _showFeedback('System services refreshed', true);

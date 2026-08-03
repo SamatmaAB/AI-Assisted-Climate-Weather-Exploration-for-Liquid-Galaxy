@@ -1,10 +1,18 @@
 import math
+import os
 
 # =====================================================
 # CONFIG
 # =====================================================
 
-CITY_ICON = "https://i.imgur.com/CNAwh6Z.png"
+RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
+DROUGHT_ICON = "https://i.imgur.com/p7WHxlT.png"
+FLOOD_ICON = "https://i.imgur.com/FE0MzOA.jpeg"
+
+MONSOON_ICON = "https://i.imgur.com/qoXQjzD.png"
+STORM_ICON = "https://i.imgur.com/UbtYVUx.png"
+WARM_ICON = "https://i.imgur.com/RXrha0q.png"
+
 
 # Thinner arrows
 SHAFT_WIDTH = 0.28
@@ -13,7 +21,7 @@ SHAFT_WIDTH = 0.28
 HEAD_LENGTH = 1.5
 HEAD_WIDTH = 0.75
 
-CITY_SCALE = 2.0
+CITY_SCALE = 3
 
 def rgb_to_kml(r, g, b, alpha="ff"):
     return f"{alpha}{b:02x}{g:02x}{r:02x}"
@@ -90,42 +98,60 @@ def truncate_for_head(points, head_length):
 
 
 # =====================================================
-# SHAFT SEGMENT
+# VERTEX BOUNDARY & SHAFT QUAD
 # =====================================================
 
-def create_segment_polygon(p1, p2, color):
+def compute_boundary_vertices(points, shaft_width=SHAFT_WIDTH):
+    n = len(points)
+    if n < 2:
+        return [], []
 
-    dx = p2[0] - p1[0]
-    dy = p2[1] - p1[1]
+    seg_normals = []
+    for i in range(n - 1):
+        dx = points[i + 1][0] - points[i][0]
+        dy = points[i + 1][1] - points[i][1]
+        length = math.hypot(dx, dy)
+        if length > 0:
+            nx = -dy / length
+            ny = dx / length
+        else:
+            nx, ny = 0.0, 0.0
+        seg_normals.append((nx, ny))
 
-    length = math.hypot(dx, dy)
+    vertex_normals = []
+    for i in range(n):
+        if i == 0:
+            vertex_normals.append(seg_normals[0])
+        elif i == n - 1:
+            vertex_normals.append(seg_normals[-1])
+        else:
+            n_prev = seg_normals[i - 1]
+            n_next = seg_normals[i]
+            nx_sum = n_prev[0] + n_next[0]
+            ny_sum = n_prev[1] + n_next[1]
+            norm = math.hypot(nx_sum, ny_sum)
+            if norm > 0:
+                vertex_normals.append((nx_sum / norm, ny_sum / norm))
+            else:
+                vertex_normals.append(n_prev)
 
-    if length == 0:
-        return ""
+    left_boundary = []
+    right_boundary = []
+    for i in range(n):
+        nx, ny = vertex_normals[i]
+        left_boundary.append((
+            points[i][0] + nx * shaft_width,
+            points[i][1] + ny * shaft_width
+        ))
+        right_boundary.append((
+            points[i][0] - nx * shaft_width,
+            points[i][1] - ny * shaft_width
+        ))
 
-    nx = -dy / length
-    ny = dx / length
+    return left_boundary, right_boundary
 
-    left1 = (
-        p1[0] + nx * SHAFT_WIDTH,
-        p1[1] + ny * SHAFT_WIDTH
-    )
 
-    right1 = (
-        p1[0] - nx * SHAFT_WIDTH,
-        p1[1] - ny * SHAFT_WIDTH
-    )
-
-    left2 = (
-        p2[0] + nx * SHAFT_WIDTH,
-        p2[1] + ny * SHAFT_WIDTH
-    )
-
-    right2 = (
-        p2[0] - nx * SHAFT_WIDTH,
-        p2[1] - ny * SHAFT_WIDTH
-    )
-
+def create_quad_polygon(left1, left2, right2, right1, color):
     return f"""
 <Placemark>
 <Style>
@@ -164,14 +190,16 @@ def create_segment_polygon(p1, p2, color):
 # SHAFT
 # =====================================================
 
-def create_shaft(points, start_rgb, end_rgb):
+def create_shaft(points, start_rgb, end_rgb, shaft_width=SHAFT_WIDTH):
+    left_boundary, right_boundary = compute_boundary_vertices(points, shaft_width)
 
     kml = ""
-
     total = len(points) - 1
 
-    for i in range(total):
+    if total <= 0:
+        return "", (0, 0), (0, 0)
 
+    for i in range(total):
         t = i / total
 
         color = interpolate_color(
@@ -180,20 +208,23 @@ def create_shaft(points, start_rgb, end_rgb):
             t
         )
 
-        kml += create_segment_polygon(
-            points[i],
-            points[i + 1],
+        kml += create_quad_polygon(
+            left_boundary[i],
+            left_boundary[i + 1],
+            right_boundary[i + 1],
+            right_boundary[i],
             color
         )
 
-    return kml
+    return kml, left_boundary[-1], right_boundary[-1]
+
 
 
 # =====================================================
 # ARROWHEAD
 # =====================================================
 
-def create_head(base, tip, color):
+def create_head(base, tip, color, shaft_left_end=None, shaft_right_end=None):
 
     angle = math.atan2(
         tip[1] - base[1],
@@ -215,6 +246,50 @@ def create_head(base, tip, color):
         back_x - nx * HEAD_WIDTH,
         back_y - ny * HEAD_WIDTH
     )
+
+    # Build pentagon connecting through shaft boundary vertices
+    if shaft_left_end and shaft_right_end:
+        return f"""
+<Placemark>
+
+<Style>
+
+<LineStyle>
+<width>0</width>
+</LineStyle>
+
+<PolyStyle>
+<color>{color}</color>
+<outline>0</outline>
+</PolyStyle>
+
+</Style>
+
+<Polygon>
+
+<tessellate>1</tessellate>
+
+<outerBoundaryIs>
+<LinearRing>
+
+<coordinates>
+
+{tip[0]},{tip[1]},0
+{left[0]},{left[1]},0
+{shaft_left_end[0]},{shaft_left_end[1]},0
+{shaft_right_end[0]},{shaft_right_end[1]},0
+{right[0]},{right[1]},0
+{tip[0]},{tip[1]},0
+
+</coordinates>
+
+</LinearRing>
+</outerBoundaryIs>
+
+</Polygon>
+
+</Placemark>
+"""
 
     return f"""
 <Placemark>
@@ -280,7 +355,7 @@ def create_arrow(
         HEAD_LENGTH
     )
 
-    shaft = create_shaft(
+    shaft, shaft_left_end, shaft_right_end = create_shaft(
         shaft_curve,
         start_rgb,
         end_rgb
@@ -295,7 +370,9 @@ def create_arrow(
     head = create_head(
         shaft_curve[-1],
         curve[-1],
-        head_color
+        head_color,
+        shaft_left_end,
+        shaft_right_end
     )
 
     return shaft + head
@@ -305,7 +382,7 @@ def create_arrow(
 # CITY MARKER
 # =====================================================
 
-def city(name, lon, lat):
+def city(name, lon, lat, icon=WARM_ICON):
 
     return f"""
 <Placemark>
@@ -319,7 +396,7 @@ def city(name, lon, lat):
 <scale>{CITY_SCALE}</scale>
 
 <Icon>
-<href>{CITY_ICON}</href>
+<href>{icon}</href>
 </Icon>
 
 </IconStyle>
@@ -379,32 +456,48 @@ def kuroshio():
     )
 
     # ------------------------------------------
-    # CITY MARKERS
+    # CITY & CLIMATE / WEATHER FEATURE MARKERS
     # ------------------------------------------
 
+    # Cities
     kml += city(
         "Taipei",
         121.56,
-        25.03
+        25.03,
+        MONSOON_ICON
     )
 
     kml += city(
         "Okinawa",
         127.68,
-        26.21
+        26.21,
+        STORM_ICON
     )
 
     kml += city(
         "Tokyo",
         139.76,
-        35.68
+        35.68,
+        WARM_ICON
     )
 
     kml += city(
         "Sendai",
         140.87,
-        38.27
+        38.27,
+        RAIN_ICON
     )
+
+    # Weather & Climate Symbols
+    kml += city("Luzon Strait Warm Transport", 121.0, 20.0, WARM_ICON)
+    kml += city("East China Sea Heavy Rain", 125.0, 28.5, RAIN_ICON)
+    kml += city("Ryukyu Monsoon Corridor", 128.5, 28.0, MONSOON_ICON)
+    kml += city("Kyushu Typhoon Alley", 130.5, 31.5, STORM_ICON)
+    kml += city("Kii Peninsula Heavy Rain", 135.8, 33.6, RAIN_ICON)
+    kml += city("Izu Ridge Storm Eddy", 139.0, 33.0, STORM_ICON)
+    kml += city("Kuroshio-Oyashio Front Rain", 145.0, 40.0, RAIN_ICON)
+    kml += city("Kuroshio Extension Meander", 152.0, 38.5, STORM_ICON)
+    kml += city("North Pacific Drift Warming", 160.0, 42.0, WARM_ICON)
 
     return kml
 
@@ -441,15 +534,23 @@ def main():
         kuroshio()
     )
 
+    filename = "kuroshio_current.kml"
     with open(
-        "kuroshio_current.kml",
+        filename,
         "w",
         encoding="utf-8"
     ) as f:
 
         f.write(final_kml)
 
-    print("kuroshio_current.kml generated successfully")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    assets_dir = os.path.abspath(os.path.join(script_dir, "..", "assets", "kml"))
+    os.makedirs(assets_dir, exist_ok=True)
+    asset_path = os.path.join(assets_dir, filename)
+    with open(asset_path, "w", encoding="utf-8") as f:
+        f.write(final_kml)
+
+    print(f"kuroshio_current.kml generated successfully in current directory and {asset_path}")
 
 
 if __name__ == "__main__":

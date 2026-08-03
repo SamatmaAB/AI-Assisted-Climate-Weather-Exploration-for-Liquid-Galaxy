@@ -147,32 +147,11 @@ class ControlsViewModel extends ChangeNotifier {
   ///   - Method: SSH echo  (was SFTP upload)
   ///   - Return: bool so the UI can show real success/failure feedback
   Future<bool> sendLogo() async {
-    final screens = _sshClient.numberOfRigs;
-    final leftScreen = SSHCommands.calculateLeftMostScreen(screens);
-
-    final ok = await _sshClient.runCommand(
-      SSHCommands.sendLogoToScreen(leftScreen),
-    );
-    if (ok) await _forceRefresh(leftScreen);
-    return ok;
+    return await _sshClient.sendLogo();
   }
 
-  /// Forces Google Earth on a slave screen to reload its KML.
-  ///
-  /// Uses the two-step sed approach on myplaces.kml: temporarily adds an
-  /// onInterval refreshMode then removes it, triggering exactly one reload.
   Future<void> _forceRefresh(int screen) async {
-    final password = _sshClient.password;
-    try {
-      await _sshClient.runCommand(
-        SSHCommands.addRefreshInterval(screen, 2, password),
-      );
-      await _sshClient.runCommand(
-        SSHCommands.removeRefreshInterval(screen, password),
-      );
-    } catch (e) {
-      debugPrint('_forceRefresh failed for screen $screen: $e');
-    }
+    await _sshClient.forceRefresh(screen);
   }
 
   bool _isOrbiting = false;

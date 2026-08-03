@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:lg_connection/core/theme/app_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:lg_connection/core/theme/climate_colors.dart';
 import 'package:lg_connection/features/dashboard/models/category_model.dart';
 
 /// Provides metadata for different climate categories.
@@ -8,38 +8,43 @@ class CategoryMetadataProvider {
     switch (categoryName) {
       case 'Global Wind Systems':
         return CategoryMetadata(
-          subTitle: 'Indian subcontinent',
+          subTitle: 'Indian Subcontinent',
           description: 'Arabian Sea and Bay of Bengal moisture flows toward India.',
-          icon: CupertinoIcons.wind,
-          themeColor: AppColors.goldAccent,
+          icon: Icons.air_outlined,
+          themeColor: ClimateColors.monsoon,
+          tourKmlPath: 'assets/kml/indianmonsoon_tour.kml',
         );
       case 'Ocean Currents':
         return CategoryMetadata(
           subTitle: 'Pacific & Atlantic',
           description: 'Western boundary currents transporting heat toward the poles.',
-          icon: CupertinoIcons.waveform,
-          themeColor: AppColors.cyanWhite,
+          icon: Icons.waves_outlined,
+          themeColor: ClimateColors.kuroshio,
+          tourKmlPath: 'assets/kml/kuroshio_tour.kml',
         );
       case 'Cyclone Formation':
         return CategoryMetadata(
           subTitle: 'Tropical Systems',
           description: 'Real-time tracking of pressure systems and storm paths.',
-          icon: CupertinoIcons.cloud_rain,
-          themeColor: AppColors.purpleAccent,
+          icon: Icons.grain_outlined,
+          themeColor: ClimateColors.atmospheric,
+          tourKmlPath: 'assets/kml/gulf_stream_tour.kml',
         );
       case 'Extreme Weather':
         return CategoryMetadata(
           subTitle: 'Thermal Analysis',
           description: 'Monitoring global temperature anomalies and heat distribution.',
-          icon: CupertinoIcons.thermometer,
-          themeColor: AppColors.neonGreen,
+          icon: Icons.thermostat_outlined,
+          themeColor: ClimateColors.elNino,
+          tourKmlPath: 'assets/kml/el_nino_tour.kml',
         );
       default:
         return CategoryMetadata(
           subTitle: 'Global Systems',
           description: 'Advanced planetary data visualization and monitoring.',
-          icon: CupertinoIcons.wind,
-          themeColor: AppColors.electricBlue,
+          icon: Icons.public_outlined,
+          themeColor: ClimateColors.atmospheric,
+          tourKmlPath: 'assets/kml/indianmonsoon_tour.kml',
         );
     }
   }

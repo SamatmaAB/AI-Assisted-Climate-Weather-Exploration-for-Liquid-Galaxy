@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+    <Document id="1">
+        <Style id="5">
+            <IconStyle id="6">
+                <colorMode>normal</colorMode>
+                <scale>1.3980091112585429</scale>
+                <heading>0</heading>
+                <Icon id="7">
+                    <href>https://i.imgur.com/qoXQjzD.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="10">
+            <IconStyle id="11">
+                <colorMode>normal</colorMode>
+                <scale>1.2488212172048831</scale>
+                <heading>0</heading>
+                <Icon id="12">
+                    <href>https://i.imgur.com/qoXQjzD.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="15">
+            <IconStyle id="16">
+                <colorMode>normal</colorMode>
+                <scale>1.2270848087064672</scale>
+                <heading>0</heading>
+                <Icon id="17">
+                    <href>https://i.imgur.com/qoXQjzD.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="20">
+            <IconStyle id="21">
+                <colorMode>normal</colorMode>
+                <scale>1.7839786928792798</scale>
+                <heading>0</heading>
+                <Icon id="22">
+                    <href>https://i.imgur.com/qoXQjzD.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="25">
+            <IconStyle id="26">
+                <colorMode>normal</colorMode>
+                <scale>1.3446565673204809</scale>
+                <heading>0</heading>
+                <Icon id="27">
+                    <href>https://i.imgur.com/qoXQjzD.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="30">
+            <IconStyle id="31">
+                <colorMode>normal</colorMode>
+                <scale>1.5785614291882257</scale>
+                <heading>0</heading>
+                <Icon id="32">
+                    <href>https://i.imgur.com/qoXQjzD.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="35">
+            <IconStyle id="36">
+                <colorMode>normal</colorMode>
+                <scale>1.6921238902108091</scale>
+                <heading>0</heading>
+                <Icon id="37">
+                    <href>https://i.imgur.com/qoXQjzD.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="40">
+            <IconStyle id="41">
+                <colorMode>normal</colorMode>
+                <scale>1.735844531342956</scale>
+                <heading>0</heading>
+                <Icon id="42">
+                    <href>https://i.imgur.com/qoXQjzD.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="45">
+            <IconStyle id="46">
+                <colorMode>normal</colorMode>
+                <scale>1.7884987103141956</scale>
+                <heading>0</heading>
+                <Icon id="47">
+                    <href>https://i.imgur.com/qoXQjzD.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="50">
+            <IconStyle id="51">
+                <colorMode>normal</colorMode>
+                <scale>1.328323426932098</scale>
+                <heading>0</heading>
+                <Icon id="52">
+                    <href>https://i.imgur.com/qoXQjzD.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="55">
+            <IconStyle id="56">
+                <colorMode>normal</colorMode>
+                <scale>2.5</scale>
+                <heading>0</heading>
+                <Icon id="57">
+                    <href>https://i.imgur.com/VJIrVJN.png</href>
+                </Icon>
+            </IconStyle>
+        </Style>
+        <Style id="60">
+            <IconStyle id="62">
+                <colorMode>normal</colorMode>
+                <scale>0</scale>
+                <heading>0</heading>
+                <Icon id="63">
+                    <href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+                </Icon>
+            </IconStyle>
+            <LabelStyle id="61">
+                <colorMode>normal</colorMode>
+                <scale>1.5</scale>
+            </LabelStyle>
+        </Style>
+        <name>Mumbai Weather</name>
+        <Camera>
+            <longitude>72.834654</longitude>
+            <latitude>18.921984</latitude>
+            <altitude>4000</altitude>
+            <heading>0</heading>
+            <tilt>65</tilt>
+            <roll>0</roll>
+        </Camera>
+        <Placemark id="4">
+            <name>Rain</name>
+            <styleUrl>#5</styleUrl>
+            <Point id="3">
+                <coordinates>72.85536344891689,18.941320677430863,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="9">
+            <name>Rain</name>
+            <styleUrl>#10</styleUrl>
+            <Point id="8">
+                <coordinates>72.82209289085722,18.94012472443252,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="14">
+            <name>Rain</name>
+            <styleUrl>#15</styleUrl>
+            <Point id="13">
+                <coordinates>72.85651707920857,18.934867411097706,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="19">
+            <name>Rain</name>
+            <styleUrl>#20</styleUrl>
+            <Point id="18">
+                <coordinates>72.82605338780945,18.92470221003493,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="24">
+            <name>Rain</name>
+            <styleUrl>#25</styleUrl>
+            <Point id="23">
+                <coordinates>72.85535356889473,18.91536388279991,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="29">
+            <name>Rain</name>
+            <styleUrl>#30</styleUrl>
+            <Point id="28">
+                <coordinates>72.86163645632679,18.918026928773333,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="34">
+            <name>Rain</name>
+            <styleUrl>#35</styleUrl>
+            <Point id="33">
+                <coordinates>72.8257393117447,18.938527974678678,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="39">
+            <name>Rain</name>
+            <styleUrl>#40</styleUrl>
+            <Point id="38">
+                <coordinates>72.84514944559795,18.940813002699812,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="44">
+            <name>Rain</name>
+            <styleUrl>#45</styleUrl>
+            <Point id="43">
+                <coordinates>72.81437713039202,18.905553921127442,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="49">
+            <name>Rain</name>
+            <styleUrl>#50</styleUrl>
+            <Point id="48">
+                <coordinates>72.8464079902895,18.921139283949234,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="54">
+            <name>Low Pressure System</name>
+            <styleUrl>#55</styleUrl>
+            <Point id="53">
+                <coordinates>72.65,18.95,0.0</coordinates>
+            </Point>
+        </Placemark>
+        <Placemark id="59">
+            <name>Large Low
+Pressure
+System</name>
+            <styleUrl>#60</styleUrl>
+            <Point id="58">
+                <coordinates>72.67,18.92,0.0</coordinates>
+            </Point>
+        </Placemark>
+    </Document>
+</kml>
