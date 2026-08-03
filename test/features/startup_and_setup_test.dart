@@ -1,3 +1,4 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lg_connection/features/onboarding/initial_setup_viewmodel.dart';
 import 'package:lg_connection/features/startup/startup_gate.dart';
@@ -9,6 +10,7 @@ void main() {
   group('Three-Stage Onboarding & Startup Unit Tests', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
+      FlutterSecureStorage.setMockInitialValues({});
     });
 
     test('StartupGate constants are correctly defined', () {
@@ -69,6 +71,7 @@ void main() {
 
     test('completeSetup persists verified configuration and setupVersion = 1', () async {
       SharedPreferences.setMockInitialValues({});
+      FlutterSecureStorage.setMockInitialValues({});
       final viewModel = InitialSetupViewModel();
       await viewModel.loadSettings();
 

@@ -10,7 +10,7 @@
     <name>La Niña Guided Tour</name>
     <gx:Playlist>
 
-        <!-- Stop: Pacific Basin Overview -->
+        <!-- Scientific Stop: Pacific Basin Overview -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -25,7 +25,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Cold Upwelling off South America -->
+        <!-- Scientific Stop: Cold Upwelling off South America -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -40,7 +40,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Strong Equatorial Trade Winds -->
+        <!-- Scientific Stop: Strong Equatorial Trade Winds -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -55,7 +55,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Western Pacific Warm Pool & Heavy Rain -->
+        <!-- Scientific Stop: Western Pacific Warm Pool & Heavy Rain -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -70,7 +70,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Australian Wet Zone & Asian Monsoon -->
+        <!-- Scientific Stop: Australian Wet Zone & Asian Monsoon -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -85,7 +85,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Pacific Basin Conclusion -->
+        <!-- Scientific Stop: Pacific Basin Conclusion -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>

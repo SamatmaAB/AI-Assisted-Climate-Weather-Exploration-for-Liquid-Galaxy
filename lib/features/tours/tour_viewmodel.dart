@@ -1,19 +1,32 @@
 import 'package:flutter/foundation.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
-import 'package:lg_connection/shared/services/ai_service.dart';
+import 'package:lg_connection/services/ai/ai_repository.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
+
+import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
 
 /// ViewModel for managing the state and execution of planetary tours on Liquid Galaxy.
 class TourViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
-  final AIService _aiService = AIService();
+  final AIRepository _aiRepository;
+
+  TourViewModel(this._aiRepository);
 
   bool isPlaying = false;
   bool isSynced = true;
 
   bool isLoadingExplanation = false;
   String explanation = '';
+
+  bool _isValidExplanation(String? text) {
+    if (text == null) return false;
+    if (text.startsWith('Error')) return false;
+    if (text == GeminiProvider.missingKeyMessage) return false;
+    if (text.contains('built without a Gemini API key')) return false;
+    if (text.contains('Gemini API key is not configured')) return false;
+    return true;
+  }
 
   /// Fetches an AI-generated explanation for the given phenomenon, using
   /// cache when available.
@@ -24,11 +37,11 @@ class TourViewModel extends ChangeNotifier {
 
     try {
       final cached = CacheService.getClimateInfo(phenomenon);
-      if (cached != null && !cached.startsWith('Error')) {
-        explanation = cached;
+      if (_isValidExplanation(cached)) {
+        explanation = cached!;
       } else {
-        final result = await _aiService.getExplanation(phenomenon);
-        if (!result.startsWith('Error')) {
+        final result = await _aiRepository.getExplanation(phenomenon);
+        if (_isValidExplanation(result)) {
           await CacheService.saveClimateInfo(phenomenon, result);
         }
         explanation = result;

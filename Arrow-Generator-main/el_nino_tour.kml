@@ -10,7 +10,7 @@
     <name>El Niño Guided Tour</name>
     <gx:Playlist>
 
-        <!-- Stop: Pacific Overview -->
+        <!-- Scientific Stop: Pacific Overview -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -25,7 +25,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Western Pacific Warm Pool & Indonesia Drought -->
+        <!-- Scientific Stop: Western Pacific Warm Pool & Indonesia Drought -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -40,7 +40,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Equatorial Pacific Heat Conveyor -->
+        <!-- Scientific Stop: Equatorial Pacific Heat Conveyor -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -55,7 +55,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Peru Upwelling & Coastal Flooding -->
+        <!-- Scientific Stop: Peru Upwelling & Coastal Flooding -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -70,7 +70,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: North American Teleconnections -->
+        <!-- Scientific Stop: North American Teleconnections -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -85,7 +85,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Pacific Basin Conclusion -->
+        <!-- Scientific Stop: Pacific Basin Conclusion -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>

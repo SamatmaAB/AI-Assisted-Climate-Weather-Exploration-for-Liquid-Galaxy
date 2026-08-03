@@ -287,6 +287,25 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _viewModel.apiKeyController,
+                      enabled: !isConnecting,
+                      obscureText: _viewModel.isApiKeyObscured,
+                      decoration: InputDecoration(
+                        labelText: 'Google Gemini API Key',
+                        prefixIcon: const Icon(Icons.key_outlined),
+                        helperText: 'Optional. Add your Google Gemini API key now or later from Settings.',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _viewModel.isApiKeyObscured
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed: () => _viewModel.toggleApiKeyVisibility(),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

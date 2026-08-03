@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/features/startup/startup_gate.dart';
+import 'package:lg_connection/services/ai/api_key_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The 3 stages of initial first-run onboarding.
@@ -29,12 +30,16 @@ enum LogoOpState {
 /// ViewModel managing the three-stage first-run onboarding flow.
 class InitialSetupViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
+  final ApiKeyStorage _apiKeyStorage = const ApiKeyStorage();
 
   final TextEditingController ipController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController portController = TextEditingController();
   final TextEditingController rigsController = TextEditingController();
+  final TextEditingController apiKeyController = TextEditingController();
+
+  bool isApiKeyObscured = true;
 
   OnboardingStage _stage = OnboardingStage.welcome;
   OnboardingStage get stage => _stage;
@@ -76,6 +81,17 @@ class InitialSetupViewModel extends ChangeNotifier {
     if (rigsController.text.isEmpty) {
       rigsController.text = prefs.getString('numberOfRigs') ?? '3';
     }
+    if (apiKeyController.text.isEmpty) {
+      final storedKey = await _apiKeyStorage.getGeminiApiKey();
+      if (storedKey != null) {
+        apiKeyController.text = storedKey;
+      }
+    }
+    if (!_isDisposed) notifyListeners();
+  }
+
+  void toggleApiKeyVisibility() {
+    isApiKeyObscured = !isApiKeyObscured;
     if (!_isDisposed) notifyListeners();
   }
 
@@ -200,6 +216,11 @@ class InitialSetupViewModel extends ChangeNotifier {
     await prefs.setString('sshPort', portController.text.trim());
     await prefs.setString('numberOfRigs', rigsController.text.trim());
     await prefs.setInt(StartupGate.setupVersionKey, StartupGate.currentSetupVersion);
+
+    final apiKey = apiKeyController.text.trim();
+    if (apiKey.isNotEmpty) {
+      await _apiKeyStorage.saveGeminiApiKey(apiKey);
+    }
   }
 
   void resetConnectionState() {
@@ -216,6 +237,7 @@ class InitialSetupViewModel extends ChangeNotifier {
     passwordController.dispose();
     portController.dispose();
     rigsController.dispose();
+    apiKeyController.dispose();
     super.dispose();
   }
 }

@@ -5,11 +5,12 @@ import 'package:lg_connection/features/dashboard/data/category_metadata_provider
 import 'package:lg_connection/features/dashboard/widgets/action_item_card.dart';
 import 'package:lg_connection/features/dashboard/widgets/info_card.dart';
 import 'package:lg_connection/features/dashboard/widgets/specs_card.dart';
+import 'package:lg_connection/main.dart';
 
 /// Detailed view for a specific climate category.
 class CategoryDetailScreen extends StatelessWidget {
   final String categoryName;
-  final DashboardViewModel _viewModel = DashboardViewModel();
+  late final DashboardViewModel _viewModel = DashboardViewModel(aiRepository);
 
   CategoryDetailScreen({super.key, required this.categoryName});
 

@@ -4,15 +4,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
 import 'package:lg_connection/models/climate_phenomenon_model.dart';
-import 'package:lg_connection/shared/services/ai_service.dart';
+import 'package:lg_connection/services/ai/ai_repository.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
 import 'package:lg_connection/shared/services/map_sync_service.dart';
 import 'package:lg_connection/shared/services/tour_service.dart';
+import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
 
 /// ViewModel for the Home Screen, managing state and business logic.
 class HomeViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
-  final AIService _aiService = AIService();
+  final AIRepository _aiRepository;
   final MapSyncService _mapSyncService = MapSyncService();
   final TourService _tourService = TourService();
 
@@ -24,7 +25,7 @@ class HomeViewModel extends ChangeNotifier {
 
   ValueListenable<bool> get isConnected => _sshClient.isConnected;
 
-  HomeViewModel() {
+  HomeViewModel(this._aiRepository) {
     _mapSyncService.addListener(notifyListeners);
   }
 
@@ -40,13 +41,22 @@ class HomeViewModel extends ChangeNotifier {
     await _sshClient.runCommand(SSHCommands.refreshKML());
   }
 
+  bool _isValidExplanation(String? text) {
+    if (text == null) return false;
+    if (text.startsWith('Error')) return false;
+    if (text == GeminiProvider.missingKeyMessage) return false;
+    if (text.contains('built without a Gemini API key')) return false;
+    if (text.contains('Gemini API key is not configured')) return false;
+    return true;
+  }
+
   /// Retrieves a climate explanation, using cache if available.
   Future<String> getClimateExplanation(String phenomenon) async {
     final cached = CacheService.getClimateInfo(phenomenon);
-    if (cached != null && !cached.startsWith('Error')) return cached;
+    if (_isValidExplanation(cached)) return cached!;
 
-    final explanation = await _aiService.getExplanation(phenomenon);
-    if (!explanation.startsWith('Error')) {
+    final explanation = await _aiRepository.getExplanation(phenomenon);
+    if (_isValidExplanation(explanation)) {
       await CacheService.saveClimateInfo(phenomenon, explanation);
     }
     return explanation;

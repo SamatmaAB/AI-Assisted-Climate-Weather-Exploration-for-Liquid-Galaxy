@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lg_connection/core/common_widgets/status_badge.dart';
 import 'package:lg_connection/features/settings/settings_viewmodel.dart';
 import 'package:lg_connection/features/settings/widgets/about_card.dart';
+import 'package:lg_connection/features/settings/widgets/ai_settings_card.dart';
 import 'package:lg_connection/features/settings/widgets/appearance_card.dart';
 import 'package:lg_connection/features/settings/widgets/connection_settings_card.dart';
 
@@ -90,6 +91,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           : 'Connection failed. Verify IP and credentials.',
                       success,
                     );
+                  },
+                ),
+                const SizedBox(height: 28),
+
+                _buildSectionLabel(context, 'AI Assistant'),
+                const SizedBox(height: 12),
+                AiSettingsCard(
+                  apiKeyController: _viewModel.apiKeyController,
+                  isObscured: _viewModel.isApiKeyObscured,
+                  onToggleVisibility: _viewModel.toggleApiKeyVisibility,
+                  onSave: () async {
+                    await _viewModel.saveApiKey();
+                    _showFeedback('Gemini API key saved successfully', true);
+                  },
+                  onRemove: () async {
+                    await _viewModel.deleteApiKey();
+                    _showFeedback('Gemini API key removed successfully', true);
                   },
                 ),
                 const SizedBox(height: 28),

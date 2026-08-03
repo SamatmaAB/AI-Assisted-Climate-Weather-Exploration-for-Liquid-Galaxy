@@ -10,7 +10,7 @@
     <name>Indian Monsoon Guided Tour</name>
     <gx:Playlist>
 
-        <!-- Stop: South Asian Monsoon Overview -->
+        <!-- Scientific Stop: South Asian Monsoon Overview -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -25,7 +25,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Arabian Sea Branch & Western Ghats -->
+        <!-- Scientific Stop: Arabian Sea Branch & Western Ghats -->
         <gx:FlyTo>
           <gx:duration>10.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -40,7 +40,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Bay of Bengal Branch Inflow -->
+        <!-- Scientific Stop: Bay of Bengal Branch Inflow -->
         <gx:FlyTo>
           <gx:duration>10.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -55,7 +55,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Northeast India & Cherrapunji Heavy Rain -->
+        <!-- Scientific Stop: Northeast India & Cherrapunji Heavy Rain -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -70,7 +70,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Gangetic Plain Monsoon Trough & Low Pressure -->
+        <!-- Scientific Stop: Gangetic Plain Monsoon Trough & Low Pressure -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -85,7 +85,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: South Asian Monsoon Conclusion -->
+        <!-- Scientific Stop: South Asian Monsoon Conclusion -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>

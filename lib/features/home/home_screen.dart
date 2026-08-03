@@ -6,6 +6,7 @@ import 'package:lg_connection/features/home/widgets/explore_card.dart';
 import 'package:lg_connection/features/home/widgets/map_sync_panel.dart';
 import 'package:lg_connection/features/home/widgets/quick_action_card.dart';
 import 'package:lg_connection/features/home/widgets/visualization_action_card.dart';
+import 'package:lg_connection/main.dart';
 
 /// The main landing screen for Earth Systems Explorer.
 class HomeScreen extends StatefulWidget {
@@ -21,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _viewModel = HomeViewModel();
+    _viewModel = HomeViewModel(aiRepository);
   }
 
   @override

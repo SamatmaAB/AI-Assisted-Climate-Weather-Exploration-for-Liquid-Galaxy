@@ -3,6 +3,7 @@ import 'package:lg_connection/features/chatbot/chatbot_viewmodel.dart';
 import 'package:lg_connection/features/chatbot/widgets/chat_bubble.dart';
 import 'package:lg_connection/features/chatbot/widgets/chat_input_bar.dart';
 import 'package:lg_connection/features/chatbot/widgets/chat_suggestions.dart';
+import 'package:lg_connection/main.dart';
 
 /// The screen providing an AI-powered climate assistant interface.
 class ChatbotScreen extends StatefulWidget {
@@ -18,7 +19,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   @override
   void initState() {
     super.initState();
-    _viewModel = ChatbotViewModel();
+    _viewModel = ChatbotViewModel(aiRepository);
   }
 
   @override

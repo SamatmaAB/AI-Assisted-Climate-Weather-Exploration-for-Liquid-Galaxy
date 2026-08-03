@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:lg_connection/shared/services/ai_service.dart';
+import 'package:lg_connection/services/ai/ai_repository.dart';
 
 /// Manages the state and business logic for the Climate AI Chatbot.
 class ChatbotViewModel extends ChangeNotifier {
-  final AIService _aiService = AIService();
+  final AIRepository _aiRepository;
   final ScrollController scrollController = ScrollController();
   final TextEditingController messageController = TextEditingController();
+
+  ChatbotViewModel(this._aiRepository);
 
   final List<Map<String, dynamic>> _messages = [
     {
@@ -37,7 +39,7 @@ class ChatbotViewModel extends ChangeNotifier {
 
   Future<void> _generateAiResponse(String userMessage) async {
     // Note: In a real app, we'd add a "typing..." indicator here.
-    final response = await _aiService.ask(userMessage);
+    final response = await _aiRepository.ask(userMessage);
 
     _messages.add({
       'text': response,

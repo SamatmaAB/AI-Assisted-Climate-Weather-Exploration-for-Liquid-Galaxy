@@ -10,7 +10,7 @@
     <name>Gulf Stream Guided Tour</name>
     <gx:Playlist>
 
-        <!-- Stop: North Atlantic Basin Overview -->
+        <!-- Scientific Stop: North Atlantic Basin Overview -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -25,7 +25,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Gulf of Mexico & Florida Straits Origin -->
+        <!-- Scientific Stop: Gulf of Mexico & Florida Straits Origin -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -40,7 +40,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Cape Hatteras Coastal Separation -->
+        <!-- Scientific Stop: Cape Hatteras Coastal Separation -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -55,7 +55,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: North Atlantic Drift Crossing -->
+        <!-- Scientific Stop: North Atlantic Drift Crossing -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -70,7 +70,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: European Warming Drift to Norway -->
+        <!-- Scientific Stop: European Warming Drift to Norway -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -85,7 +85,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: North Atlantic Basin Conclusion -->
+        <!-- Scientific Stop: North Atlantic Basin Conclusion -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>

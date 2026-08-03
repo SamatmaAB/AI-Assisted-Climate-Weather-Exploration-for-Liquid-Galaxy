@@ -10,7 +10,7 @@
     <name>Kuroshio Current Guided Tour</name>
     <gx:Playlist>
 
-        <!-- Stop: Western Pacific Overview -->
+        <!-- Scientific Stop: Western Pacific Overview -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -25,7 +25,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Taiwan & Luzon Strait Origin -->
+        <!-- Scientific Stop: Taiwan & Luzon Strait Origin -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -40,7 +40,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Okinawa & East China Sea Path -->
+        <!-- Scientific Stop: Okinawa & East China Sea Path -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -55,7 +55,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Kuroshio Extension off Japan & Tokyo -->
+        <!-- Scientific Stop: Kuroshio Extension off Japan & Tokyo -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -70,7 +70,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: North Pacific Drift Outer Reach -->
+        <!-- Scientific Stop: North Pacific Drift Outer Reach -->
         <gx:FlyTo>
           <gx:duration>9.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
@@ -85,7 +85,7 @@
           </LookAt>
         </gx:FlyTo>
 
-        <!-- Stop: Western Pacific Conclusion -->
+        <!-- Scientific Stop: Western Pacific Conclusion -->
         <gx:FlyTo>
           <gx:duration>11.0</gx:duration>
           <gx:flyToMode>smooth</gx:flyToMode>
