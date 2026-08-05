@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/features/onboarding/initial_setup_viewmodel.dart';
-import 'package:lg_connection/features/onboarding/widgets/animated_earth_hero.dart';
 import 'package:lg_connection/features/onboarding/widgets/connected_success_reveal.dart';
+import 'package:lg_connection/features/onboarding/widgets/mascot_animation.dart';
 
 /// First-run 3-stage onboarding screen for Liquid Galaxy setup.
 class InitialSetupScreen extends StatefulWidget {
@@ -122,7 +122,11 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Column(
           children: [
-            const AnimatedEarthHero(),
+            const MascotAnimation(
+              assetPath: 'assets/spriteanimations/wave.webp',
+              width: 240,
+              height: 240,
+            ),
             const SizedBox(height: 32),
             Text(
               'EARTH SYSTEMS EXPLORER',
@@ -202,7 +206,25 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
               ),
             ),
             const SizedBox(height: 24),
+            if (_viewModel.connectionState == ConnectionOpState.connecting) ...[
+              const Center(
+                child: MascotAnimation(
+                  assetPath: 'assets/spriteanimations/thinking.webp',
+                  width: 160,
+                  height: 160,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             if (_viewModel.connectionState == ConnectionOpState.failure) ...[
+              const Center(
+                child: MascotAnimation(
+                  assetPath: 'assets/spriteanimations/sad.webp',
+                  width: 160,
+                  height: 160,
+                ),
+              ),
+              const SizedBox(height: 8),
               Card(
                 color: colorScheme.errorContainer,
                 child: Padding(
