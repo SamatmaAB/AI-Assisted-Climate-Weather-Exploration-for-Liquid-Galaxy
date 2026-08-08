@@ -70,16 +70,16 @@ class InitialSetupViewModel extends ChangeNotifier {
       ipController.text = prefs.getString('ipAddress') ?? '';
     }
     if (usernameController.text.isEmpty) {
-      usernameController.text = prefs.getString('username') ?? 'lg';
+      usernameController.text = prefs.getString('username') ?? '';
     }
     if (passwordController.text.isEmpty) {
-      passwordController.text = prefs.getString('password') ?? 'lg';
+      passwordController.text = prefs.getString('password') ?? '';
     }
     if (portController.text.isEmpty) {
-      portController.text = prefs.getString('sshPort') ?? '22';
+      portController.text = prefs.getString('sshPort') ?? '';
     }
     if (rigsController.text.isEmpty) {
-      rigsController.text = prefs.getString('numberOfRigs') ?? '3';
+      rigsController.text = prefs.getString('numberOfRigs') ?? '';
     }
     if (apiKeyController.text.isEmpty) {
       final storedKey = await _apiKeyStorage.getGeminiApiKey();

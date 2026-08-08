@@ -7,7 +7,7 @@ import 'package:lg_connection/services/ai/ai_repository.dart';
 import 'package:lg_connection/services/ai/provider_factory.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
 
-/// Single [AIRepository] instance created once at the composition root.
+/// Single instance created once at the composition root.
 /// Every ViewModel and screen accesses AI capabilities through this instance.
 late final AIRepository aiRepository;
 

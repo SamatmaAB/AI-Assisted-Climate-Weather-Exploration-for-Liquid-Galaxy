@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:lg_connection/core/common_widgets/status_badge.dart';
 import 'package:lg_connection/features/home/home_viewmodel.dart';
 import 'package:lg_connection/features/home/widgets/chatbot_entry_button.dart';
@@ -79,18 +80,38 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 8),
+                  // Drag handle
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 10),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
                   Text(title, style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 16),
                   Expanded(
-                    child: SingleChildScrollView(
+                    child: Markdown(
                       controller: controller,
-                      child: Text(
-                        text,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                              height: 1.7,
-                            ),
+                      data: text,
+                      shrinkWrap: false,
+                      styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                        h3: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        p: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
+                          height: 1.65,
+                        ),
+                        listBullet: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
+                        ),
+                        blockSpacing: 8,
                       ),
                     ),
                   ),

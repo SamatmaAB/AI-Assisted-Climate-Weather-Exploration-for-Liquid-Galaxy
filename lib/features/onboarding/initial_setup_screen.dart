@@ -172,6 +172,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
 
   Widget _buildConnectionStage(BuildContext context) {
     final isConnecting = _viewModel.connectionState == ConnectionOpState.connecting;
+    final isIdle = _viewModel.connectionState == ConnectionOpState.idle;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -205,8 +206,19 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
                 color: colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
-            const SizedBox(height: 24),
-            if (_viewModel.connectionState == ConnectionOpState.connecting) ...[
+            const SizedBox(height: 16),
+            // Show waving mascot while the user is filling in the form (idle)
+            if (isIdle) ...[
+              const Center(
+                child: MascotAnimation(
+                  assetPath: 'assets/spriteanimations/wave.webp',
+                  width: 160,
+                  height: 160,
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (isConnecting) ...[
               const Center(
                 child: MascotAnimation(
                   assetPath: 'assets/spriteanimations/thinking.webp',
@@ -345,6 +357,15 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Text('Connect to Liquid Galaxy'),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: isConnecting ? null : _handleCompleteSetup,
+              icon: const Icon(Icons.explore_outlined),
+              label: const Text('Explore App'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 52),
+              ),
             ),
           ],
         ),
