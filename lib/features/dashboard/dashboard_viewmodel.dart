@@ -10,8 +10,6 @@ import 'package:lg_connection/shared/services/tour_service.dart';
 
 import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
 
-/// ViewModel for managing dashboard climate phenomenon selection, Liquid Galaxy visualization,
-/// AI explanation generation, and automatic tour playback.
 class DashboardViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final MapSyncService _mapSyncService = MapSyncService();
@@ -33,7 +31,6 @@ class DashboardViewModel extends ChangeNotifier {
     return true;
   }
 
-  /// Retrieves a climate explanation using Gemini AI, with local Hive caching.
   Future<String> getClimateExplanation(String phenomenonName) async {
     final cached = CacheService.getClimateInfo(phenomenonName);
     if (_isValidExplanation(cached)) {
@@ -51,10 +48,6 @@ class DashboardViewModel extends ChangeNotifier {
     return explanation;
   }
 
-  /// Triggers the full phenomenon selection workflow:
-  /// 1. Load & upload visualization KML
-  /// 2. Initiate Gemini summary generation
-  /// 3. Upload & automatically launch tour KML
   Future<void> visualizePhenomenon(ClimatePhenomenon phenomenon) async {
     isVisualizing = true;
     activePhenomenonName = phenomenon.name;
@@ -75,50 +68,40 @@ class DashboardViewModel extends ChangeNotifier {
     }
   }
 
-  /// Visualizes the Indian Monsoon on Liquid Galaxy.
   Future<void> visualizeIndianMonsoon() async {
     await visualizePhenomenon(ClimatePhenomena.indianMonsoon);
   }
 
-  /// Visualizes the Kuroshio Current on Liquid Galaxy.
   Future<void> visualizeKuroshioCurrent() async {
     await visualizePhenomenon(ClimatePhenomena.kuroshioCurrent);
   }
 
-  /// Visualizes El Niño on Liquid Galaxy.
   Future<void> visualizeElNino() async {
     await visualizePhenomenon(ClimatePhenomena.elNino);
   }
 
-  /// Visualizes La Niña on Liquid Galaxy.
   Future<void> visualizeLaNina() async {
     await visualizePhenomenon(ClimatePhenomena.laNina);
   }
 
-  /// Visualizes Gulf Stream on Liquid Galaxy.
   Future<void> visualizeGulfStream() async {
     await visualizePhenomenon(ClimatePhenomena.gulfStream);
   }
 
-  /// Visualizes Mumbai Monsoon on Liquid Galaxy.
   Future<void> visualizeMumbaiMonsoon() async {
     await visualizePhenomenon(ClimatePhenomena.mumbaiMonsoon);
   }
 
-  /// Commands the rig to fly to a specific KML LookAt string.
   Future<void> flyTo(String lookAt) async {
     await _mapSyncService.flyToLookAt(lookAt);
   }
 
-  /// Clears all KML layers and stops any active tour on the rig.
   Future<void> clearKML() async {
     await _tourService.stopTour();
     await _sshClient.runCommand(SSHCommands.clearKML());
     await _sshClient.runCommand(SSHCommands.refreshKML());
   }
 
-  /// Shared sequence for uploading KML, starting Gemini AI generation,
-  /// flying to location, and automatically triggering tour execution.
   Future<void> _runVisualizationSequence({
     required String assetPath,
     required String fileName,
@@ -127,41 +110,35 @@ class DashboardViewModel extends ChangeNotifier {
     required String tourName,
     String? phenomenonName,
   }) async {
-    // Step 1: Stop active tour & clear old KML
+
     await _tourService.stopTour();
     await Future.delayed(const Duration(milliseconds: 150));
     await _sshClient.runCommand(SSHCommands.clearKML());
     await Future.delayed(const Duration(milliseconds: 100));
-    
-    // Step 2: Load & upload Visualization KML asset
+
     final kmlContent = await rootBundle.loadString(assetPath);
     await _sshClient.uploadFile(
       content: kmlContent,
       targetPath: '/var/www/html/$fileName',
     );
 
-    // Step 3: Load & upload Tour KML asset
     final tourFileName = tourKmlPath.split('/').last;
     final tourContent = await rootBundle.loadString(tourKmlPath);
     await _sshClient.uploadFile(
       content: tourContent,
       targetPath: '/var/www/html/$tourFileName',
     );
-    
-    // Step 4: Register both visualization KML and tour KML in kmls.txt and refresh rig
+
     await _sshClient.runCommand(SSHCommands.setKMLs([fileName, tourFileName]));
     await _sshClient.runCommand(SSHCommands.refreshKML());
-    
-    // Step 5: Fly camera to target region
+
     await Future.delayed(const Duration(milliseconds: 500));
     await _mapSyncService.flyToLookAt(lookAt);
 
-    // Step 6: Gemini summary generation starts
     if (phenomenonName != null) {
       getClimateExplanation(phenomenonName);
     }
 
-    // Step 7: Tour KML automatically starts after camera stabilization
     await Future.delayed(const Duration(milliseconds: 1000));
     await _sshClient.runCommand(SSHCommands.playTour(tourName));
   }

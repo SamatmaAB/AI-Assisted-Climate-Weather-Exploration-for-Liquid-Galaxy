@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Card managing application visual preferences (Dark Mode, Colorblind Mode).
 class AppearanceCard extends StatelessWidget {
   final bool isDarkMode;
   final bool isColorblindMode;

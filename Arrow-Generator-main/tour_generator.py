@@ -7,11 +7,6 @@ Provides functions for creating scientific LookAt exploration stops and complete
 
 import os
 
-
-# ------------------------------------------------------------------------------
-# SCIENTIFIC TOUR STOPS (LookAt)
-# ------------------------------------------------------------------------------
-
 EL_NINO_TOUR_STOPS = [
     {
         "name": "Pacific Overview",
@@ -327,10 +322,6 @@ INDIAN_MONSOON_TOUR_STOPS = [
     }
 ]
 
-# ------------------------------------------------------------------------------
-# TOUR CONFIGURATION REGISTRY
-# ------------------------------------------------------------------------------
-
 TOURS_CONFIG = [
     {
         "stops": EL_NINO_TOUR_STOPS,
@@ -358,11 +349,6 @@ TOURS_CONFIG = [
         "tour_name": "Indian Monsoon Guided Tour"
     },
 ]
-
-
-# ------------------------------------------------------------------------------
-# REUSABLE KML GENERATOR HELPERS
-# ------------------------------------------------------------------------------
 
 def generate_lookat_flyto(stop):
     """
@@ -395,18 +381,15 @@ def generate_lookat_flyto(stop):
           </LookAt>
         </gx:FlyTo>"""
 
-
 def calculate_tour_duration(tour_stops):
     """Calculates the total duration of all scientific FlyTo stops."""
     return sum(float(stop.get("duration", 8.0)) for stop in tour_stops)
-
 
 def generate_tour_playlist(tour_stops):
     """Generates a playlist containing only scientific LookAt FlyTo stops."""
     return "\n\n        ".join(
         generate_lookat_flyto(stop) for stop in tour_stops
     )
-
 
 def generate_tour_kml(tour_stops, output_path, tour_name=None):
     """
@@ -453,7 +436,6 @@ def generate_tour_kml(tour_stops, output_path, tour_name=None):
     print(f"Generated tour KML: {output_path} (Total Duration: {total_duration:.1f}s)")
     return os.path.abspath(output_path)
 
-
 def generate_all_tours(output_dir=None):
     """Generates tour KML files for all configured scientific tours."""
     print("Generating all tour KML files...")
@@ -482,10 +464,8 @@ def generate_all_tours(output_dir=None):
 
     return results
 
-
 def main():
     generate_all_tours()
-
 
 if __name__ == "__main__":
     main()

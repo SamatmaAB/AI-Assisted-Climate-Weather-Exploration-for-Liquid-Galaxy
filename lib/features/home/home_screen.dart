@@ -9,7 +9,6 @@ import 'package:lg_connection/features/home/widgets/quick_action_card.dart';
 import 'package:lg_connection/features/home/widgets/visualization_action_card.dart';
 import 'package:lg_connection/main.dart';
 
-/// The main landing screen for Earth Systems Explorer.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -80,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Drag handle
+
                   Center(
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -157,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       const SizedBox(height: 20),
-                      // Header row
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -170,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // Page heading
+
                       Text(
                         'Liquid Galaxy',
                         style: textTheme.displaySmall?.copyWith(
@@ -195,7 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Visualization action cards
                       VisualizationActionCard(
                         title: 'Indian Monsoon',
                         description: 'Loads the pre-generated KML and overwrites master.kml on Liquid Galaxy.',
@@ -251,7 +249,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Destructive quick action
                       QuickActionCard(
                         label: 'Clear All Layers',
                         icon: Icons.layers_clear_outlined,
@@ -263,7 +260,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      // Map Sync section
                       _buildSectionLabel(context, 'Map Sync', Icons.map_outlined),
                       const SizedBox(height: 12),
                       MapSyncPanel(
@@ -272,7 +268,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Orbit button
                       FilledButton.icon(
                         onPressed: () async {
                           await _viewModel.orbit();
@@ -286,7 +281,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      // More Patterns section
                       _buildSectionLabel(context, 'More Patterns', Icons.grid_view_outlined),
                       const SizedBox(height: 12),
                       const Row(

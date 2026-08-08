@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lg_connection/features/datasets/models/dataset_model.dart';
 import 'package:lg_connection/features/datasets/dataset_detail_screen.dart';
 
-/// A card displaying summary information for a climate dataset.
 class DatasetCard extends StatelessWidget {
   final Dataset dataset;
 

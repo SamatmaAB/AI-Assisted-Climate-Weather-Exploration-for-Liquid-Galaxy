@@ -6,7 +6,6 @@ import 'package:lg_connection/services/ai/api_key_storage.dart';
 import 'package:lg_connection/services/ai/gemini_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// ViewModel for managing app configuration, Gemini model selection, and Liquid Galaxy settings.
 class SettingsViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final ApiKeyStorage _apiKeyStorage = const ApiKeyStorage();
@@ -32,7 +31,6 @@ class SettingsViewModel extends ChangeNotifier {
     loadSettings();
   }
 
-  /// Loads settings from SharedPreferences and ApiKeyStorage into controllers and state.
   Future<void> loadSettings() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     usernameController.text = prefs.getString('username') ?? 'lg';
@@ -49,7 +47,6 @@ class SettingsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Saves current connection settings to SharedPreferences.
   Future<void> saveSettings() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', usernameController.text);
@@ -59,34 +56,29 @@ class SettingsViewModel extends ChangeNotifier {
     await prefs.setString('numberOfRigs', rigsController.text);
   }
 
-  /// Saves Gemini API Key securely.
   Future<void> saveApiKey() async {
     final key = apiKeyController.text.trim();
     await _apiKeyStorage.saveGeminiApiKey(key);
     notifyListeners();
   }
 
-  /// Removes Gemini API Key securely.
   Future<void> deleteApiKey() async {
     await _apiKeyStorage.deleteGeminiApiKey();
     apiKeyController.clear();
     notifyListeners();
   }
 
-  /// Updates selected Gemini model and persists immediately to secure storage.
   Future<void> updateSelectedModel(String model) async {
     selectedModel = model;
     await _apiKeyStorage.saveSelectedModel(model);
     notifyListeners();
   }
 
-  /// Toggles visibility of the Gemini API Key text field.
   void toggleApiKeyVisibility() {
     isApiKeyObscured = !isApiKeyObscured;
     notifyListeners();
   }
 
-  /// Triggers a connection attempt to the Liquid Galaxy rig.
   Future<bool> connect() async {
     if (ipController.text.isEmpty) return false;
 

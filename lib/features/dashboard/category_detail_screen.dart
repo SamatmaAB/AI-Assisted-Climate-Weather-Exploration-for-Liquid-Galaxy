@@ -7,7 +7,6 @@ import 'package:lg_connection/features/dashboard/widgets/info_card.dart';
 import 'package:lg_connection/features/dashboard/widgets/specs_card.dart';
 import 'package:lg_connection/main.dart';
 
-/// Detailed view for a specific climate category.
 class CategoryDetailScreen extends StatelessWidget {
   final String categoryName;
   late final DashboardViewModel _viewModel = DashboardViewModel(aiRepository);

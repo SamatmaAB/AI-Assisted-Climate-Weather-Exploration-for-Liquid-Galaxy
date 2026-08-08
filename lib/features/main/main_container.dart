@@ -4,7 +4,6 @@ import 'package:lg_connection/features/datasets/datasets_screen.dart';
 import 'package:lg_connection/features/controls/controls_screen.dart';
 import 'package:lg_connection/features/settings/settings_screen.dart';
 
-/// The root shell that manages M3 NavigationBar and screen switching.
 class MainContainer extends StatefulWidget {
   const MainContainer({super.key});
 
@@ -15,7 +14,6 @@ class MainContainer extends StatefulWidget {
 class _MainContainerState extends State<MainContainer> {
   int _selectedIndex = 0;
 
-  // Screens are kept as constants to avoid recreation on tab switch.
   static const List<Widget> _screens = [
     HomeScreen(),
     DatasetsScreen(),

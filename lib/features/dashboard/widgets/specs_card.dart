@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// A card displaying technical specifications for KML transfer.
 class SpecsCard extends StatelessWidget {
   final Color accentColor;
 

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-/// A compact action card for destructive or utility operations.
 class QuickActionCard extends StatelessWidget {
   final String label;
   final IconData icon;

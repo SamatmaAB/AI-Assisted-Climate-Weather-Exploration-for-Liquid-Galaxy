@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// The bottom input bar for sending messages in the chatbot.
 class ChatInputBar extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;

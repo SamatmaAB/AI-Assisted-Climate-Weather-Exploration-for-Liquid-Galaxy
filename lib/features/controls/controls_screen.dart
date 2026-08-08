@@ -3,7 +3,6 @@ import 'package:lg_connection/features/controls/controls_viewmodel.dart';
 import 'package:lg_connection/features/controls/widgets/availability_card.dart';
 import 'package:lg_connection/features/controls/widgets/task_button.dart';
 
-/// Screen for managing Liquid Galaxy rig services and system tasks.
 class ControlsScreen extends StatefulWidget {
   const ControlsScreen({super.key});
 

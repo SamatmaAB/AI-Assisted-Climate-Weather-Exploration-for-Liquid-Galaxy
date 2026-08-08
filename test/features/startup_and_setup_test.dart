@@ -39,7 +39,6 @@ void main() {
 
       viewModel.goToConnection();
 
-      // Empty IP
       viewModel.ipController.text = '';
       viewModel.usernameController.text = 'lg';
       viewModel.portController.text = '22';
@@ -47,19 +46,16 @@ void main() {
       expect(viewModel.validate(), isFalse);
       expect(viewModel.ipError, isNotNull);
 
-      // Out of bounds port
       viewModel.ipController.text = '192.168.1.10';
       viewModel.portController.text = '70000';
       expect(viewModel.validate(), isFalse);
       expect(viewModel.portError, isNotNull);
 
-      // Invalid screen count
       viewModel.portController.text = '22';
       viewModel.rigsController.text = '0';
       expect(viewModel.validate(), isFalse);
       expect(viewModel.rigsError, isNotNull);
 
-      // Valid configuration
       viewModel.rigsController.text = '3';
       expect(viewModel.validate(), isTrue);
       expect(viewModel.ipError, isNull);

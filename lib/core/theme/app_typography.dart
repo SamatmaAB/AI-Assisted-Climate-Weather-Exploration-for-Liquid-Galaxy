@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Material 3 TextTheme for Earth Systems Explorer using Outfit font.
-///
-/// Individual screens must NOT define their own typography hierarchy.
-/// Instead they should reference [Theme.of(context).textTheme.*].
 TextTheme buildAppTextTheme() {
-  // Apply Outfit to the dark theme's default TextTheme via Google Fonts.
-  // GoogleFonts.outfitTextTheme applies Outfit across all scale roles.
+
   return GoogleFonts.outfitTextTheme(
-    // Provide explicit styles for the full M3 type scale.
+
     const TextTheme(
       displayLarge: TextStyle(fontSize: 57, fontWeight: FontWeight.w400, letterSpacing: -0.25),
       displayMedium: TextStyle(fontSize: 45, fontWeight: FontWeight.w400),

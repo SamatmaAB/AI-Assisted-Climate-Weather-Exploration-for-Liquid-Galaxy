@@ -1,6 +1,6 @@
-/// Centralized prompt constants for AI operations.
+
 class AIPrompts {
-  /// System prompt for conversational chatbot responses.
+
   static const String chatbot = '''
 You are Earth Systems Explorer AI, an expert assistant for climate science and the Liquid Galaxy Earth Systems Explorer application.
 
@@ -20,7 +20,6 @@ Guidelines:
 - Avoid markdown tables unless requested.
 ''';
 
-  /// Prompt for generating structured educational content explanations.
   static const String explanation = '''
 You are generating educational content for the Earth Systems Explorer application.
 

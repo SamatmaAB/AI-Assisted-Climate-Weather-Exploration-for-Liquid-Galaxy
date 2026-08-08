@@ -2,13 +2,11 @@ from pathlib import Path
 
 import cdsapi
 
-
 DATASET = "reanalysis-era5-pressure-levels-monthly-means"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 OUTPUT_DIR = PROJECT_ROOT / "data" / "era5"
 OUTPUT_FILE = OUTPUT_DIR / "monsoon_850hpa_2025.nc"
-
 
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -30,7 +28,7 @@ def main() -> None:
             "09",
         ],
         "time": ["00:00"],
-        # North, West, South, East
+
         "area": [
             35,
             50,
@@ -51,7 +49,6 @@ def main() -> None:
     )
 
     print("Download complete.")
-
 
 if __name__ == "__main__":
     main()

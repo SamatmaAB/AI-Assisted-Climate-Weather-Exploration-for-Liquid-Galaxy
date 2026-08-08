@@ -4,14 +4,12 @@ import 'package:lg_connection/features/startup/startup_gate.dart';
 import 'package:lg_connection/services/ai/api_key_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// The 3 stages of initial first-run onboarding.
 enum OnboardingStage {
-  welcome,    // Stage 1: Get Started
-  connection, // Stage 2: Connect to Liquid Galaxy
-  ready,      // Stage 3: Start Exploring & optional Send Logo
+  welcome,
+  connection,
+  ready,
 }
 
-/// Operation state during SSH connection verification.
 enum ConnectionOpState {
   idle,
   connecting,
@@ -19,7 +17,6 @@ enum ConnectionOpState {
   failure,
 }
 
-/// Operation state for optional Send Logo action.
 enum LogoOpState {
   idle,
   sending,
@@ -27,7 +24,6 @@ enum LogoOpState {
   failure,
 }
 
-/// ViewModel managing the three-stage first-run onboarding flow.
 class InitialSetupViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final ApiKeyStorage _apiKeyStorage = const ApiKeyStorage();
@@ -95,13 +91,11 @@ class InitialSetupViewModel extends ChangeNotifier {
     if (!_isDisposed) notifyListeners();
   }
 
-  /// Advances from Stage 1 (Welcome) to Stage 2 (Connection).
   void goToConnection() {
     _stage = OnboardingStage.connection;
     if (!_isDisposed) notifyListeners();
   }
 
-  /// Handles linear back navigation during onboarding.
   void goBack() {
     if (_stage == OnboardingStage.ready) {
       _stage = OnboardingStage.connection;
@@ -111,7 +105,6 @@ class InitialSetupViewModel extends ChangeNotifier {
     if (!_isDisposed) notifyListeners();
   }
 
-  /// Validates required configuration inputs.
   bool validate() {
     bool isValid = true;
     ipError = null;
@@ -148,7 +141,6 @@ class InitialSetupViewModel extends ChangeNotifier {
     return isValid;
   }
 
-  /// Attempts SSH connection to Liquid Galaxy (Stage 2 primary action).
   Future<bool> connect() async {
     if (!validate()) return false;
 
@@ -185,7 +177,6 @@ class InitialSetupViewModel extends ChangeNotifier {
     }
   }
 
-  /// Optional action to send logo once connected (Stage 3 action).
   Future<bool> sendLogo() async {
     _logoState = LogoOpState.sending;
     logoFeedback = null;
@@ -207,7 +198,6 @@ class InitialSetupViewModel extends ChangeNotifier {
     return logoSent;
   }
 
-  /// Saves verified connection details and marks initial setup as complete.
   Future<void> completeSetup() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('ipAddress', ipController.text.trim());

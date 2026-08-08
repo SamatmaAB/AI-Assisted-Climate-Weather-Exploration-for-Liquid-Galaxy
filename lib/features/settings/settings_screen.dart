@@ -6,7 +6,6 @@ import 'package:lg_connection/features/settings/widgets/ai_settings_card.dart';
 import 'package:lg_connection/features/settings/widgets/appearance_card.dart';
 import 'package:lg_connection/features/settings/widgets/connection_settings_card.dart';
 
-/// Screen for configuring application preferences and Liquid Galaxy connection.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 

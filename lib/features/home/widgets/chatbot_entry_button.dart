@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/features/chatbot/chatbot_screen.dart';
 
-/// An entry point button navigating to the Climate AI Chatbot.
 class ChatbotEntryButton extends StatelessWidget {
   const ChatbotEntryButton({super.key});
 

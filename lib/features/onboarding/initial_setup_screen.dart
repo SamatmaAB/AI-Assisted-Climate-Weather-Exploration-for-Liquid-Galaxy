@@ -3,7 +3,6 @@ import 'package:lg_connection/features/onboarding/initial_setup_viewmodel.dart';
 import 'package:lg_connection/features/onboarding/widgets/connected_success_reveal.dart';
 import 'package:lg_connection/features/onboarding/widgets/mascot_animation.dart';
 
-/// First-run 3-stage onboarding screen for Liquid Galaxy setup.
 class InitialSetupScreen extends StatefulWidget {
   final VoidCallback onSetupComplete;
 
@@ -207,7 +206,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            // Show waving mascot while the user is filling in the form (idle)
+
             if (isIdle) ...[
               const Center(
                 child: MascotAnimation(

@@ -2,10 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lg_connection/core/theme/climate_colors.dart';
 
-/// A card representing a major climate visualization action.
-///
-/// Climate domain identity is expressed through the icon tint (domain color),
-/// while the card surface itself uses M3 surface containers.
 class VisualizationActionCard extends StatelessWidget {
   final String title;
   final String description;
@@ -41,7 +37,7 @@ class VisualizationActionCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  // Domain-colored icon container
+
                   Container(
                     width: 44,
                     height: 44,

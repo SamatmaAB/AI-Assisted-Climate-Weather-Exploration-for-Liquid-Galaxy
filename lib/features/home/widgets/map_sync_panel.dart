@@ -2,11 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lg_connection/shared/services/map_sync_service.dart';
 
-/// A panel displaying a read-only Google Map synchronized to the Liquid Galaxy
-/// camera position.
-///
-/// Map controller and sync behavior are fully preserved.
-/// Only the surrounding container has been migrated to M3 surface semantics.
 class MapSyncPanel extends StatefulWidget {
   final LatLng initialTarget;
   final double initialZoom;
@@ -53,7 +48,7 @@ class _MapSyncPanelState extends State<MapSyncPanel> {
                 _mapSyncService.setMapController(controller);
               },
             ),
-            // Sync status overlay chip
+
             Positioned(
               top: 12,
               right: 12,

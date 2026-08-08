@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Represents a climate dataset repository entry with detailed information.
 class Dataset {
   final String title;
   final List<String> tags;

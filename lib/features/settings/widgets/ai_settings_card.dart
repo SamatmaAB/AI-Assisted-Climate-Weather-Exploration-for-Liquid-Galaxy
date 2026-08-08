@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Card containing AI Assistant Gemini API key settings and action buttons.
 class AiSettingsCard extends StatelessWidget {
   final TextEditingController apiKeyController;
   final bool isObscured;

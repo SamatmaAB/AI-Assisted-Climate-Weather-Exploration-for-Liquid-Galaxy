@@ -10,14 +10,12 @@ import 'package:lg_connection/shared/services/map_sync_service.dart';
 import 'package:lg_connection/shared/services/tour_service.dart';
 import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
 
-/// ViewModel for the Home Screen, managing state and business logic.
 class HomeViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final AIRepository _aiRepository;
   final MapSyncService _mapSyncService = MapSyncService();
   final TourService _tourService = TourService();
 
-  // Map State - Delegated to MapSyncService
   LatLng get lastTarget => _mapSyncService.lastTarget;
   double get lastZoom => _mapSyncService.lastZoom;
   double get lastTilt => _mapSyncService.lastTilt;
@@ -29,12 +27,10 @@ class HomeViewModel extends ChangeNotifier {
     _mapSyncService.addListener(notifyListeners);
   }
 
-  /// Commands the Liquid Galaxy to orbit the current view.
   Future<void> orbit() async {
     await _sshClient.runCommand(SSHCommands.buildOrbit());
   }
 
-  /// Clears all KML layers and stops any active tour on Liquid Galaxy.
   Future<void> clearKML() async {
     await _tourService.stopTour();
     await _sshClient.runCommand(SSHCommands.clearKML());
@@ -50,7 +46,6 @@ class HomeViewModel extends ChangeNotifier {
     return true;
   }
 
-  /// Retrieves a climate explanation, using cache if available.
   Future<String> getClimateExplanation(String phenomenon) async {
     final cached = CacheService.getClimateInfo(phenomenon);
     if (_isValidExplanation(cached)) return cached!;
@@ -61,8 +56,6 @@ class HomeViewModel extends ChangeNotifier {
     }
     return explanation;
   }
-
-  // --- Visualization Actions ---
 
   Future<void> visualizeIndianMonsoon() async {
     isVisualisingMonsoon = true;
@@ -172,7 +165,6 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  // Loading States for Visualizations
   bool isVisualisingMonsoon = false;
   bool isVisualisingKuroshio = false;
   bool isVisualisingGulfStream = false;
@@ -180,14 +172,6 @@ class HomeViewModel extends ChangeNotifier {
   bool isVisualisingLaNina = false;
   bool isVisualisingMumbaiMonsoon = false;
 
-  /// Orchestrates the sequence:
-  /// 1. Stop active tour & clear old KML
-  /// 2. Upload visualization KML
-  /// 3. Upload tour KML
-  /// 4. Register both KMLs in kmls.txt & refresh
-  /// 5. Fly camera to region LookAt
-  /// 6. Initiate Gemini summary generation
-  /// 7. Automatically start tour playback
   Future<void> _runVisualizationSequence({
     required String assetPath,
     required String fileName,
@@ -200,36 +184,30 @@ class HomeViewModel extends ChangeNotifier {
     await Future.delayed(const Duration(milliseconds: 150));
     await _sshClient.runCommand(SSHCommands.clearKML());
     await Future.delayed(const Duration(milliseconds: 100));
-    
-    // Upload Visualization KML
+
     final kmlContent = await rootBundle.loadString(assetPath);
     await _sshClient.uploadFile(
       content: kmlContent,
       targetPath: '/var/www/html/$fileName',
     );
 
-    // Upload Tour KML
     final tourFileName = tourKmlPath.split('/').last;
     final tourContent = await rootBundle.loadString(tourKmlPath);
     await _sshClient.uploadFile(
       content: tourContent,
       targetPath: '/var/www/html/$tourFileName',
     );
-    
-    // Register both visualization KML and tour KML in kmls.txt
+
     await _sshClient.runCommand(SSHCommands.setKMLs([fileName, tourFileName]));
     await _sshClient.runCommand(SSHCommands.refreshKML());
-    
-    // Fly to position
+
     await Future.delayed(const Duration(milliseconds: 500));
     await _mapSyncService.flyToLookAt(lookAt);
 
-    // Start Gemini summary generation asynchronously
     if (phenomenonName != null) {
       getClimateExplanation(phenomenonName);
     }
 
-    // Automatically trigger tour playback after camera stabilization
     await Future.delayed(const Duration(milliseconds: 1000));
     await _sshClient.runCommand(SSHCommands.playTour(tourName));
   }

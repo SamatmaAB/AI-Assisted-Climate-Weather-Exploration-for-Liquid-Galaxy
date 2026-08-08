@@ -1,10 +1,6 @@
 import math
 import os
 
-# =====================================================
-# CONFIG
-# =====================================================
-
 RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
 DROUGHT_ICON = "https://i.imgur.com/p7WHxlT.png"
 FLOOD_ICON = "https://i.imgur.com/FE0MzOA.jpeg"
@@ -13,11 +9,8 @@ MONSOON_ICON = "https://i.imgur.com/qoXQjzD.png"
 STORM_ICON = "https://i.imgur.com/UbtYVUx.png"
 WARM_ICON = "https://i.imgur.com/RXrha0q.png"
 
-
-# Thinner arrows
 SHAFT_WIDTH = 0.28
 
-# Smaller, cleaner arrowheads
 HEAD_LENGTH = 1.5
 HEAD_WIDTH = 0.75
 
@@ -33,10 +26,6 @@ def interpolate_color(start_rgb, end_rgb, t):
     b = int(start_rgb[2] + (end_rgb[2] - start_rgb[2]) * t)
 
     return rgb_to_kml(r, g, b)
-
-# =====================================================
-# BEZIER CURVE
-# =====================================================
 
 def bezier_curve(start, control, end, steps=80):
 
@@ -61,11 +50,6 @@ def bezier_curve(start, control, end, steps=80):
         pts.append((lon, lat))
 
     return pts
-
-
-# =====================================================
-# TRUNCATE CURVE FOR ARROWHEAD
-# =====================================================
 
 def truncate_for_head(points, head_length):
 
@@ -95,11 +79,6 @@ def truncate_for_head(points, head_length):
         accumulated += seg
 
     return points
-
-
-# =====================================================
-# VERTEX BOUNDARY & SHAFT QUAD
-# =====================================================
 
 def compute_boundary_vertices(points, shaft_width=SHAFT_WIDTH):
     n = len(points)
@@ -150,7 +129,6 @@ def compute_boundary_vertices(points, shaft_width=SHAFT_WIDTH):
 
     return left_boundary, right_boundary
 
-
 def create_quad_polygon(left1, left2, right2, right1, color):
     return f"""
 <Placemark>
@@ -185,11 +163,6 @@ def create_quad_polygon(left1, left2, right2, right1, color):
 </Placemark>
 """
 
-
-# =====================================================
-# SHAFT
-# =====================================================
-
 def create_shaft(points, start_rgb, end_rgb, shaft_width=SHAFT_WIDTH):
     left_boundary, right_boundary = compute_boundary_vertices(points, shaft_width)
 
@@ -218,12 +191,6 @@ def create_shaft(points, start_rgb, end_rgb, shaft_width=SHAFT_WIDTH):
 
     return kml, left_boundary[-1], right_boundary[-1]
 
-
-
-# =====================================================
-# ARROWHEAD
-# =====================================================
-
 def create_head(base, tip, color, shaft_left_end=None, shaft_right_end=None):
 
     angle = math.atan2(
@@ -247,7 +214,6 @@ def create_head(base, tip, color, shaft_left_end=None, shaft_right_end=None):
         back_y - ny * HEAD_WIDTH
     )
 
-    # Build pentagon connecting through shaft boundary vertices
     if shaft_left_end and shaft_right_end:
         return f"""
 <Placemark>
@@ -331,11 +297,6 @@ def create_head(base, tip, color, shaft_left_end=None, shaft_right_end=None):
 </Placemark>
 """
 
-
-# =====================================================
-# COMPLETE ARROW
-# =====================================================
-
 def create_arrow(
         start,
         control,
@@ -377,11 +338,6 @@ def create_arrow(
 
     return shaft + head
 
-
-# =====================================================
-# CITY MARKER
-# =====================================================
-
 def city(name, lon, lat, icon=WARM_ICON):
 
     return f"""
@@ -410,16 +366,10 @@ def city(name, lon, lat, icon=WARM_ICON):
 </Placemark>
 """
 
-
-# =====================================================
-# KUROSHIO CURRENT
-# =====================================================
-
 def kuroshio():
 
     kml = ""
 
-    # Taiwan -> Okinawa
     kml += create_arrow(
         start=(120.0, 18.0),
         control=(122.5, 24.0),
@@ -428,7 +378,6 @@ def kuroshio():
         end_rgb=(255, 120, 0)
     )
 
-    # Okinawa -> South Japan
     kml += create_arrow(
         start=(129.0, 27.5),
         control=(131.0, 33.0),
@@ -437,7 +386,6 @@ def kuroshio():
         end_rgb=(255, 220, 0)
     )
 
-    # South Japan -> Tokyo
     kml += create_arrow(
         start=(137.0, 33.0),
         control=(138.5, 37.5),
@@ -446,7 +394,6 @@ def kuroshio():
         end_rgb=(0, 220, 255)
     )
 
-    # Tokyo -> Pacific
     kml += create_arrow(
         start=(142.0, 37.5),
         control=(150.0, 44.0),
@@ -455,11 +402,6 @@ def kuroshio():
         end_rgb=(0, 100, 255)
     )
 
-    # ------------------------------------------
-    # CITY & CLIMATE / WEATHER FEATURE MARKERS
-    # ------------------------------------------
-
-    # Cities
     kml += city(
         "Taipei",
         121.56,
@@ -488,7 +430,6 @@ def kuroshio():
         RAIN_ICON
     )
 
-    # Weather & Climate Symbols
     kml += city("Luzon Strait Warm Transport", 121.0, 20.0, WARM_ICON)
     kml += city("East China Sea Heavy Rain", 125.0, 28.5, RAIN_ICON)
     kml += city("Ryukyu Monsoon Corridor", 128.5, 28.0, MONSOON_ICON)
@@ -500,11 +441,6 @@ def kuroshio():
     kml += city("North Pacific Drift Warming", 160.0, 42.0, WARM_ICON)
 
     return kml
-
-
-# =====================================================
-# WRAP KML
-# =====================================================
 
 def wrap(content):
 
@@ -522,11 +458,6 @@ def wrap(content):
 
 </kml>
 """
-
-
-# =====================================================
-# MAIN
-# =====================================================
 
 def main():
 
@@ -551,7 +482,6 @@ def main():
         f.write(final_kml)
 
     print(f"kuroshio_current.kml generated successfully in current directory and {asset_path}")
-
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Horizontal list of quick suggestion ActionChips for the chatbot.
 class ChatSuggestions extends StatelessWidget {
   final Function(String) onSuggestionTap;
 

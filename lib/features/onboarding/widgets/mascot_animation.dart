@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Reusable widget for displaying animated WebP mascot assets.
-/// Uses Flutter's native [Image.asset] support for smooth rendering,
-/// preserved transparency, and seamless looping.
 class MascotAnimation extends StatelessWidget {
   final String assetPath;
   final double? width;

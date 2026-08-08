@@ -1,4 +1,4 @@
-/// Data model representing a climate phenomenon visualization and its corresponding tour KML asset.
+
 class ClimatePhenomenon {
   final String id;
   final String name;
@@ -19,7 +19,6 @@ class ClimatePhenomenon {
   });
 }
 
-/// Catalog of pre-configured climate phenomena with visualization & tour KML assets.
 class ClimatePhenomena {
   static const ClimatePhenomenon indianMonsoon = ClimatePhenomenon(
     id: 'indian_monsoon',

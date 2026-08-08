@@ -4,13 +4,8 @@ import 'app_color_scheme.dart';
 import 'app_typography.dart';
 import 'theme_controller.dart';
 
-/// Central Material Design 3 theme for Earth Systems Explorer.
-///
-/// All application-level styling flows from this [ThemeData].
-/// Individual screens and widgets must NOT override global theme properties
-/// with inline styles where the theme default already provides the correct value.
 abstract final class AppTheme {
-  /// Selects the correct [ThemeData] based on current [ThemeController] state.
+
   static ThemeData resolve(ThemeController controller) {
     final isDark = controller.isDarkMode;
     final isColorblind = controller.isColorblindMode;
@@ -20,7 +15,6 @@ abstract final class AppTheme {
     return darkTheme;
   }
 
-  /// The primary application dark theme.
   static ThemeData get darkTheme {
     const colorScheme = appDarkColorScheme;
     final textTheme = buildAppTextTheme();
@@ -31,10 +25,8 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       textTheme: textTheme,
 
-      // Scaffold
       scaffoldBackgroundColor: colorScheme.surface,
 
-      // AppBar
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
@@ -50,7 +42,6 @@ abstract final class AppTheme {
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
 
-      // NavigationBar (M3 bottom nav)
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surface,
         indicatorColor: colorScheme.primaryContainer,
@@ -74,9 +65,8 @@ abstract final class AppTheme {
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
 
-      // Card
       cardTheme: CardThemeData(
-        color: const Color(0xFF1B2029), // surfaceContainer
+        color: const Color(0xFF1B2029),
         elevation: 1,
         surfaceTintColor: colorScheme.primary,
         shape: RoundedRectangleBorder(
@@ -86,7 +76,6 @@ abstract final class AppTheme {
         margin: EdgeInsets.zero,
       ),
 
-      // FilledButton
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           foregroundColor: colorScheme.onPrimary,
@@ -100,7 +89,6 @@ abstract final class AppTheme {
         ),
       ),
 
-      // OutlinedButton
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: colorScheme.primary,
@@ -114,7 +102,6 @@ abstract final class AppTheme {
         ),
       ),
 
-      // TextButton
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colorScheme.primary,
@@ -126,10 +113,9 @@ abstract final class AppTheme {
         ),
       ),
 
-      // InputDecoration (TextFields)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF262A34), // surfaceContainerHigh
+        fillColor: const Color(0xFF262A34),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: colorScheme.outline),
@@ -157,7 +143,6 @@ abstract final class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
 
-      // Switch
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return colorScheme.primary;
@@ -175,7 +160,6 @@ abstract final class AppTheme {
         }),
       ),
 
-      // Chip
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFF1B2029),
         selectedColor: colorScheme.primaryContainer,
@@ -187,7 +171,6 @@ abstract final class AppTheme {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
 
-      // Dialog
       dialogTheme: DialogThemeData(
         backgroundColor: const Color(0xFF1B2029),
         surfaceTintColor: colorScheme.primary,
@@ -199,7 +182,6 @@ abstract final class AppTheme {
         ),
       ),
 
-      // BottomSheet
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: const Color(0xFF1B2029),
         surfaceTintColor: colorScheme.primary,
@@ -213,7 +195,6 @@ abstract final class AppTheme {
         modalBackgroundColor: const Color(0xFF1B2029),
       ),
 
-      // SnackBar
       snackBarTheme: SnackBarThemeData(
         backgroundColor: colorScheme.inverseSurface,
         contentTextStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onInverseSurface),
@@ -225,7 +206,6 @@ abstract final class AppTheme {
         elevation: 6,
       ),
 
-      // ProgressIndicator
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: colorScheme.primary,
         circularTrackColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
@@ -233,7 +213,6 @@ abstract final class AppTheme {
         linearMinHeight: 4,
       ),
 
-      // ListTile
       listTileTheme: ListTileThemeData(
         iconColor: colorScheme.onSurface.withValues(alpha: 0.7),
         textColor: colorScheme.onSurface,
@@ -245,14 +224,12 @@ abstract final class AppTheme {
         ),
       ),
 
-      // Divider
       dividerTheme: DividerThemeData(
         color: colorScheme.outlineVariant,
         thickness: 1,
         space: 1,
       ),
 
-      // IconButton
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
           foregroundColor: colorScheme.onSurface,
@@ -260,7 +237,6 @@ abstract final class AppTheme {
         ),
       ),
 
-      // FloatingActionButton
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.primaryContainer,
         foregroundColor: colorScheme.onPrimaryContainer,
@@ -273,25 +249,21 @@ abstract final class AppTheme {
     );
   }
 
-  /// Light theme — same component styles, light ColorScheme.
   static ThemeData get lightTheme => _build(
         colorScheme: appLightColorScheme,
         overlayStyle: SystemUiOverlayStyle.dark,
       );
 
-  /// Colorblind-safe dark theme (Deuteranopia-friendly: blue/orange/yellow).
   static ThemeData get colorblindDarkTheme => _build(
         colorScheme: appColorblindDarkColorScheme,
         overlayStyle: SystemUiOverlayStyle.light,
       );
 
-  /// Colorblind-safe light theme.
   static ThemeData get colorblindLightTheme => _build(
         colorScheme: appColorblindLightColorScheme,
         overlayStyle: SystemUiOverlayStyle.dark,
       );
 
-  /// Internal factory shared by all theme variants.
   static ThemeData _build({
     required ColorScheme colorScheme,
     required SystemUiOverlayStyle overlayStyle,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Card displaying application version, guide links, and open-source references.
 class AboutCard extends StatelessWidget {
   const AboutCard({super.key});
 

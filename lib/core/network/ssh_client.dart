@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
 
-/// A low-level SSH client that handles connection and command execution for Liquid Galaxy.
 class LGSSHClient {
   static final LGSSHClient _instance = LGSSHClient._internal();
   factory LGSSHClient() => _instance;
@@ -24,14 +23,10 @@ class LGSSHClient {
   int _reconnectAttempts = 0;
   static const int _maxReconnectAttempts = 3;
 
-  /// Exposes the number of configured LG screens (read from SharedPreferences).
   int get numberOfRigs => _numberOfRigs;
 
-  /// Exposes the configured password so ViewModels can build sudo commands for
-  /// slave rigs (e.g. shutdown, reboot, force-refresh via myplaces.kml).
   String get password => _passwordOrKey;
 
-  /// Initializes connection details from SharedPreferences.
   Future<void> initConnectionDetails() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     _host = prefs.getString('ipAddress') ?? '';
@@ -42,7 +37,6 @@ class LGSSHClient {
         int.tryParse(prefs.getString('numberOfRigs') ?? '3') ?? 3;
   }
 
-  /// Establishes an SSH connection to the Liquid Galaxy master rig.
   Future<bool> connect() async {
     await initConnectionDetails();
 
@@ -62,7 +56,7 @@ class LGSSHClient {
         socket,
         username: _username,
         onPasswordRequest: () => _passwordOrKey,
-        // Sends SSH keep-alive packets every 10 s to prevent idle disconnects.
+
         keepAliveInterval: const Duration(seconds: 10),
       );
 
@@ -70,7 +64,6 @@ class LGSSHClient {
       isConnected.value = true;
       _reconnectAttempts = 0;
 
-      // Start heartbeat BEFORE listening to done so we detect drops early.
       _startHeartbeat();
 
       _client!.done.then((_) {
@@ -85,8 +78,6 @@ class LGSSHClient {
     }
   }
 
-  /// Starts a 5-second periodic heartbeat. If the ping times out the connection
-  /// is treated as lost and auto-reconnect is triggered.
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
@@ -101,8 +92,6 @@ class LGSSHClient {
     });
   }
 
-  /// Called when the SSH connection is lost. Cleans up state and schedules up
-  /// to [_maxReconnectAttempts] reconnect retries (3 s apart).
   void _handleDisconnection() {
     if (!isConnected.value) return;
     isConnected.value = false;
@@ -126,7 +115,6 @@ class LGSSHClient {
     }
   }
 
-  /// Executes a single SSH command on the master rig.
   Future<SSHSession?> execute(String command) async {
     try {
       if (_client == null || !isConnected.value) {
@@ -144,7 +132,6 @@ class LGSSHClient {
     }
   }
 
-  /// Simple command execution that awaits session completion and returns success.
   Future<bool> runCommand(String command) async {
     final session = await execute(command);
     if (session == null) return false;
@@ -152,8 +139,6 @@ class LGSSHClient {
     return true;
   }
 
-  /// Uploads file content to the Liquid Galaxy rig via SFTP.
-  /// Used for larger KML assets (visualization overlays in home_viewmodel).
   Future<bool> uploadFile({
     required String content,
     required String targetPath,
@@ -183,7 +168,6 @@ class LGSSHClient {
     }
   }
 
-  /// Establishes an SSH connection using provided credentials without requiring prior persistence.
   Future<bool> connectWithCredentials({
     required String host,
     required String port,
@@ -234,7 +218,6 @@ class LGSSHClient {
     }
   }
 
-  /// Sends the Liquid Galaxy logo to the leftmost screen.
   Future<bool> sendLogo() async {
     final screens = numberOfRigs;
     final leftScreen = SSHCommands.calculateLeftMostScreen(screens);
@@ -246,7 +229,6 @@ class LGSSHClient {
     return ok;
   }
 
-  /// Forces Google Earth on a slave screen to reload its KML.
   Future<void> forceRefresh(int screen) async {
     final pwd = password;
     try {
@@ -261,7 +243,6 @@ class LGSSHClient {
     }
   }
 
-  /// Closes the current SSH connection and cancels the heartbeat timer.
   void disconnect() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;

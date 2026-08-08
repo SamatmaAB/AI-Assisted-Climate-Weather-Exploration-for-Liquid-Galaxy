@@ -3,10 +3,6 @@ import 'package:lg_connection/services/ai/api_key_storage.dart';
 import 'package:lg_connection/services/ai/contract/ai_provider.dart';
 import 'package:lg_connection/services/ai/prompts/ai_prompts.dart';
 
-/// Google Gemini implementation of [AIProvider].
-///
-/// Reads the API key and selected model dynamically from [ApiKeyStorage]
-/// and uses system instructions from [AIPrompts].
 class GeminiProvider implements AIProvider {
   static final GeminiProvider _instance = GeminiProvider._internal();
   factory GeminiProvider() => _instance;
@@ -17,7 +13,6 @@ class GeminiProvider implements AIProvider {
   static const String missingKeyMessage =
       'Gemini API key is not configured. Add your API key from Settings.';
 
-  /// Generates a structured explanation for the given climate [phenomenon].
   @override
   Future<String> getExplanation(String phenomenon) async {
     final apiKey = await _apiKeyStorage.getGeminiApiKey();
@@ -42,7 +37,6 @@ class GeminiProvider implements AIProvider {
     }
   }
 
-  /// Generic method for custom prompts (used by the chatbot).
   @override
   Future<String> ask(String prompt) async {
     final apiKey = await _apiKeyStorage.getGeminiApiKey();

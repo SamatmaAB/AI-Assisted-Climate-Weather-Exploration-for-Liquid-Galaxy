@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lg_connection/features/tours/tour_viewmodel.dart';
 import 'package:lg_connection/main.dart';
 
-/// Screen for managing and playing planetary tours / simulations.
 class TourScreen extends StatefulWidget {
   final String phenomenon;
 

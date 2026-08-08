@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/features/datasets/models/dataset_model.dart';
 
-/// Provides a list of available climate datasets with full metadata.
 class DatasetsProvider {
   static List<Dataset> getDatasets() {
     return [
