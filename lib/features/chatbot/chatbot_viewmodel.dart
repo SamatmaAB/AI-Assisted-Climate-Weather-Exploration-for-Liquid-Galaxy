@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lg_connection/services/ai/ai_repository.dart';
+import 'package:lg_connection/services/tts/tts_service.dart';
 
 class ChatbotViewModel extends ChangeNotifier {
   final AIRepository _aiRepository;
@@ -51,6 +52,10 @@ class ChatbotViewModel extends ChangeNotifier {
     });
     notifyListeners();
     _scrollToBottom();
+
+    if (TtsService.instance.autoNarrate && response.trim().isNotEmpty) {
+      TtsService.instance.speak(response);
+    }
   }
 
   void _scrollToBottom() {

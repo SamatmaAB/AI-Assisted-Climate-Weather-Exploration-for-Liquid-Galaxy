@@ -5,9 +5,11 @@ import 'package:lg_connection/core/theme/theme_controller.dart';
 import 'package:lg_connection/features/startup/startup_gate.dart';
 import 'package:lg_connection/services/ai/ai_repository.dart';
 import 'package:lg_connection/services/ai/provider_factory.dart';
+import 'package:lg_connection/services/tts/tts_service.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
 
 late final AIRepository aiRepository;
+late final TtsService ttsService;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +24,9 @@ void main() async {
 
   final provider = ProviderFactory.create();
   aiRepository = AIRepository(provider);
+
+  ttsService = TtsService.instance;
+  await ttsService.initialize();
 
   runApp(const EarthSystemsExplorerApp());
 }

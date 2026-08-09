@@ -7,6 +7,8 @@ import 'package:lg_connection/features/chatbot/widgets/typing_indicator.dart';
 import 'package:lg_connection/features/onboarding/widgets/mascot_animation.dart';
 import 'package:lg_connection/main.dart';
 
+import 'package:lg_connection/services/tts/tts_service.dart';
+
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
 
@@ -25,6 +27,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   @override
   void dispose() {
+    TtsService.instance.stop();
     _viewModel.dispose();
     super.dispose();
   }

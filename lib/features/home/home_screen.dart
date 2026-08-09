@@ -8,6 +8,8 @@ import 'package:lg_connection/features/home/widgets/map_sync_panel.dart';
 import 'package:lg_connection/features/home/widgets/quick_action_card.dart';
 import 'package:lg_connection/features/home/widgets/visualization_action_card.dart';
 import 'package:lg_connection/main.dart';
+import 'package:lg_connection/services/tts/tts_service.dart';
+import 'package:lg_connection/services/tts/widgets/tts_playback_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    TtsService.instance.stop();
     _viewModel.dispose();
     super.dispose();
   }
@@ -64,6 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _showClimatePopup(String title, String text) async {
     if (!mounted) return;
+
+    if (TtsService.instance.autoNarrate && text.trim().isNotEmpty) {
+      TtsService.instance.speak(text);
+    }
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -75,41 +83,45 @@ class _HomeScreenState extends State<HomeScreen> {
           maxChildSize: 0.85,
           builder: (context, controller) {
             return Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 10),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(title,
+                            style: Theme.of(context).textTheme.headlineMedium),
                       ),
-                    ),
+                      TtsPlaybackBar(text: text),
+                    ],
                   ),
-                  Text(title, style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 16),
                   Expanded(
                     child: Markdown(
                       controller: controller,
                       data: text,
                       shrinkWrap: false,
-                      styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                      styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                          .copyWith(
                         h3: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                         p: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
-                          height: 1.65,
-                        ),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.85),
+                              height: 1.65,
+                            ),
                         listBullet: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
-                        ),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.85),
+                            ),
                         blockSpacing: 8,
                       ),
                     ),
@@ -123,8 +135,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _handleVisualization(String title, Future<void> Function() action) async {
+  Future<void> _handleVisualization(
+      String title, Future<void> Function() action) async {
     try {
+      await TtsService.instance.stop();
       await action();
       _showFeedback('$title sent to Liquid Galaxy', true);
 

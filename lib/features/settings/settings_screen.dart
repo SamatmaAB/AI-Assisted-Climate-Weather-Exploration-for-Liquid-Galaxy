@@ -5,6 +5,7 @@ import 'package:lg_connection/features/settings/widgets/about_card.dart';
 import 'package:lg_connection/features/settings/widgets/ai_settings_card.dart';
 import 'package:lg_connection/features/settings/widgets/appearance_card.dart';
 import 'package:lg_connection/features/settings/widgets/connection_settings_card.dart';
+import 'package:lg_connection/features/settings/widgets/tts_settings_card.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -121,6 +122,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 28),
 
+                _buildSectionLabel(context, 'Voice & Speech (TTS)'),
+                const SizedBox(height: 12),
+                const TtsSettingsCard(),
+                const SizedBox(height: 28),
+
                 _buildSectionLabel(context, 'About'),
                 const SizedBox(height: 12),
                 const AboutCard(),
@@ -136,7 +142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                       Text(
-                        'Liquid Galaxy Project 2026',
+                        '',
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurface.withValues(alpha: 0.4),
                         ),

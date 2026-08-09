@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
 import 'package:lg_connection/services/ai/ai_repository.dart';
+import 'package:lg_connection/services/tts/tts_service.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
 
 import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
@@ -27,6 +28,8 @@ class TourViewModel extends ChangeNotifier {
     return true;
   }
 
+import 'package:lg_connection/services/tts/tts_service.dart';
+
   Future<void> loadExplanation(String phenomenon) async {
     isLoadingExplanation = true;
     explanation = '';
@@ -42,6 +45,11 @@ class TourViewModel extends ChangeNotifier {
           await CacheService.saveClimateInfo(phenomenon, result);
         }
         explanation = result;
+      }
+      if (TtsService.instance.autoNarrate &&
+          _isValidExplanation(explanation) &&
+          explanation.trim().isNotEmpty) {
+        TtsService.instance.speak(explanation);
       }
     } catch (e) {
       explanation = 'Error generating explanation: $e';

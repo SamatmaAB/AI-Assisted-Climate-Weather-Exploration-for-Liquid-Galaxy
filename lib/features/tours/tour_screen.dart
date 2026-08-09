@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/features/tours/tour_viewmodel.dart';
 import 'package:lg_connection/main.dart';
+import 'package:lg_connection/services/tts/tts_service.dart';
 
 class TourScreen extends StatefulWidget {
   final String phenomenon;
@@ -23,6 +24,7 @@ class _TourScreenState extends State<TourScreen> {
 
   @override
   void dispose() {
+    TtsService.instance.stop();
     _viewModel.dispose();
     super.dispose();
   }
@@ -115,7 +117,57 @@ class _TourScreenState extends State<TourScreen> {
               ),
               const SizedBox(height: 24),
 
-              _buildSectionHeader(context, 'MECHANISM ANALYSIS'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildSectionHeader(context, 'MECHANISM ANALYSIS'),
+                  if (!_viewModel.isLoadingExplanation && _viewModel.explanation.isNotEmpty)
+                    ListenableBuilder(
+                      listenable: TtsService.instance,
+                      builder: (context, _) {
+                        final isSpeakingThis =
+                            TtsService.instance.isSpeakingText(_viewModel.explanation);
+                        return InkWell(
+                          onTap: () {
+                            if (isSpeakingThis) {
+                              TtsService.instance.stop();
+                            } else {
+                              TtsService.instance.speak(_viewModel.explanation);
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isSpeakingThis ? Icons.volume_up : Icons.volume_up_outlined,
+                                  size: 16,
+                                  color: isSpeakingThis
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurface.withValues(alpha: 0.6),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isSpeakingThis ? 'Stop' : 'Read aloud',
+                                  style: textTheme.labelSmall?.copyWith(
+                                    color: isSpeakingThis
+                                        ? colorScheme.primary
+                                        : colorScheme.onSurface.withValues(alpha: 0.6),
+                                    fontWeight: isSpeakingThis
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
               const SizedBox(height: 12),
               Card(
                 child: Padding(
