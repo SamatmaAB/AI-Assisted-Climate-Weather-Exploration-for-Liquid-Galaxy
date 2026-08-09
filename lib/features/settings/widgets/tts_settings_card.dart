@@ -95,32 +95,6 @@ class TtsSettingsCard extends StatelessWidget {
                     },
                   ),
                 const SizedBox(height: 16),
-
-                Text(
-                  'Speech Rate: ${tts.speechRate.toStringAsFixed(1)}x',
-                  style: textTheme.labelMedium,
-                ),
-                Slider(
-                  value: tts.speechRate,
-                  min: 0.2,
-                  max: 1.5,
-                  divisions: 13,
-                  onChanged: (val) => tts.setSpeechRate(val),
-                ),
-
-                Text(
-                  'Pitch: ${tts.pitch.toStringAsFixed(1)}',
-                  style: textTheme.labelMedium,
-                ),
-                Slider(
-                  value: tts.pitch,
-                  min: 0.5,
-                  max: 1.8,
-                  divisions: 13,
-                  onChanged: (val) => tts.setPitch(val),
-                ),
-
-                const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerRight,
                   child: OutlinedButton.icon(

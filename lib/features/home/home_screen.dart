@@ -121,6 +121,8 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+
+    await TtsService.instance.stop();
   }
 
   Future<void> _handleVisualization(
@@ -202,6 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.water_drop_outlined,
                         climateName: 'Indian Monsoon',
                         isLoading: _viewModel.isVisualisingMonsoon,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingMonsoon,
                         onTap: () => _handleVisualization('Indian Monsoon', _viewModel.visualizeIndianMonsoon),
                       ),
                       const SizedBox(height: 12),
@@ -211,6 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.waves_outlined,
                         climateName: 'Kuroshio Current',
                         isLoading: _viewModel.isVisualisingKuroshio,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingKuroshio,
                         onTap: () => _handleVisualization('Kuroshio Current', _viewModel.visualizeKuroshioCurrent),
                       ),
                       const SizedBox(height: 12),
@@ -220,6 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.air_outlined,
                         climateName: 'Gulf Stream',
                         isLoading: _viewModel.isVisualisingGulfStream,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingGulfStream,
                         onTap: () => _handleVisualization('Gulf Stream', _viewModel.visualizeGulfStream),
                       ),
                       const SizedBox(height: 12),
@@ -229,6 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.wb_sunny_outlined,
                         climateName: 'El Niño',
                         isLoading: _viewModel.isVisualisingElNino,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingElNino,
                         onTap: () => _handleVisualization('El Niño', _viewModel.visualizeElNino),
                       ),
                       const SizedBox(height: 12),
@@ -238,6 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.cloud_outlined,
                         climateName: 'La Niña',
                         isLoading: _viewModel.isVisualisingLaNina,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingLaNina,
                         onTap: () => _handleVisualization('La Niña', _viewModel.visualizeLaNina),
                       ),
                       const SizedBox(height: 12),
@@ -247,6 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.grain_outlined,
                         climateName: 'Mumbai Monsoon',
                         isLoading: _viewModel.isVisualisingMumbaiMonsoon,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingMumbaiMonsoon,
                         onTap: () => _handleVisualization('Mumbai Monsoon', _viewModel.visualizeMumbaiMonsoon),
                       ),
                       const SizedBox(height: 12),

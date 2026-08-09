@@ -181,11 +181,11 @@ class TtsService extends ChangeNotifier {
   String _sanitizeForSpeech(String markdown) {
     String text = markdown;
     text = text.replaceAll(RegExp(r'#{1,6}\s*'), '');
-    text = text.replaceAll(RegExp(r'\*\*([^*]+)\*\*'), r'$1');
-    text = text.replaceAll(RegExp(r'\*([^*]+)\*'), r'$1');
-    text = text.replaceAll(RegExp(r'__([^_]+)__'), r'$1');
-    text = text.replaceAll(RegExp(r'_([^_]+)_'), r'$1');
-    text = text.replaceAll(RegExp(r'\[([^\]]+)\]\([^)]+\)'), r'$1');
+    text = text.replaceAllMapped(RegExp(r'\*\*([^*]+)\*\*'), (match) => match[1] ?? '');
+    text = text.replaceAllMapped(RegExp(r'\*([^*]+)\*'), (match) => match[1] ?? '');
+    text = text.replaceAllMapped(RegExp(r'__([^_]+)__'), (match) => match[1] ?? '');
+    text = text.replaceAllMapped(RegExp(r'_([^_]+)_'), (match) => match[1] ?? '');
+    text = text.replaceAllMapped(RegExp(r'\[([^\]]+)\]\([^)]+\)'), (match) => match[1] ?? '');
     text = text.replaceAll(RegExp(r'`{1,3}[^`]*`{1,3}'), '');
     text = text.replaceAll(RegExp(r'^\s*[-*+]\s+', multiLine: true), '');
     text = text.replaceAll(RegExp(r'^\s*\d+\.\s+', multiLine: true), '');

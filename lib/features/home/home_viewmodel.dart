@@ -172,6 +172,14 @@ class HomeViewModel extends ChangeNotifier {
   bool isVisualisingLaNina = false;
   bool isVisualisingMumbaiMonsoon = false;
 
+  bool get isAnyVisualising =>
+      isVisualisingMonsoon ||
+      isVisualisingKuroshio ||
+      isVisualisingGulfStream ||
+      isVisualisingElNino ||
+      isVisualisingLaNina ||
+      isVisualisingMumbaiMonsoon;
+
   Future<void> _runVisualizationSequence({
     required String assetPath,
     required String fileName,
