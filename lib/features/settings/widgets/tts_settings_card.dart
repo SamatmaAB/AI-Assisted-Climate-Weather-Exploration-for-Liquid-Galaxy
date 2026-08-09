@@ -64,7 +64,7 @@ class TtsSettingsCard extends StatelessWidget {
                   )
                 else
                   DropdownButtonFormField<String>(
-                    value: selectedVoice != null ? selectedVoice['name'] : null,
+                    initialValue: selectedVoice != null ? selectedVoice['name'] : null,
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(

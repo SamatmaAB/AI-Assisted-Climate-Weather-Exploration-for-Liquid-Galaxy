@@ -28,8 +28,6 @@ class TourViewModel extends ChangeNotifier {
     return true;
   }
 
-import 'package:lg_connection/services/tts/tts_service.dart';
-
   Future<void> loadExplanation(String phenomenon) async {
     isLoadingExplanation = true;
     explanation = '';

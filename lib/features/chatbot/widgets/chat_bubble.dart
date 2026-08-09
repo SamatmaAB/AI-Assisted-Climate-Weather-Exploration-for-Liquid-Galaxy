@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:lg_connection/services/tts/tts_service.dart';
+import 'package:lg_connection/services/tts/widgets/tts_playback_bar.dart';
 
 class ChatBubble extends StatelessWidget {
   final String text;
@@ -86,57 +86,7 @@ class ChatBubble extends StatelessWidget {
                     color: colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
                 ),
-                if (!isUser)
-                  ListenableBuilder(
-                    listenable: TtsService.instance,
-                    builder: (context, _) {
-                      final isSpeakingThis =
-                          TtsService.instance.isSpeakingText(text);
-                      return InkWell(
-                        onTap: () {
-                          if (isSpeakingThis) {
-                            TtsService.instance.stop();
-                          } else {
-                            TtsService.instance.speak(text);
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isSpeakingThis
-                                    ? Icons.volume_up
-                                    : Icons.volume_up_outlined,
-                                size: 14,
-                                color: isSpeakingThis
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurface
-                                        .withValues(alpha: 0.5),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                isSpeakingThis ? 'Stop' : 'Read aloud',
-                                style: textTheme.labelSmall?.copyWith(
-                                  fontSize: 10,
-                                  color: isSpeakingThis
-                                      ? colorScheme.primary
-                                      : colorScheme.onSurface
-                                          .withValues(alpha: 0.5),
-                                  fontWeight: isSpeakingThis
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                if (!isUser) TtsPlaybackBar(text: text, compact: true),
               ],
             ),
           ],

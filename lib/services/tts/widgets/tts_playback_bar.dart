@@ -23,7 +23,6 @@ class TtsPlaybackBar extends StatelessWidget {
         final isSpeaking = tts.isSpeakingText(text);
         final isPaused = tts.isPausedText(text);
         final isActive = tts.isTextActive(text);
-        final currentWord = tts.currentWord;
 
         if (compact) {
           return Row(
@@ -76,24 +75,7 @@ class TtsPlaybackBar extends StatelessWidget {
                   ),
                 ),
               ],
-              if (isSpeaking && currentWord.isNotEmpty) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    currentWord,
-                    style: textTheme.labelSmall?.copyWith(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-              ],
+
             ],
           );
         }
@@ -141,23 +123,7 @@ class TtsPlaybackBar extends StatelessWidget {
                   color: isActive ? colorScheme.primary : colorScheme.onSurface,
                 ),
               ),
-              if (isSpeaking && currentWord.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    currentWord,
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
+
             ],
           ),
         );

@@ -34,7 +34,7 @@ class TtsService extends ChangeNotifier {
   int _wordEnd = 0;
   int get wordEnd => _wordEnd;
 
-  String _language = 'en-US';
+  final String _language = 'en-US';
   String get language => _language;
 
   double _speechRate = 0.5;
@@ -125,15 +125,45 @@ class TtsService extends ChangeNotifier {
 
       final voices = await _flutterTts.getVoices;
       if (voices is List) {
-        _availableVoices = voices
+        final allVoices = voices
             .whereType<Map>()
-            .map((v) => {
+            .map((v) => <String, String>{
                   'name': (v['name'] ?? '').toString(),
                   'locale': (v['locale'] ?? '').toString(),
                 })
             .where((v) => v['name']!.isNotEmpty)
             .toList();
+
+        // Keep only English voices
+        final englishVoices = allVoices
+            .where((v) =>
+                v['locale']!.toLowerCase().startsWith('en'))
+            .toList();
+
+        // Separate by gender hints in voice name
+        String lowerName(Map<String, String> v) => v['name']!.toLowerCase();
+        final femaleVoices = englishVoices
+            .where((v) =>
+                lowerName(v).contains('female') ||
+                lowerName(v).contains('woman'))
+            .take(2)
+            .toList();
+        final maleVoices = englishVoices
+            .where((v) =>
+                lowerName(v).contains('male') &&
+                !lowerName(v).contains('female') ||
+                lowerName(v).contains('#male'))
+            .take(2)
+            .toList();
+
+        if (femaleVoices.isNotEmpty || maleVoices.isNotEmpty) {
+          _availableVoices = [...maleVoices, ...femaleVoices];
+        } else {
+          // Fallback: take first 4 English voices if no gender info
+          _availableVoices = englishVoices.take(4).toList();
+        }
       }
+
 
       final savedVoiceName = prefs.getString('tts_voice_name');
       final savedVoiceLocale = prefs.getString('tts_voice_locale');

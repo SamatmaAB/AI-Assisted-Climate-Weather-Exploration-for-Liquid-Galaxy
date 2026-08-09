@@ -82,52 +82,40 @@ class _HomeScreenState extends State<HomeScreen> {
           initialChildSize: 0.55,
           maxChildSize: 0.85,
           builder: (context, controller) {
-            return Padding(
+            return ListView(
+              controller: controller,
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(title,
-                            style: Theme.of(context).textTheme.headlineMedium),
-                      ),
-                      TtsPlaybackBar(text: text),
-                    ],
+              children: [
+                Text(title,
+                    style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 8),
+                TtsPlaybackBar(text: text),
+                const SizedBox(height: 16),
+                MarkdownBody(
+                  data: text,
+                  styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                      .copyWith(
+                    h3: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                    p: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.85),
+                          height: 1.65,
+                        ),
+                    listBullet: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.85),
+                        ),
+                    blockSpacing: 8,
                   ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: Markdown(
-                      controller: controller,
-                      data: text,
-                      shrinkWrap: false,
-                      styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
-                          .copyWith(
-                        h3: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                        p: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.85),
-                              height: 1.65,
-                            ),
-                        listBullet: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.85),
-                            ),
-                        blockSpacing: 8,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             );
           },
         );
