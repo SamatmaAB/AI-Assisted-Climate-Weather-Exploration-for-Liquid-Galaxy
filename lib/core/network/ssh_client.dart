@@ -168,6 +168,51 @@ class LGSSHClient {
     }
   }
 
+  /// Ensures the remote directory exists by running `mkdir -p <dir>` via SSH.
+  /// Must be called before any SFTP upload whose parent directory may be absent.
+  Future<void> ensureRemoteDirectory(String remoteDirPath) async {
+    try {
+      await runCommand('mkdir -p "$remoteDirPath"');
+    } catch (e) {
+      debugPrint('ensureRemoteDirectory failed for $remoteDirPath: $e');
+    }
+  }
+
+  Future<bool> uploadBinaryFile({
+    required Uint8List bytes,
+    required String targetPath,
+  }) async {
+    if (_client == null || !isConnected.value) {
+      bool connected = await connect();
+      if (!connected) return false;
+    }
+
+    // Ensure the parent directory exists before opening the file over SFTP.
+    // Without this, sftp.open() throws SftpStatusError code 2 (No such file).
+    final dir = targetPath.contains('/')
+        ? targetPath.substring(0, targetPath.lastIndexOf('/'))
+        : '.';
+    await ensureRemoteDirectory(dir);
+
+    try {
+      final sftp = await _client!.sftp();
+      final file = await sftp.open(
+        targetPath,
+        mode:
+            SftpFileOpenMode.truncate |
+            SftpFileOpenMode.create |
+            SftpFileOpenMode.write,
+      );
+
+      await file.write(Stream.fromIterable([bytes]), offset: 0);
+      await file.close();
+      return true;
+    } catch (e) {
+      debugPrint('SFTP Binary Upload failed: $e');
+      return false;
+    }
+  }
+
   Future<bool> connectWithCredentials({
     required String host,
     required String port,

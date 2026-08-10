@@ -5,6 +5,7 @@ class CacheService {
   static const String _qaBoxName = 'qaBox';
   static const String _settingsBoxName = 'settingsBox';
   static const String _climateBoxName = 'climateBox';
+  static const String _cityExplorerBoxName = 'cityExplorerBox';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -13,6 +14,7 @@ class CacheService {
     await Hive.openBox<QAItem>(_qaBoxName);
     await Hive.openBox(_settingsBoxName);
     await Hive.openBox<String>(_climateBoxName);
+    await Hive.openBox<String>(_cityExplorerBoxName);
   }
 
   static Future<void> saveClimateInfo(String phenomenon, String explanation) async {
@@ -27,6 +29,21 @@ class CacheService {
 
   static Future<void> clearClimateCache() async {
     final box = Hive.box<String>(_climateBoxName);
+    await box.clear();
+  }
+
+  static Future<void> saveCityLandmark(String city, String jsonString) async {
+    final box = Hive.box<String>(_cityExplorerBoxName);
+    await box.put(city.trim().toLowerCase(), jsonString);
+  }
+
+  static String? getCityLandmark(String city) {
+    final box = Hive.box<String>(_cityExplorerBoxName);
+    return box.get(city.trim().toLowerCase());
+  }
+
+  static Future<void> clearCityExplorerCache() async {
+    final box = Hive.box<String>(_cityExplorerBoxName);
     await box.clear();
   }
 

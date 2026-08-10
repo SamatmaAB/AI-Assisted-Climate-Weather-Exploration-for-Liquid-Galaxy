@@ -43,3 +43,4 @@ flutter:
     - assets/icon/
     - assets/kml/
     - assets/spriteanimations/
+    - assets/weather_icons/
