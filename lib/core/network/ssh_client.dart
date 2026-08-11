@@ -148,6 +148,11 @@ class LGSSHClient {
       if (!connected) return false;
     }
 
+    final dir = targetPath.contains('/')
+        ? targetPath.substring(0, targetPath.lastIndexOf('/'))
+        : '.';
+    await ensureRemoteDirectory(dir);
+
     try {
       final sftp = await _client!.sftp();
       final file = await sftp.open(

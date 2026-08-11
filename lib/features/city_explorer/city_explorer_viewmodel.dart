@@ -5,6 +5,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/features/city_explorer/models/city_landmark.dart';
 import 'package:lg_connection/features/city_explorer/models/weather_data.dart';
+import 'package:lg_connection/features/city_explorer/services/city_explorer_balloon_service.dart';
 import 'package:lg_connection/features/city_explorer/services/weather_service.dart';
 import 'package:lg_connection/models/lookat_model.dart';
 import 'package:lg_connection/services/ai/api_key_storage.dart';
@@ -43,6 +44,7 @@ class CityExplorerViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final MapSyncService _mapSyncService = MapSyncService();
   final WeatherService _weatherService = WeatherService();
+  final CityExplorerBalloonService _balloonService = CityExplorerBalloonService();
   final TtsService _tts = TtsService.instance;
   final ApiKeyStorage _apiKeyStorage = const ApiKeyStorage();
 
@@ -79,6 +81,9 @@ class CityExplorerViewModel extends ChangeNotifier {
     _errorMessage = '';
     _narration = '';
     notifyListeners();
+
+    // Clear any previous City Explorer balloon before loading the new one.
+    _balloonService.clearBalloon(_sshClient);
 
     try {
       // Step 1: Resolve city landmark (Hive cache → Gemini)
@@ -221,43 +226,56 @@ class CityExplorerViewModel extends ChangeNotifier {
     return zoom.clamp(1.0, 21.0);
   }
 
-  // ── Step 4: Gemini narration → TTS ───────────────────────────────────────
+  // ── Step 4: Gemini narration → TTS → Balloon ─────────────────────────
 
   Future<void> _fetchAndNarrate(CityLandmark resolved, WeatherData? weather) async {
+    String narration = '';
     try {
       final apiKey = await _apiKeyStorage.getGeminiApiKey();
-      if (apiKey == null || apiKey.isEmpty) return;
+      if (apiKey != null && apiKey.isNotEmpty) {
+        final weatherSummary = weather != null
+            ? 'Temperature: ${weather.temperature.toStringAsFixed(1)}°C, '
+                'Condition: ${weather.condition}, '
+                'Humidity: ${weather.humidity}%, '
+                'Wind: ${weather.windSpeed.toStringAsFixed(0)} km/h'
+            : 'Weather data unavailable.';
 
-      final weatherSummary = weather != null
-          ? 'Temperature: ${weather.temperature.toStringAsFixed(1)}°C, '
-              'Condition: ${weather.condition}, '
-              'Humidity: ${weather.humidity}%, '
-              'Wind: ${weather.windSpeed.toStringAsFixed(0)} km/h'
-          : 'Weather data unavailable.';
+        final prompt = 'City: ${resolved.city}\n'
+            'Landmark: ${resolved.landmark}\n'
+            '$weatherSummary\n'
+            'Climate context: ${resolved.climateContext}';
 
-      final prompt = 'City: ${resolved.city}\n'
-          'Landmark: ${resolved.landmark}\n'
-          '$weatherSummary\n'
-          'Climate context: ${resolved.climateContext}';
+        final modelName = await _apiKeyStorage.getSelectedModel();
+        final model = GenerativeModel(
+          model: modelName,
+          apiKey: apiKey,
+          systemInstruction: Content.system(AIPrompts.cityWeatherNarration),
+        );
+        final response = await model.generateContent([Content.text(prompt)]);
+        narration = (response.text ?? '').trim();
 
-      final modelName = await _apiKeyStorage.getSelectedModel();
-      final model = GenerativeModel(
-        model: modelName,
-        apiKey: apiKey,
-        systemInstruction: Content.system(AIPrompts.cityWeatherNarration),
-      );
-      final response = await model.generateContent([Content.text(prompt)]);
-      final narration = (response.text ?? '').trim();
-
-      if (narration.isNotEmpty) {
-        _narration = narration;
-        notifyListeners();
-        await _tts.stop();
-        await _tts.speak(narration);
+        if (narration.isNotEmpty) {
+          _narration = narration;
+          notifyListeners();
+          await _tts.stop();
+          await _tts.speak(narration);
+        }
       }
     } catch (e) {
       debugPrint('CityExplorer: Narration failed: $e');
-      // Non-fatal
+      // Non-fatal — we still deploy the balloon below.
+    }
+
+    // Deploy the Google Earth balloon on the rightmost LG screen.
+    // Runs regardless of narration success so the balloon always shows
+    // at least the live weather data.
+    if (weather != null) {
+      _balloonService.deployBalloon(
+        landmark: resolved,
+        weather: weather,
+        narration: narration,
+        lgClient: _sshClient,
+      );
     }
   }
 
