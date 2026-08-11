@@ -7,6 +7,7 @@ import 'package:lg_connection/services/ai/ai_repository.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
 import 'package:lg_connection/shared/services/map_sync_service.dart';
 import 'package:lg_connection/shared/services/tour_service.dart';
+import 'package:lg_connection/features/phenomena/services/phenomenon_card_service.dart';
 
 import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
 
@@ -14,6 +15,7 @@ class DashboardViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final MapSyncService _mapSyncService = MapSyncService();
   final TourService _tourService = TourService();
+  final PhenomenonCardService _phenomenonCardService = PhenomenonCardService();
   final AIRepository _aiRepository;
 
   DashboardViewModel(this._aiRepository);
@@ -55,6 +57,7 @@ class DashboardViewModel extends ChangeNotifier {
 
     try {
       await _runVisualizationSequence(
+        phenomenon: phenomenon,
         assetPath: phenomenon.kmlAssetPath,
         fileName: phenomenon.fileName,
         lookAt: phenomenon.lookAtXml,
@@ -98,11 +101,13 @@ class DashboardViewModel extends ChangeNotifier {
 
   Future<void> clearKML() async {
     await _tourService.stopTour();
+    _phenomenonCardService.clearCard(_sshClient);
     await _sshClient.runCommand(SSHCommands.clearKML());
     await _sshClient.runCommand(SSHCommands.refreshKML());
   }
 
   Future<void> _runVisualizationSequence({
+    required ClimatePhenomenon phenomenon,
     required String assetPath,
     required String fileName,
     required String lookAt,
@@ -134,6 +139,12 @@ class DashboardViewModel extends ChangeNotifier {
 
     await Future.delayed(const Duration(milliseconds: 500));
     await _mapSyncService.flyToLookAt(lookAt);
+
+    // Deploy the details card to the rightmost LG screen (Gemini-sourced).
+    _phenomenonCardService.deployCard(
+      phenomenon: phenomenon,
+      lgClient: _sshClient,
+    );
 
     if (phenomenonName != null) {
       getClimateExplanation(phenomenonName);

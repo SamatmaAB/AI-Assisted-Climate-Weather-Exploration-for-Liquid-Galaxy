@@ -6,6 +6,7 @@ class CacheService {
   static const String _settingsBoxName = 'settingsBox';
   static const String _climateBoxName = 'climateBox';
   static const String _cityExplorerBoxName = 'cityExplorerBox';
+  static const String _phenomenonCardBoxName = 'phenomenonCardBox';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -15,6 +16,7 @@ class CacheService {
     await Hive.openBox(_settingsBoxName);
     await Hive.openBox<String>(_climateBoxName);
     await Hive.openBox<String>(_cityExplorerBoxName);
+    await Hive.openBox<String>(_phenomenonCardBoxName);
   }
 
   static Future<void> saveClimateInfo(String phenomenon, String explanation) async {
@@ -42,10 +44,21 @@ class CacheService {
     return box.get(city.trim().toLowerCase());
   }
 
-  static Future<void> clearCityExplorerCache() async {
-    final box = Hive.box<String>(_cityExplorerBoxName);
+  static Future<void> savePhenomenonCard(String phenomenon, String jsonString) async {
+    final box = Hive.box<String>(_phenomenonCardBoxName);
+    await box.put(phenomenon.trim().toLowerCase(), jsonString);
+  }
+
+  static String? getPhenomenonCard(String phenomenon) {
+    final box = Hive.box<String>(_phenomenonCardBoxName);
+    return box.get(phenomenon.trim().toLowerCase());
+  }
+
+  static Future<void> clearPhenomenonCardCache() async {
+    final box = Hive.box<String>(_phenomenonCardBoxName);
     await box.clear();
   }
+
 
   static Box get settingsBox => Hive.box(_settingsBoxName);
 
