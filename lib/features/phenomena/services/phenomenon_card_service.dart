@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
 import 'package:lg_connection/models/climate_phenomenon_model.dart';
 import 'package:lg_connection/models/phenomenon_card_data.dart';
 import 'package:lg_connection/features/phenomena/utils/phenomenon_card_kml_generator.dart';
+import 'package:lg_connection/features/phenomena/utils/phenomenon_icon_mapper.dart';
 import 'package:lg_connection/services/ai/api_key_storage.dart';
 import 'package:lg_connection/services/ai/prompts/ai_prompts.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
@@ -62,9 +64,31 @@ class PhenomenonCardService {
         targetLng = offset['longitude'];
       }
 
+      // ── Upload the phenomenon icon to the LG web server ─────────────────
+      final assetPath = PhenomenonIconMapper.assetPathFor(phenomenon.id);
+      try {
+        final byteData = await rootBundle.load(assetPath);
+        final iconBytes = byteData.buffer.asUint8List();
+        if (iconBytes.isNotEmpty) {
+          final iconOk = await lgClient.uploadBinaryFile(
+            bytes: iconBytes,
+            targetPath: PhenomenonIconMapper.remotePath,
+          );
+          if (!iconOk) {
+            debugPrint(
+              'PhenomenonCard: Icon upload failed — card will render without icon.',
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('PhenomenonCard: Could not load icon asset "$assetPath": $e');
+      }
+      const iconUrl = PhenomenonIconMapper.remoteUrl;
+
       final kml = PhenomenonCardKmlGenerator.generate(
         phenomenon: phenomenon,
         data: data,
+        iconUrl: iconUrl,
         targetLatitude: targetLat,
         targetLongitude: targetLng,
       );

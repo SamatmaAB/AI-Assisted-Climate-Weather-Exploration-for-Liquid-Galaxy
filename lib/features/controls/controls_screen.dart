@@ -68,6 +68,28 @@ class _ControlsScreenState extends State<ControlsScreen> {
             ),
 
             const SizedBox(height: 28),
+            _buildSectionLabel(context, 'Tour'),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TaskButton(
+                    label: 'Exit Tour',
+                    icon: Icons.exit_to_app_outlined,
+                    role: TaskButtonRole.destructive,
+                    onPressed: () async {
+                      final ok = await _viewModel.exitTour();
+                      _showFeedback(
+                        ok ? 'Tour exited' : 'Exit tour failed — check connection',
+                        ok,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 28),
             ValueListenableBuilder<bool>(
               valueListenable: _viewModel.isConnected,
               builder: (context, connected, _) {

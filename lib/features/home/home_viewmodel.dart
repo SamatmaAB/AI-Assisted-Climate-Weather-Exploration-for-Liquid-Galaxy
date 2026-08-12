@@ -33,6 +33,17 @@ class HomeViewModel extends ChangeNotifier {
     await _sshClient.runCommand(SSHCommands.buildOrbit());
   }
 
+  /// Exits any playing guided tour on the rig (e.g. Indian Monsoon tour)
+  /// by writing `exittour=true` to the query file, leaving the loaded KML.
+  Future<bool> exitTour() async {
+    try {
+      return await _sshClient.runCommand(SSHCommands.stopTour());
+    } catch (e) {
+      debugPrint('HomeViewModel: exitTour failed: $e');
+      return false;
+    }
+  }
+
   Future<void> clearKML() async {
     await _tourService.stopTour();
     PhenomenonCardService().clearCard(_sshClient);

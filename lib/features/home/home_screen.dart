@@ -90,6 +90,38 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 8),
                 TtsPlaybackBar(text: text),
+                const SizedBox(height: 12),
+                Builder(
+                  builder: (btnContext) {
+                    final errorBg =
+                        Theme.of(btnContext).colorScheme.errorContainer;
+                    final onErrorBg =
+                        Theme.of(btnContext).colorScheme.onErrorContainer;
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: FilledButton.icon(
+                        icon: const Icon(Icons.exit_to_app_outlined),
+                        label: const Text('Exit Tour'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: errorBg,
+                          foregroundColor: onErrorBg,
+                        ),
+                        onPressed: () async {
+                          final navigator = Navigator.of(context);
+                          final ok = await _viewModel.exitTour();
+                          if (!mounted) return;
+                          navigator.pop();
+                          _showFeedback(
+                            ok
+                                ? 'Tour exited'
+                                : 'Exit tour failed — check connection',
+                            ok,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
                 const SizedBox(height: 16),
                 MarkdownBody(
                   data: text,

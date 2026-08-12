@@ -132,6 +132,19 @@ class ControlsViewModel extends ChangeNotifier {
     return await _sshClient.sendLogo();
   }
 
+  /// Exits any currently playing Liquid Galaxy tour by writing
+  /// `exittour=true` to the query file. This stops the guided tour (e.g.
+  /// Indian Monsoon / El Niño tour) while leaving the loaded KML in place.
+  Future<bool> exitTour() async {
+    try {
+      final ok = await _sshClient.runCommand(SSHCommands.stopTour());
+      return ok;
+    } catch (e) {
+      debugPrint('Error exiting tour: $e');
+      return false;
+    }
+  }
+
   Future<void> _forceRefresh(int screen) async {
     await _sshClient.forceRefresh(screen);
   }
