@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
-import 'package:lg_connection/shared/services/map_sync_service.dart';
+import 'package:lg_connection/shared/services/orbit_service.dart';
+
 
 class ControlsViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
@@ -149,107 +149,18 @@ class ControlsViewModel extends ChangeNotifier {
     await _sshClient.forceRefresh(screen);
   }
 
-  bool _isOrbiting = false;
-  bool get isOrbiting => _isOrbiting;
-  Timer? _orbitTimer;
-  String? _lastOrbitPosition;
+  bool get isOrbiting => OrbitService().isOrbiting;
 
   Future<void> startOrbit() async {
-    if (_isOrbiting) {
-      await stopOrbit();
-      return;
-    }
-
-    final connected = _sshClient.isConnected.value;
-    if (!connected) {
-      debugPrint('Cannot start orbit: LG not connected');
-      return;
-    }
-
-    await _sshClient.execute(SSHCommands.stopTour());
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    _isOrbiting = true;
+    await OrbitService().startOrbit();
     notifyListeners();
-
-    final mapSync = MapSyncService();
-    final double latitude = mapSync.lastTarget.latitude;
-    final double longitude = mapSync.lastTarget.longitude;
-    final double adjustedZoom = mapSync.lastZoom + 3.8;
-    final double range = 591657550.5 / math.pow(2, adjustedZoom - 1);
-    final double tilt = mapSync.lastTilt;
-
-    _lastOrbitPosition = '<LookAt>'
-        '<longitude>$longitude</longitude>'
-        '<latitude>$latitude</latitude>'
-        '<altitude>0</altitude>'
-        '<heading>${mapSync.lastBearing}</heading>'
-        '<tilt>$tilt</tilt>'
-        '<range>$range</range>'
-        '<gx:altitudeMode>relativeToGround</gx:altitudeMode>'
-        '</LookAt>';
-
-    try {
-      const int steps = 60;
-      const int stepDuration = 300;
-      int currentStep = 1;
-      bool isMoving = false;
-
-      _orbitTimer = Timer.periodic(const Duration(milliseconds: stepDuration), (timer) async {
-        if (!_isOrbiting) {
-          timer.cancel();
-          return;
-        }
-
-        if (isMoving) return;
-
-        try {
-          isMoving = true;
-          double bearing = (currentStep * (360 / steps)) % 360;
-
-          final lookAt = '<gx:duration>0.3</gx:duration>'
-              '<gx:flyToMode>smooth</gx:flyToMode>'
-              '<LookAt>'
-              '<longitude>$longitude</longitude>'
-              '<latitude>$latitude</latitude>'
-              '<range>$range</range>'
-              '<tilt>$tilt</tilt>'
-              '<heading>$bearing</heading>'
-              '<altitudeMode>relativeToGround</altitudeMode>'
-              '</LookAt>';
-
-          await _sshClient.execute(SSHCommands.flyTo(lookAt));
-
-          currentStep++;
-          isMoving = false;
-        } catch (e) {
-          debugPrint('Error during orbit step $currentStep: $e');
-          currentStep++;
-          isMoving = false;
-        }
-      });
-    } catch (e) {
-      _isOrbiting = false;
-      notifyListeners();
-      debugPrint('Error starting orbit loop: $e');
-    }
   }
 
   Future<void> stopOrbit() async {
-    _orbitTimer?.cancel();
-    _orbitTimer = null;
-    _isOrbiting = false;
+    await OrbitService().stopOrbit();
     notifyListeners();
-
-    try {
-      await _sshClient.execute(SSHCommands.stopTour());
-      if (_lastOrbitPosition != null) {
-        await _sshClient.execute(SSHCommands.flyTo(_lastOrbitPosition!));
-      }
-    } catch (e) {
-      debugPrint('Error stopping orbit: $e');
-    }
   }
+
 
   Future<void> refreshSystem() async {
     await _sshClient.runCommand(SSHCommands.restartLGService());
@@ -257,7 +168,8 @@ class ControlsViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _orbitTimer?.cancel();
+    OrbitService().dispose();
     super.dispose();
   }
 }
+

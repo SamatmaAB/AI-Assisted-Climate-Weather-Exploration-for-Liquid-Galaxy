@@ -15,7 +15,6 @@ class ChatSuggestions extends StatelessWidget {
       'Kuroshio Current',
       'El Niño',
       'La Niña',
-      'Mumbai Monsoon',
       'Clear Rig',
       'Help',
     ];

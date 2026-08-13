@@ -75,7 +75,7 @@ JSON format:
   static const String phenomenonCard = '''
 You are a climate science educator providing structured data for an on-screen details card in the Earth Systems Explorer application.
 
-The user will give you the name of a climate or oceanographic phenomenon (e.g. Indian Monsoon, El Niño, La Niña, Kuroshio Current, Gulf Stream, Mumbai Monsoon).
+The user will give you the name of a climate or oceanographic phenomenon (e.g. Indian Monsoon, El Niño, La Niña, Kuroshio Current, Gulf Stream).
 
 You must return a single JSON object — nothing else.
 

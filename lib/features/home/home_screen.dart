@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:lg_connection/core/common_widgets/status_badge.dart';
+import 'package:lg_connection/core/theme/app_color_scheme.dart';
 import 'package:lg_connection/features/home/home_viewmodel.dart';
 import 'package:lg_connection/features/home/widgets/chatbot_entry_button.dart';
-import 'package:lg_connection/features/home/widgets/explore_card.dart';
 import 'package:lg_connection/features/home/widgets/map_sync_panel.dart';
 import 'package:lg_connection/features/home/widgets/quick_action_card.dart';
 import 'package:lg_connection/features/home/widgets/visualization_action_card.dart';
@@ -41,8 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: isSuccess
-            ? Theme.of(context).colorScheme.secondaryContainer
-            : Theme.of(context).colorScheme.errorContainer,
+            ? Theme.of(context).colorScheme.bannerSuccess
+            : Theme.of(context).colorScheme.bannerError,
       ),
     );
   }
@@ -181,6 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      floatingActionButton: const ChatbotEntryButton(),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, child) {
@@ -193,18 +194,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     delegate: SliverChildListDelegate([
                       const SizedBox(height: 20),
 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ValueListenableBuilder<bool>(
-                            valueListenable: _viewModel.isConnected,
-                            builder: (context, connected, _) =>
-                                StatusBadge(isConnected: connected),
-                          ),
-                          const ChatbotEntryButton(),
-                        ],
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: _viewModel.isConnected,
+                          builder: (context, connected, _) =>
+                              StatusBadge(isConnected: connected),
+                        ),
                       ),
                       const SizedBox(height: 16),
+
 
                       Text(
                         'Liquid Galaxy',
@@ -280,16 +279,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () => _handleVisualization('La Niña', _viewModel.visualizeLaNina),
                       ),
                       const SizedBox(height: 12),
-                      VisualizationActionCard(
-                        title: 'Mumbai Monsoon',
-                        description: 'Loads the pre-generated Mumbai Monsoon KML and flies to Gateway of India.',
-                        icon: Icons.grain_outlined,
-                        climateName: 'Mumbai Monsoon',
-                        isLoading: _viewModel.isVisualisingMumbaiMonsoon,
-                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingMumbaiMonsoon,
-                        onTap: () => _handleVisualization('Mumbai Monsoon', _viewModel.visualizeMumbaiMonsoon),
-                      ),
-                      const SizedBox(height: 12),
 
                       QuickActionCard(
                         label: 'Clear All Layers',
@@ -323,29 +312,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      _buildSectionLabel(context, 'More Patterns', Icons.grid_view_outlined),
-                      const SizedBox(height: 12),
-                      const Row(
-                        children: [
-                          Expanded(
-                            child: ExploreCard(
-                              title: 'Winds',
-                              icon: Icons.air,
-                              climateName: 'Global Wind Systems',
-                              categoryName: 'Global Wind Systems',
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: ExploreCard(
-                              title: 'Currents',
-                              icon: Icons.waves,
-                              climateName: 'Ocean Currents',
-                              categoryName: 'Ocean Currents',
-                            ),
-                          ),
-                        ],
-                      ),
                       const SizedBox(height: 32),
                     ]),
                   ),

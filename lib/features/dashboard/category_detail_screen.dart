@@ -115,16 +115,6 @@ class CategoryDetailScreen extends StatelessWidget {
         ),
       );
       actions.add(const SizedBox(height: 12));
-      actions.add(
-        ActionItemCard(
-          title: 'Visualize Mumbai Monsoon',
-          subtitle: 'Project Mumbai monsoon KML & fly to Gateway of India',
-          icon: Icons.grain_outlined,
-          color: ClimateColors.mumbaiMonsoon,
-          onTap: () => _viewModel.visualizeMumbaiMonsoon(),
-        ),
-      );
-      actions.add(const SizedBox(height: 12));
     }
 
     if (categoryName == 'Ocean Currents') {

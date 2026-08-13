@@ -485,6 +485,28 @@ class _CityExplorerScreenState extends State<CityExplorerScreen> {
             ),
           ),
 
+        const SizedBox(height: 12),
+
+        // ── Orbit control ────────────────────────────────────────────────────
+        FilledButton.icon(
+          onPressed: () async {
+            await _viewModel.toggleOrbit();
+          },
+          icon: Icon(_viewModel.isOrbiting
+              ? Icons.stop_circle_outlined
+              : Icons.rotate_90_degrees_ccw_outlined),
+          label: Text(_viewModel.isOrbiting ? 'Stop Orbit' : 'Orbit View'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(double.infinity, 52),
+            backgroundColor: _viewModel.isOrbiting
+                ? colorScheme.errorContainer
+                : colorScheme.primary,
+            foregroundColor: _viewModel.isOrbiting
+                ? colorScheme.onErrorContainer
+                : colorScheme.onPrimary,
+          ),
+        ),
+
         const SizedBox(height: 24),
       ],
     );

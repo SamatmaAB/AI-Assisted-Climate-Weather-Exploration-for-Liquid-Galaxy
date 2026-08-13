@@ -6,26 +6,20 @@ class ChatbotEntryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton.tonal(
+    return FloatingActionButton.extended(
+      heroTag: 'climate_ai_chatbot_fab',
       onPressed: () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ChatbotScreen()),
         );
       },
-      style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.auto_awesome_outlined, size: 16),
-          SizedBox(width: 6),
-          Text('Climate AI'),
-        ],
+      icon: const Icon(Icons.chat_bubble_rounded),
+      label: const Text(
+        'Climate AI',
+        style: TextStyle(fontWeight: FontWeight.w600),
       ),
     );
   }
 }
+

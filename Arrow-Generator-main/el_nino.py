@@ -2,13 +2,21 @@ import math
 import random
 import os
 
-RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
-DROUGHT_ICON = "https://i.imgur.com/p7WHxlT.png"
-FLOOD_ICON = "h"
+def xml_escape(text):
+    """Escape special characters so placemark names stay valid XML."""
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
 
-MONSOON_ICON = "https://i.imgur.com/qoXQjzD.png"
-STORM_ICON = "https://i.imgur.com/UbtYVUx.png"
-WARM_ICON = "https://i.imgur.com/RXrha0q.png"
+RAIN_ICON = "https://i.imgur.com/CBHL5zR.png"
+DROUGHT_ICON = "https://i.imgur.com/J4my1UV.png"
+FLOOD_ICON = "https://i.imgur.com/4qzQsht.png"
+
+MONSOON_ICON = "https://i.imgur.com/CBHL5zR.png"
+STORM_ICON = "https://i.imgur.com/5r49jF2.png"
+WARM_ICON = "https://i.imgur.com/FIIwqqB.png"
 
 ICON_SCALE = 5.5
 
@@ -437,6 +445,7 @@ def create_arrow(
 
 def climate_icon(name, lon, lat, icon_url, scale=ICON_SCALE):
     norm_lon = normalize_lon(lon)
+    name = xml_escape(name)
     return f"""
 <Placemark>
 

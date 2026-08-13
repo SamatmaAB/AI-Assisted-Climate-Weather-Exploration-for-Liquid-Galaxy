@@ -91,10 +91,6 @@ class DashboardViewModel extends ChangeNotifier {
     await visualizePhenomenon(ClimatePhenomena.gulfStream);
   }
 
-  Future<void> visualizeMumbaiMonsoon() async {
-    await visualizePhenomenon(ClimatePhenomena.mumbaiMonsoon);
-  }
-
   Future<void> flyTo(String lookAt) async {
     await _mapSyncService.flyToLookAt(lookAt);
   }
@@ -138,7 +134,7 @@ class DashboardViewModel extends ChangeNotifier {
     await _sshClient.runCommand(SSHCommands.refreshKML());
 
     await Future.delayed(const Duration(milliseconds: 500));
-    await _mapSyncService.flyToLookAt(lookAt);
+    _mapSyncService.updateMapPositionFromLookAt(lookAt);
 
     // Deploy the details card to the rightmost LG screen (Gemini-sourced).
     _phenomenonCardService.deployCard(

@@ -13,7 +13,49 @@ class SSHCommands {
   }
 
   static String buildOrbit() {
-    return 'echo "search=orbit" > /tmp/query.txt';
+    return 'echo "playtour=Orbit" > /tmp/query.txt';
+  }
+
+  static String buildOrbitTourKml({
+    required double latitude,
+    required double longitude,
+    required double range,
+    required double tilt,
+    required double heading,
+    int rotations = 3,
+    int stepDegrees = 10,
+    double stepDuration = 1.0,
+  }) {
+    final StringBuffer playlist = StringBuffer();
+    final int totalSteps = (360 ~/ stepDegrees) * rotations;
+
+    for (int i = 0; i <= totalSteps; i++) {
+      final double currentHeading = (heading + (i * stepDegrees)) % 360;
+      playlist.write('''
+      <gx:FlyTo>
+        <gx:duration>$stepDuration</gx:duration>
+        <gx:flyToMode>smooth</gx:flyToMode>
+        <LookAt>
+          <longitude>$longitude</longitude>
+          <latitude>$latitude</latitude>
+          <altitude>0</altitude>
+          <heading>$currentHeading</heading>
+          <tilt>$tilt</tilt>
+          <range>$range</range>
+          <gx:altitudeMode>relativeToGround</gx:altitudeMode>
+        </LookAt>
+      </gx:FlyTo>''');
+    }
+
+    return '''<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+  <gx:Tour>
+    <name>Orbit</name>
+    <gx:Playlist>
+$playlist
+    </gx:Playlist>
+  </gx:Tour>
+</kml>''';
   }
 
   static String flyTo(String lookAt) {

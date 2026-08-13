@@ -25,7 +25,6 @@ class PhenomenonIconMapper {
   static String _filenameFor(String id) {
     switch (id) {
       case 'indian_monsoon':
-      case 'mumbai_monsoon':
         return 'monsoon.png';
       case 'kuroshio_current':
       case 'gulf_stream':
@@ -39,3 +38,5 @@ class PhenomenonIconMapper {
     }
   }
 }
+
+

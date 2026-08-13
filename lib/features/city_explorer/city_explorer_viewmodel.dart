@@ -13,6 +13,7 @@ import 'package:lg_connection/services/ai/prompts/ai_prompts.dart';
 import 'package:lg_connection/services/tts/tts_service.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
 import 'package:lg_connection/shared/services/map_sync_service.dart';
+import 'package:lg_connection/shared/services/orbit_service.dart';
 
 // ─── Camera Presets ──────────────────────────────────────────────────────────
 
@@ -84,6 +85,12 @@ class CityExplorerViewModel extends ChangeNotifier {
 
     // Clear any previous City Explorer balloon before loading the new one.
     _balloonService.clearBalloon(_sshClient);
+
+    // Stop any running orbit from a previous exploration.
+    if (OrbitService().isOrbiting) {
+      await OrbitService().stopOrbit();
+      notifyListeners();
+    }
 
     try {
       // Step 1: Resolve city landmark (Hive cache → Gemini)
@@ -214,8 +221,36 @@ class CityExplorerViewModel extends ChangeNotifier {
         tilt: LandmarkCameraPreset.groundLevel.tilt,
         bearing: LandmarkCameraPreset.groundLevel.heading,
       ));
+
+      // Begin orbiting the landmark as soon as the fly-to completes.
+      await _startOrbit();
     } catch (e) {
       debugPrint('CityExplorer: Fly-to failed: $e');
+    }
+  }
+
+  // ── Orbit (shares the LG orbit implementation via OrbitService) ────────────
+
+  bool get isOrbiting => OrbitService().isOrbiting;
+
+  /// Starts the cinematic orbit around the landmark.
+  Future<void> _startOrbit() async {
+    await OrbitService().startOrbit();
+    notifyListeners();
+  }
+
+  /// Stops the orbit (and returns the camera to the orbit start position).
+  Future<void> stopOrbit() async {
+    await OrbitService().stopOrbit();
+    notifyListeners();
+  }
+
+  /// Toggles orbit on/off.
+  Future<void> toggleOrbit() async {
+    if (OrbitService().isOrbiting) {
+      await stopOrbit();
+    } else {
+      await _startOrbit();
     }
   }
 
@@ -289,6 +324,7 @@ class CityExplorerViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    OrbitService().dispose();
     _tts.stop();
     super.dispose();
   }

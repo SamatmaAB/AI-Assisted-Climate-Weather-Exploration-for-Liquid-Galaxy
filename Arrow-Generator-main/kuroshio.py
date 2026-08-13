@@ -1,13 +1,13 @@
 import math
 import os
 
-RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
-DROUGHT_ICON = "https://i.imgur.com/p7WHxlT.png"
-FLOOD_ICON = "https://i.imgur.com/FE0MzOA.jpeg"
+RAIN_ICON = "https://i.imgur.com/CBHL5zR.png"
+DROUGHT_ICON = "https://i.imgur.com/J4my1UV.png"
+FLOOD_ICON = "https://i.imgur.com/4qzQsht.png"
 
-MONSOON_ICON = "https://i.imgur.com/qoXQjzD.png"
-STORM_ICON = "https://i.imgur.com/UbtYVUx.png"
-WARM_ICON = "https://i.imgur.com/RXrha0q.png"
+MONSOON_ICON = "https://i.imgur.com/CBHL5zR.png"
+STORM_ICON = "https://i.imgur.com/5r49jF2.png"
+WARM_ICON = "https://i.imgur.com/FIIwqqB.png"
 
 SHAFT_WIDTH = 0.28
 

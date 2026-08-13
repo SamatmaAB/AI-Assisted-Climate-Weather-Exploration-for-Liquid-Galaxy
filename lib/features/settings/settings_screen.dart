@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/core/common_widgets/status_badge.dart';
+import 'package:lg_connection/core/theme/app_color_scheme.dart';
 import 'package:lg_connection/features/settings/settings_viewmodel.dart';
 import 'package:lg_connection/features/settings/widgets/about_card.dart';
 import 'package:lg_connection/features/settings/widgets/ai_settings_card.dart';
@@ -35,8 +36,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: isSuccess
-            ? Theme.of(context).colorScheme.secondaryContainer
-            : Theme.of(context).colorScheme.errorContainer,
+            ? Theme.of(context).colorScheme.bannerSuccess
+            : Theme.of(context).colorScheme.bannerError,
       ),
     );
   }

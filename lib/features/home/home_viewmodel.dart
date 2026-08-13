@@ -7,6 +7,7 @@ import 'package:lg_connection/models/climate_phenomenon_model.dart';
 import 'package:lg_connection/services/ai/ai_repository.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
 import 'package:lg_connection/shared/services/map_sync_service.dart';
+import 'package:lg_connection/shared/services/orbit_service.dart';
 import 'package:lg_connection/shared/services/tour_service.dart';
 import 'package:lg_connection/features/phenomena/services/phenomenon_card_service.dart';
 import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
@@ -30,8 +31,9 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   Future<void> orbit() async {
-    await _sshClient.runCommand(SSHCommands.buildOrbit());
+    await OrbitService().startOrbit();
   }
+
 
   /// Exits any playing guided tour on the rig (e.g. Indian Monsoon tour)
   /// by writing `exittour=true` to the query file, leaving the loaded KML.
@@ -161,38 +163,18 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> visualizeMumbaiMonsoon() async {
-    isVisualisingMumbaiMonsoon = true;
-    notifyListeners();
-    try {
-      await _runVisualizationSequence(
-        assetPath: ClimatePhenomena.mumbaiMonsoon.kmlAssetPath,
-        fileName: ClimatePhenomena.mumbaiMonsoon.fileName,
-        lookAt: ClimatePhenomena.mumbaiMonsoon.lookAtXml,
-        tourKmlPath: ClimatePhenomena.mumbaiMonsoon.tourKmlPath,
-        tourName: ClimatePhenomena.mumbaiMonsoon.tourName,
-        phenomenonName: ClimatePhenomena.mumbaiMonsoon.name,
-      );
-    } finally {
-      isVisualisingMumbaiMonsoon = false;
-      notifyListeners();
-    }
-  }
-
   bool isVisualisingMonsoon = false;
   bool isVisualisingKuroshio = false;
   bool isVisualisingGulfStream = false;
   bool isVisualisingElNino = false;
   bool isVisualisingLaNina = false;
-  bool isVisualisingMumbaiMonsoon = false;
 
   bool get isAnyVisualising =>
       isVisualisingMonsoon ||
       isVisualisingKuroshio ||
       isVisualisingGulfStream ||
       isVisualisingElNino ||
-      isVisualisingLaNina ||
-      isVisualisingMumbaiMonsoon;
+      isVisualisingLaNina;
 
   Future<void> _runVisualizationSequence({
     required String assetPath,
@@ -224,7 +206,7 @@ class HomeViewModel extends ChangeNotifier {
     await _sshClient.runCommand(SSHCommands.refreshKML());
 
     await Future.delayed(const Duration(milliseconds: 500));
-    await _mapSyncService.flyToLookAt(lookAt);
+    _mapSyncService.updateMapPositionFromLookAt(lookAt);
 
     // Deploy the details card to the rightmost LG screen (Gemini-sourced).
     _phenomenonCardService.deployCard(

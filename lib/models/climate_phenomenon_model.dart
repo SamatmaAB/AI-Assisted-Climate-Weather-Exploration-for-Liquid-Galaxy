@@ -70,22 +70,11 @@ class ClimatePhenomena {
     lookAtXml: '<LookAt><longitude>-50.0</longitude><latitude>40.0</latitude><altitude>0</altitude><heading>0</heading><tilt>35</tilt><range>7000000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>',
   );
 
-  static const ClimatePhenomenon mumbaiMonsoon = ClimatePhenomenon(
-    id: 'mumbai_monsoon',
-    name: 'Mumbai Monsoon',
-    kmlAssetPath: 'assets/kml/mumbai_monsoon.kml',
-    fileName: 'mumbai_monsoon.kml',
-    tourKmlPath: 'assets/kml/indianmonsoon_tour.kml',
-    tourName: 'Indian Monsoon Guided Tour',
-    lookAtXml: '<LookAt><longitude>72.834654</longitude><latitude>18.921984</latitude><altitude>0</altitude><heading>0</heading><tilt>65</tilt><range>4000</range><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>',
-  );
-
   static List<ClimatePhenomenon> get all => [
     indianMonsoon,
     kuroshioCurrent,
     elNino,
     laNina,
     gulfStream,
-    mumbaiMonsoon,
   ];
 }

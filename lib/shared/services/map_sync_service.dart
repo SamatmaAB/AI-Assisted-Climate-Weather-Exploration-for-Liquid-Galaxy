@@ -42,6 +42,21 @@ class MapSyncService extends ChangeNotifier {
     await flyTo(lookAt);
   }
 
+  void updateMapPosition(LookAt lookAt) {
+    lastTarget = LatLng(lookAt.latitude, lookAt.longitude);
+    lastZoom = lookAt.zoom;
+    lastTilt = lookAt.tilt;
+    lastBearing = lookAt.bearing;
+    notifyListeners();
+    _animateMobileMap();
+  }
+
+  void updateMapPositionFromLookAt(String lookAtXml) {
+    final lookAt = LookAt.fromXml(lookAtXml);
+    updateMapPosition(lookAt);
+  }
+
+
   Future<void> _animateMobileMap() async {
     if (_mapController == null) return;
     try {

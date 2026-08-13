@@ -60,3 +60,5 @@ class WeatherIconMapper {
     return 'cloudy.png';
   }
 }
+
+

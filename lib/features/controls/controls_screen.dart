@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lg_connection/core/theme/app_color_scheme.dart';
 import 'package:lg_connection/features/controls/controls_viewmodel.dart';
 import 'package:lg_connection/features/controls/widgets/availability_card.dart';
 import 'package:lg_connection/features/controls/widgets/task_button.dart';
@@ -32,8 +33,8 @@ class _ControlsScreenState extends State<ControlsScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: isSuccess
-            ? Theme.of(context).colorScheme.secondaryContainer
-            : Theme.of(context).colorScheme.errorContainer,
+            ? Theme.of(context).colorScheme.bannerSuccess
+            : Theme.of(context).colorScheme.bannerError,
       ),
     );
   }

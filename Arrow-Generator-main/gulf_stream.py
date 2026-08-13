@@ -1,13 +1,21 @@
 import math
 import os
 
-RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
-DROUGHT_ICON = "https://i.imgur.com/p7WHxlT.png"
-FLOOD_ICON = "https://i.imgur.com/FE0MzOA.jpeg"
+def xml_escape(text):
+    """Escape special characters so placemark names stay valid XML."""
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
 
-MONSOON_ICON = "https://i.imgur.com/qoXQjzD.png"
-STORM_ICON = "https://i.imgur.com/UbtYVUx.png"
-WARM_ICON = "https://i.imgur.com/RXrha0q.png"
+RAIN_ICON = "https://i.imgur.com/CBHL5zR.png"
+DROUGHT_ICON = "https://i.imgur.com/J4my1UV.png"
+FLOOD_ICON = "https://i.imgur.com/4qzQsht.png"
+
+MONSOON_ICON = "https://i.imgur.com/CBHL5zR.png"
+STORM_ICON = "https://i.imgur.com/5r49jF2.png"
+WARM_ICON = "https://i.imgur.com/FIIwqqB.png"
 
 SHAFT_WIDTH = 0.45
 HEAD_LENGTH = 2.2
@@ -320,6 +328,7 @@ def create_arrow(
     return shaft + head
 
 def city(name, lon, lat, icon=WARM_ICON):
+    name = xml_escape(name)
     return f"""
 <Placemark>
 
@@ -396,7 +405,7 @@ def gulf_stream():
     kml += city("Florida Straits Heat Flow", -81.5, 24.0, WARM_ICON)
     kml += city("Hatteras Storm Corridor", -75.0, 35.5, STORM_ICON)
     kml += city("Mid-Atlantic Storm Track", -76.0, 36.8, STORM_ICON)
-    kml += city("Georges Bank Fog & Rain", -67.0, 41.5, RAIN_ICON)
+    kml += city("Georges Bank Fog &amp; Rain", -67.0, 41.5, RAIN_ICON)
     kml += city("Grand Banks Front Storms", -50.0, 43.5, STORM_ICON)
     kml += city("Sargasso Warm Pool", -65.0, 30.0, WARM_ICON)
     kml += city("North Atlantic Drift", -35.0, 50.0, WARM_ICON)

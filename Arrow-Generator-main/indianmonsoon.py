@@ -3,8 +3,8 @@ import math
 import os
 from pathlib import Path
 
-RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
-LOW_ICON = "https://i.imgur.com/VJIrVJN.png"
+RAIN_ICON = "https://i.imgur.com/CBHL5zR.png"
+LOW_ICON = "https://i.imgur.com/5r49jF2.png"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
