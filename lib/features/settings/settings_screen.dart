@@ -101,6 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 AiSettingsCard(
                   apiKeyController: _viewModel.apiKeyController,
                   isObscured: _viewModel.isApiKeyObscured,
+                  isBuildConfigured: _viewModel.isBuildConfigured,
                   onToggleVisibility: _viewModel.toggleApiKeyVisibility,
                   onSave: () async {
                     await _viewModel.saveApiKey();

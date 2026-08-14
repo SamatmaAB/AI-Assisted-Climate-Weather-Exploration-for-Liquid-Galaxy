@@ -19,6 +19,9 @@ class MapSyncPanel extends StatefulWidget {
 class _MapSyncPanelState extends State<MapSyncPanel> {
   final MapSyncService _mapSyncService = MapSyncService();
 
+  /// Tracks the current camera position so [onCameraIdle] can read it.
+  CameraPosition? _currentPosition;
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -38,17 +41,28 @@ class _MapSyncPanelState extends State<MapSyncPanel> {
               mapType: MapType.satellite,
               myLocationButtonEnabled: false,
               zoomControlsEnabled: false,
-              compassEnabled: false,
+              compassEnabled: true,
               mapToolbarEnabled: false,
-              rotateGesturesEnabled: false,
-              scrollGesturesEnabled: false,
-              tiltGesturesEnabled: false,
-              zoomGesturesEnabled: false,
+              // ── Gestures enabled for bidirectional control ──
+              rotateGesturesEnabled: true,
+              scrollGesturesEnabled: true,
+              tiltGesturesEnabled: true,
+              zoomGesturesEnabled: true,
               onMapCreated: (controller) {
                 _mapSyncService.setMapController(controller);
               },
+              onCameraMove: (position) {
+                _currentPosition = position;
+              },
+              // Fires once the user lifts their finger and the map settles.
+              onCameraIdle: () {
+                if (_currentPosition != null) {
+                  _mapSyncService.onPhoneCameraMoved(_currentPosition!);
+                }
+              },
             ),
 
+            // ── Bidirectional sync badge ─────────────────────────────────
             Positioned(
               top: 12,
               right: 12,
@@ -61,16 +75,48 @@ class _MapSyncPanelState extends State<MapSyncPanel> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.sync, size: 12, color: colorScheme.primary),
+                    Icon(Icons.sync_alt, size: 12, color: colorScheme.primary),
                     const SizedBox(width: 6),
                     Text(
-                      'Galaxy Sync Active',
+                      'Bidirectional Sync',
                       style: textTheme.labelSmall?.copyWith(
                         color: colorScheme.onSurface,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+
+            // ── Interactive hint label ────────────────────────────────────
+            Positioned(
+              bottom: 10,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface.withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.touch_app_outlined,
+                          size: 11,
+                          color: colorScheme.onSurface.withValues(alpha: 0.7)),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Drag to control LG rig',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -86,3 +132,4 @@ class _MapSyncPanelState extends State<MapSyncPanel> {
     super.dispose();
   }
 }
+

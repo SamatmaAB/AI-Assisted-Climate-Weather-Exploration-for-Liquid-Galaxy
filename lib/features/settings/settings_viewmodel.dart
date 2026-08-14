@@ -21,6 +21,13 @@ class SettingsViewModel extends ChangeNotifier {
   String selectedModel = GeminiModels.defaultModel;
 
   bool get hasApiKey => apiKeyController.text.trim().isNotEmpty;
+
+  /// True when the key currently stored matches the one baked in at build
+  /// time via --dart-define-from-file=dart_defines.json.
+  static const _buildApiKey = String.fromEnvironment('GEMINI_API_KEY');
+  bool get isBuildConfigured =>
+      _buildApiKey.isNotEmpty &&
+      apiKeyController.text.trim() == _buildApiKey.trim();
   bool get isDarkMode => ThemeController.instance.isDarkMode;
   bool get isColorblindMode => ThemeController.instance.isColorblindMode;
   bool isConnecting = false;
