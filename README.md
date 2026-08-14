@@ -79,7 +79,7 @@ $$\text{Red} = 0, \quad \text{Green} = \lfloor 255 \cdot t \rfloor, \quad \text{
 - Formatted into KML alpha-blue-green-red hex format (`aabbggrr`).
 
 ### 3. Polygon Arrowhead Geometry Construction (`create_arrowhead`)
-Terminal trajectory vectors $P_{n-1} \rightarrow P_n$ determine arrowhead orientation angle $\theta = \operatorname{atan2}(\Delta y, \Delta x)$:
+Terminal trajectory vectors $P_{n-1} \rightarrow P_n$ determine arrowhead orientation angle $\theta =$ `atan2`$(\Delta y, \Delta x)$:
 - **Tip Coordinates**: Located at terminal ERA5 coordinate $P_n$.
 - **Wing Coordinates**: Positioned at distance $S = 1.2^\circ$ (size) and angle $\pm \frac{\pi}{6}$ ($30^\circ$ sweep angle):
 
