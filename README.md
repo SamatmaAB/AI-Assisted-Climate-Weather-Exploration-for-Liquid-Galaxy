@@ -6,7 +6,7 @@
 [![Dart](https://img.shields.io/badge/Dart-v3.1+-0175C2?logo=dart)](https://dart.dev)
 [![Python](https://img.shields.io/badge/Python-v3.10+-3776AB?logo=python)](https://python.org)
 [![Data Source](https://img.shields.io/badge/Data-ECMWF%20ERA5-003366)](https://cds.climate.copernicus.eu/)
-[![AI Engine](https://img.shields.io/badge/AI-Gemini%201.5%20Flash-orange?logo=google)](https://deepmind.google/technologies/gemini/)
+[![AI Engine](https://img.shields.io/badge/AI-Gemini%20AI-orange?logo=google)](https://deepmind.google/technologies/gemini/)
 
 **Earth Systems Explorer** is a high-performance control and visualization engine engineered for the **Liquid Galaxy** multi-display cluster. It combines scientific ECMWF ERA5 climate reanalysis processing, procedural 3D KML vector ribbon generation, automated geospatial camera itineraries, bidirectional map synchronicity, and Gemini AI-driven telemetry cards.
 
@@ -18,7 +18,7 @@
 - 🌧️ **Scientific Climate Pipeline**: Ingests ECMWF ERA5 reanalysis data (850 hPa wind fields) and performs streamline numerical integration for major climate systems (Indian Monsoon, El Niño, La Niña, Gulf Stream, Kuroshio).
 - 🏹 **Procedural 3D KML Ribbon Synthesizer**: Converts flow trajectories into smooth 3D vector ribbon arrows with color gradients, boundary normal offsets, and polygon arrowheads.
 - 🔄 **Bidirectional Map Synchronization**: Real-time sync between mobile 2D map viewports and Liquid Galaxy 3D viewports with scale conversion and gesture debouncing.
-- 🤖 **AI Intelligence & Voice Narration**: Gemini 1.5 Flash structured telemetry cards paired with synchronized text-to-speech (TTS) audio narration during guided tours.
+- 🤖 **AI Intelligence & Voice Narration**: Gemini AI structured telemetry cards paired with synchronized text-to-speech (TTS) audio narration during guided tours.
 
 ---
 
@@ -156,7 +156,7 @@ python tour_generator.py
 | Module | Core Dependencies | Primary Function |
 | :--- | :--- | :--- |
 | **Mobile Controller** | Flutter, Dart (`dartssh2`, `google_maps_flutter`) | Multi-display cluster SSH control, live map sync, UI navigation. |
-| **AI Intelligence & TTS** | `google_generative_ai`, `flutter_tts` | Gemini 1.5 Flash telemetry generation & synchronized audio tours. |
+| **AI Intelligence & TTS** | `google_generative_ai`, `flutter_tts` | Gemini AI telemetry generation & synchronized audio tours. |
 | **ERA5 Data Pipeline** | Python (`cdsapi`, `xarray`, `scipy`, `numpy`) | NetCDF4 downloading, 850 hPa wind vector interpolation, streamline integration. |
 | **Arrow Generator Engine** | Python (`Arrow-Generator-main`) | Ribbon boundary geometry, color gradients, arrowhead polygons, `<gx:Tour>` playlists. |
 | **Cluster Infrastructure** | Liquid Galaxy Rig (Ubuntu Linux) | Google Earth 3D master display node & slave overlay screens. |
