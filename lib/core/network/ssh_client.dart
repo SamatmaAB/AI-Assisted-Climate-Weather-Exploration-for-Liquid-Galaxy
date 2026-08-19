@@ -80,15 +80,16 @@ class LGSSHClient {
 
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      if (_client == null) return;
-      try {
-        await _client!
-            .execute('echo "ping"')
-            .timeout(const Duration(seconds: 3));
-      } catch (_) {
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (_client == null || !isConnected.value) return;
+      _client!
+          .execute('echo "ping"')
+          .timeout(const Duration(seconds: 3))
+          .then((_) {})
+          .catchError((e) {
+        debugPrint('SSH Heartbeat error: $e');
         _handleDisconnection();
-      }
+      });
     });
   }
 
@@ -108,6 +109,8 @@ class LGSSHClient {
       Future.delayed(const Duration(seconds: 3), () async {
         final ok = await connect();
         if (ok) _reconnectAttempts = 0;
+      }).catchError((e) {
+        debugPrint('SSH: Reconnect attempt failed: $e');
       });
     } else {
       debugPrint('SSH: Max reconnect attempts reached. Giving up.');
@@ -279,17 +282,29 @@ class LGSSHClient {
     return ok;
   }
 
-  Future<void> forceRefresh(int screen) async {
+  Future<bool> forceRefresh(int screen) async {
     final pwd = password;
     try {
-      await runCommand(
+      final okAdd = await runCommand(
         SSHCommands.addRefreshInterval(screen, 2, pwd),
       );
-      await runCommand(
+      final okRemove = await runCommand(
         SSHCommands.removeRefreshInterval(screen, pwd),
       );
+      final success = okAdd && okRemove;
+      if (success) {
+        debugPrint(
+          'LGSSHClient: forceRefresh SUCCESSFUL for screen $screen (myplaces.kml updated & reset).',
+        );
+      } else {
+        debugPrint(
+          'LGSSHClient: forceRefresh FAILED for screen $screen (SSH command returned error status).',
+        );
+      }
+      return success;
     } catch (e) {
-      debugPrint('forceRefresh failed for screen $screen: $e');
+      debugPrint('LGSSHClient: forceRefresh FAILED for screen $screen: $e');
+      return false;
     }
   }
 

@@ -63,8 +63,8 @@ class OrbitService {
     try {
       // Build native KML tour with smooth 360-degree waypoints (5 full rotations)
       const int rotations = 5;
-      const int stepDegrees = 10;
-      const double stepDuration = 1.0;
+      const int stepDegrees = 5;
+      const double stepDuration = 0.5;
       final tourKml = SSHCommands.buildOrbitTourKml(
         latitude: latitude,
         longitude: longitude,
@@ -84,6 +84,7 @@ class OrbitService {
 
       await sshClient.execute(SSHCommands.setKML('Orbit.kml'));
       await sshClient.execute(SSHCommands.refreshKML());
+      await sshClient.forceRefresh(1);
       await Future.delayed(const Duration(milliseconds: 500));
 
       // Execute native Google Earth tour play command

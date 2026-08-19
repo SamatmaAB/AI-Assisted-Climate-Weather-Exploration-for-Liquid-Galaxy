@@ -1,11 +1,12 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
+import 'package:lg_connection/models/climate_phenomenon_model.dart';
 import 'package:lg_connection/services/ai/ai_repository.dart';
+import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
 import 'package:lg_connection/services/tts/tts_service.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
-
-import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
 
 class TourViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
@@ -38,11 +39,18 @@ class TourViewModel extends ChangeNotifier {
       if (_isValidExplanation(cached)) {
         explanation = cached!;
       } else {
-        final result = await _aiRepository.getExplanation(phenomenon);
+        final result = await _aiRepository
+            .getExplanation(phenomenon)
+            .timeout(
+              const Duration(seconds: 10),
+              onTimeout: () => ClimatePhenomena.getFallbackSummary(phenomenon),
+            );
         if (_isValidExplanation(result)) {
           await CacheService.saveClimateInfo(phenomenon, result);
+          explanation = result;
+        } else {
+          explanation = ClimatePhenomena.getFallbackSummary(phenomenon);
         }
-        explanation = result;
       }
       if (TtsService.instance.autoNarrate &&
           _isValidExplanation(explanation) &&
@@ -50,7 +58,7 @@ class TourViewModel extends ChangeNotifier {
         TtsService.instance.speak(explanation);
       }
     } catch (e) {
-      explanation = 'Error generating explanation: $e';
+      explanation = ClimatePhenomena.getFallbackSummary(phenomenon);
     } finally {
       isLoadingExplanation = false;
       notifyListeners();

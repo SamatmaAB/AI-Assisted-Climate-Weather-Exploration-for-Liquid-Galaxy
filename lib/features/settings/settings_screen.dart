@@ -79,18 +79,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   usernameController: _viewModel.usernameController,
                   passwordController: _viewModel.passwordController,
                   rigsController: _viewModel.rigsController,
-                  isConnecting: _viewModel.isConnecting,
+                  isConnecting: _viewModel.isConnecting || _viewModel.isSendingLogo,
                   onSave: () async {
                     await _viewModel.saveSettings();
                     _showFeedback('Settings saved successfully', true);
                   },
                   onConnect: () async {
-                    final success = await _viewModel.connect();
-                    _showFeedback(
-                      success
-                          ? 'Successfully connected to Liquid Galaxy!'
-                          : 'Connection failed. Verify IP and credentials.',
-                      success,
+                    _showFeedback('Connecting to Liquid Galaxy...', true);
+                    await _viewModel.connect(
+                      onFeedback: (message, isSuccess) {
+                        _showFeedback(message, isSuccess);
+                      },
                     );
                   },
                 ),

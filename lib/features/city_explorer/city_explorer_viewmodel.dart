@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/features/city_explorer/models/city_landmark.dart';
 import 'package:lg_connection/features/city_explorer/models/weather_data.dart';
 import 'package:lg_connection/features/city_explorer/services/city_explorer_balloon_service.dart';
+import 'package:lg_connection/features/city_explorer/services/geocoding_service.dart';
 import 'package:lg_connection/features/city_explorer/services/weather_service.dart';
 import 'package:lg_connection/models/lookat_model.dart';
 import 'package:lg_connection/services/ai/api_key_storage.dart';
@@ -45,6 +47,7 @@ class CityExplorerViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final MapSyncService _mapSyncService = MapSyncService();
   final WeatherService _weatherService = WeatherService();
+  final GeocodingService _geocodingService = GeocodingService();
   final CityExplorerBalloonService _balloonService = CityExplorerBalloonService();
   final TtsService _tts = TtsService.instance;
   final ApiKeyStorage _apiKeyStorage = const ApiKeyStorage();
@@ -93,7 +96,7 @@ class CityExplorerViewModel extends ChangeNotifier {
     }
 
     try {
-      // Step 1: Resolve city landmark (Hive cache → Gemini)
+      // Step 1: Resolve city landmark (Hive cache → Gemini / OpenStreetMap fallback)
       final resolved = await _resolveLandmark(trimmed);
       if (resolved == null) return; // error already set
       _landmark = resolved;
@@ -126,58 +129,60 @@ class CityExplorerViewModel extends ChangeNotifier {
   // ── Step 1: Landmark resolution ───────────────────────────────────────────
 
   Future<CityLandmark?> _resolveLandmark(String city) async {
-    // Check Hive cache first
+    // 1. Check Hive cache first (instant)
     final cached = CacheService.getCityLandmark(city);
     if (cached != null) {
       try {
         final map = json.decode(cached) as Map<String, dynamic>;
         return CityLandmark.fromJson(map);
       } catch (_) {
-        // Corrupted cache entry — fall through to Gemini
+        // Corrupted cache entry — fall through
       }
     }
 
-    // Ask Gemini
+    // 2. Try Gemini with a 4s window if API key is present
     final apiKey = await _apiKeyStorage.getGeminiApiKey();
-    if (apiKey == null || apiKey.isEmpty) {
-      _setError('Gemini API key is not configured. Add your key in Settings.');
-      return null;
-    }
+    if (apiKey != null && apiKey.isNotEmpty) {
+      try {
+        final modelName = await _apiKeyStorage.getSelectedModel();
+        final model = GenerativeModel(
+          model: modelName,
+          apiKey: apiKey,
+          systemInstruction: Content.system(AIPrompts.cityLandmark),
+        );
+        final response = await model
+            .generateContent([Content.text('City: $city')])
+            .timeout(const Duration(seconds: 4));
+        final text = (response.text ?? '').trim();
 
-    try {
-      final modelName = await _apiKeyStorage.getSelectedModel();
-      final model = GenerativeModel(
-        model: modelName,
-        apiKey: apiKey,
-        systemInstruction: Content.system(AIPrompts.cityLandmark),
-      );
-      final response = await model.generateContent([Content.text('City: $city')]);
-      final text = (response.text ?? '').trim();
+        final cleaned = _stripCodeFences(text);
+        final jsonMap = json.decode(cleaned) as Map<String, dynamic>;
 
-      // Strip markdown code fences if Gemini added them
-      final cleaned = _stripCodeFences(text);
-      final jsonMap = json.decode(cleaned) as Map<String, dynamic>;
-
-      if (jsonMap.containsKey('error')) {
-        _setError('City not found. Try a different spelling or city.');
-        return null;
+        if (!jsonMap.containsKey('error')) {
+          final resolved = CityLandmark.fromJson(jsonMap);
+          await CacheService.saveCityLandmark(city, json.encode(jsonMap));
+          return resolved;
+        }
+      } catch (e) {
+        debugPrint(
+          'CityExplorer: Gemini landmark resolution slow or failed ($e). Falling back to OpenStreetMap.',
+        );
       }
-
-      final resolved = CityLandmark.fromJson(jsonMap);
-
-      // Persist to Hive
-      await CacheService.saveCityLandmark(city, json.encode(jsonMap));
-
-      return resolved;
-    } on FormatException catch (e) {
-      debugPrint('CityExplorer: Malformed Gemini JSON: $e');
-      _setError('Received an invalid response from AI. Please try again.');
-      return null;
-    } catch (e) {
-      debugPrint('CityExplorer: Gemini error: $e');
-      _setError('AI service is unavailable. Please try again.');
-      return null;
+    } else {
+      debugPrint(
+        'CityExplorer: Gemini API key not configured. Using OpenStreetMap Nominatim geocoding...',
+      );
     }
+
+    // 3. Fast Fallback: OpenStreetMap Nominatim API (<300ms, no API key needed)
+    final fallback = await _geocodingService.geocodeCity(city);
+    if (fallback != null) {
+      await CacheService.saveCityLandmark(city, json.encode(fallback.toJson()));
+      return fallback;
+    }
+
+    _setError('City not found. Try a different spelling or city.');
+    return null;
   }
 
   String _stripCodeFences(String text) {
@@ -286,24 +291,31 @@ class CityExplorerViewModel extends ChangeNotifier {
           apiKey: apiKey,
           systemInstruction: Content.system(AIPrompts.cityWeatherNarration),
         );
-        final response = await model.generateContent([Content.text(prompt)]);
+        final response = await model
+            .generateContent([Content.text(prompt)])
+            .timeout(const Duration(seconds: 10));
         narration = (response.text ?? '').trim();
-
-        if (narration.isNotEmpty) {
-          _narration = narration;
-          notifyListeners();
-          await _tts.stop();
-          await _tts.speak(narration);
-        }
       }
     } catch (e) {
-      debugPrint('CityExplorer: Narration failed: $e');
-      // Non-fatal — we still deploy the balloon below.
+      debugPrint('CityExplorer: Narration failed or timed out: $e');
+    }
+
+    if (narration.isEmpty) {
+      narration = 'Welcome to ${resolved.city}! Currently experiencing '
+          '${weather?.condition ?? 'clear conditions'} with a temperature of '
+          '${weather?.temperature.toStringAsFixed(1) ?? '20'}°C near ${resolved.landmark}.';
+    }
+
+    _narration = narration;
+    notifyListeners();
+    try {
+      await _tts.stop();
+      await _tts.speak(narration);
+    } catch (e) {
+      debugPrint('CityExplorer: TTS speak error: $e');
     }
 
     // Deploy the Google Earth balloon on the rightmost LG screen.
-    // Runs regardless of narration success so the balloon always shows
-    // at least the live weather data.
     if (weather != null) {
       _balloonService.deployBalloon(
         landmark: resolved,

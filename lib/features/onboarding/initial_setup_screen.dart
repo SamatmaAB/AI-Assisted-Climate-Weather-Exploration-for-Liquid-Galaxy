@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lg_connection/core/theme/app_color_scheme.dart';
 import 'package:lg_connection/features/onboarding/initial_setup_viewmodel.dart';
 import 'package:lg_connection/features/onboarding/widgets/connected_success_reveal.dart';
 import 'package:lg_connection/features/onboarding/widgets/mascot_animation.dart';
@@ -400,7 +401,11 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 16),
+
+            _buildLogoStatusBanner(context),
+
+            const SizedBox(height: 16),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -430,9 +435,72 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
               icon: isSendingLogo
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.image_outlined),
-              label: Text(isSendingLogo ? 'Sending Logo...' : 'Send Logo to Slave Rig'),
+              label: Text(isSendingLogo ? 'Sending Logo...' : 'Resend Logo to Slave Rig'),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoStatusBanner(BuildContext context) {
+    final logoState = _viewModel.logoState;
+    if (logoState == LogoOpState.idle) return const SizedBox.shrink();
+
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    Color bgColor;
+    Color textColor;
+    Widget leadingWidget;
+
+    switch (logoState) {
+      case LogoOpState.sending:
+        bgColor = colorScheme.surfaceContainerHighest;
+        textColor = colorScheme.onSurfaceVariant;
+        leadingWidget = const SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        );
+        break;
+      case LogoOpState.success:
+        bgColor = colorScheme.bannerSuccess;
+        textColor = colorScheme.brightness == Brightness.dark
+            ? Colors.white
+            : const Color(0xFF0F3820);
+        leadingWidget = Icon(Icons.check_circle_outline, color: textColor, size: 20);
+        break;
+      case LogoOpState.failure:
+        bgColor = colorScheme.bannerError;
+        textColor = colorScheme.brightness == Brightness.dark
+            ? Colors.white
+            : const Color(0xFF5E1418);
+        leadingWidget = Icon(Icons.error_outline, color: textColor, size: 20);
+        break;
+      case LogoOpState.idle:
+        return const SizedBox.shrink();
+    }
+
+    return Card(
+      color: bgColor,
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            leadingWidget,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _viewModel.logoFeedback ?? '',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],

@@ -352,7 +352,7 @@ TOURS_CONFIG = [
 
 def generate_lookat_flyto(stop):
     """
-    Generates a gx:FlyTo KML XML element for a scientific LookAt viewpoint.
+    Generates a gx:FlyTo KML XML element for a continuous, smooth LookAt camera transition.
     """
     name = stop.get("name", "")
     lat = stop.get("latitude", 0.0)
@@ -361,7 +361,7 @@ def generate_lookat_flyto(stop):
     rng = stop.get("range", 10000000.0)
     tilt = stop.get("tilt", 45.0)
     heading = stop.get("heading", 0.0)
-    duration = stop.get("duration", 8.0)
+    duration = stop.get("duration", 10.0)
     fly_mode = stop.get("fly_to_mode", "smooth")
     alt_mode = stop.get("altitude_mode", "relativeToGround")
 

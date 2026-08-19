@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
@@ -35,6 +36,7 @@ class PhenomenonCardService {
   Future<bool> deployCard({
     required ClimatePhenomenon phenomenon,
     required LGSSHClient lgClient,
+    bool skipGlobalRefresh = false,
   }) async {
     try {
       final data = await _resolveCardData(phenomenon);
@@ -118,7 +120,11 @@ class PhenomenonCardService {
         'PhenomenonCard: KML uploaded to $kmlPath (screen $rightMostScreen of $screens)',
       );
 
-      await lgClient.runCommand(SSHCommands.refreshKML());
+      // Only write refreshkml to query.txt when not running alongside a
+      // visualization sequence — otherwise it races with playTour.
+      if (!skipGlobalRefresh) {
+        await lgClient.runCommand(SSHCommands.refreshKML());
+      }
       await lgClient.forceRefresh(rightMostScreen);
 
       debugPrint(
@@ -173,8 +179,8 @@ class PhenomenonCardService {
 
     final apiKey = await const ApiKeyStorage().getGeminiApiKey();
     if (apiKey == null || apiKey.isEmpty) {
-      debugPrint('PhenomenonCard: Gemini API key not configured.');
-      return null;
+      debugPrint('PhenomenonCard: Gemini API key not configured. Using fallback summary.');
+      return _buildFallbackData(phenomenon);
     }
 
     try {
@@ -186,7 +192,7 @@ class PhenomenonCardService {
       );
       final response = await model.generateContent(
         [Content.text('Phenomenon: ${phenomenon.name}')],
-      );
+      ).timeout(const Duration(seconds: 10));
       final text = (response.text ?? '').trim();
 
       final cleaned = _stripCodeFences(text);
@@ -200,13 +206,31 @@ class PhenomenonCardService {
       );
 
       return data;
+    } on TimeoutException catch (_) {
+      debugPrint('PhenomenonCard: Gemini request timed out (>10s). Using fallback summary.');
+      return _buildFallbackData(phenomenon);
     } on FormatException catch (e) {
-      debugPrint('PhenomenonCard: Malformed Gemini JSON: $e');
-      return null;
+      debugPrint('PhenomenonCard: Malformed Gemini JSON: $e. Using fallback summary.');
+      return _buildFallbackData(phenomenon);
     } catch (e) {
-      debugPrint('PhenomenonCard: Gemini error: $e');
-      return null;
+      debugPrint('PhenomenonCard: Gemini error: $e. Using fallback summary.');
+      return _buildFallbackData(phenomenon);
     }
+  }
+
+  PhenomenonCardData _buildFallbackData(ClimatePhenomenon phenomenon) {
+    return PhenomenonCardData(
+      name: phenomenon.name,
+      category: 'Climate Phenomenon',
+      region: 'Global Climate System',
+      summary: phenomenon.fallbackSummary,
+      insight: 'Telemetry active for ${phenomenon.name}.',
+      keyFacts: const [
+        'Immersive 3D Liquid Galaxy visualization enabled',
+        'Sourced from oceanographic and atmospheric models',
+        'Interactive camera orbit and tour control active',
+      ],
+    );
   }
 
   String _stripCodeFences(String text) {

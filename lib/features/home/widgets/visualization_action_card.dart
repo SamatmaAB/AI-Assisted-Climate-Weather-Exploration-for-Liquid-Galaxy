@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lg_connection/core/theme/climate_colors.dart';
+import 'package:lg_connection/features/onboarding/widgets/mascot_animation.dart';
 
 class VisualizationActionCard extends StatelessWidget {
   final String title;
@@ -53,10 +54,10 @@ class VisualizationActionCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     if (isLoading)
-                      const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                      const MascotAnimation(
+                        assetPath: 'assets/spriteanimations/thinking.webp',
+                        width: 36,
+                        height: 36,
                       )
                     else
                       Icon(

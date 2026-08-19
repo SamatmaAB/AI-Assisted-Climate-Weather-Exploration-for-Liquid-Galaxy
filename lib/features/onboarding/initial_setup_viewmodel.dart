@@ -168,6 +168,7 @@ class InitialSetupViewModel extends ChangeNotifier {
       _connectionState = ConnectionOpState.connected;
       _stage = OnboardingStage.ready;
       notifyListeners();
+      sendLogo();
       return true;
     } else {
       _connectionState = ConnectionOpState.failure;
@@ -179,7 +180,7 @@ class InitialSetupViewModel extends ChangeNotifier {
 
   Future<bool> sendLogo() async {
     _logoState = LogoOpState.sending;
-    logoFeedback = null;
+    logoFeedback = 'Uploading logo to Liquid Galaxy...';
     if (!_isDisposed) notifyListeners();
 
     final bool logoSent = await _sshClient.sendLogo();
@@ -188,10 +189,10 @@ class InitialSetupViewModel extends ChangeNotifier {
 
     if (logoSent) {
       _logoState = LogoOpState.success;
-      logoFeedback = '✓ Logo sent successfully';
+      logoFeedback = '✓ Logo sent successfully to slave rig';
     } else {
       _logoState = LogoOpState.failure;
-      logoFeedback = 'Unable to send logo.';
+      logoFeedback = 'Unable to send logo to slave rig.';
     }
 
     if (!_isDisposed) notifyListeners();

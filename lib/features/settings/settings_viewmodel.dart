@@ -31,6 +31,7 @@ class SettingsViewModel extends ChangeNotifier {
   bool get isDarkMode => ThemeController.instance.isDarkMode;
   bool get isColorblindMode => ThemeController.instance.isColorblindMode;
   bool isConnecting = false;
+  bool isSendingLogo = false;
 
   ValueListenable<bool> get isConnected => _sshClient.isConnected;
 
@@ -86,7 +87,9 @@ class SettingsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> connect() async {
+  Future<bool> connect({
+    void Function(String message, bool isSuccess)? onFeedback,
+  }) async {
     if (ipController.text.isEmpty) return false;
 
     isConnecting = true;
@@ -96,6 +99,37 @@ class SettingsViewModel extends ChangeNotifier {
     final success = await _sshClient.connect();
 
     isConnecting = false;
+    notifyListeners();
+
+    if (success) {
+      onFeedback?.call('Successfully connected! Uploading logo to Liquid Galaxy...', true);
+      isSendingLogo = true;
+      notifyListeners();
+
+      final logoSent = await _sshClient.sendLogo();
+
+      isSendingLogo = false;
+      notifyListeners();
+
+      if (logoSent) {
+        onFeedback?.call('Logo uploaded & sent successfully!', true);
+      } else {
+        onFeedback?.call('Connected to Liquid Galaxy, but logo upload failed.', false);
+      }
+    } else {
+      onFeedback?.call('Connection failed. Verify IP and credentials.', false);
+    }
+
+    return success;
+  }
+
+  Future<bool> sendLogo() async {
+    isSendingLogo = true;
+    notifyListeners();
+
+    final success = await _sshClient.sendLogo();
+
+    isSendingLogo = false;
     notifyListeners();
     return success;
   }

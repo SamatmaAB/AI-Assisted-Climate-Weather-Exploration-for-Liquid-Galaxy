@@ -7,6 +7,7 @@ import 'package:lg_connection/features/home/widgets/chatbot_entry_button.dart';
 import 'package:lg_connection/features/home/widgets/map_sync_panel.dart';
 import 'package:lg_connection/features/home/widgets/quick_action_card.dart';
 import 'package:lg_connection/features/home/widgets/visualization_action_card.dart';
+import 'package:lg_connection/features/onboarding/widgets/mascot_animation.dart';
 import 'package:lg_connection/main.dart';
 import 'package:lg_connection/services/tts/tts_service.dart';
 import 'package:lg_connection/services/tts/widgets/tts_playback_bar.dart';
@@ -54,10 +55,17 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (_) => const AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 20),
+            MascotAnimation(
+              assetPath: 'assets/spriteanimations/thinking.webp',
+              width: 54,
+              height: 54,
+            ),
+            SizedBox(width: 16),
             Expanded(
-              child: Text('Generating climate explanation...'),
+              child: Text(
+                'Projecting visualization & generating climate insights...',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
             ),
           ],
         ),
@@ -155,6 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     await TtsService.instance.stop();
+    _viewModel.exitTour();
   }
 
   Future<void> _handleVisualization(

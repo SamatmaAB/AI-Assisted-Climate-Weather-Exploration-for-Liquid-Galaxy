@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:lg_connection/models/climate_phenomenon_model.dart';
 import 'package:lg_connection/services/ai/api_key_storage.dart';
 import 'package:lg_connection/services/ai/contract/ai_provider.dart';
 import 'package:lg_connection/services/ai/prompts/ai_prompts.dart';
@@ -17,7 +19,7 @@ class GeminiProvider implements AIProvider {
   Future<String> getExplanation(String phenomenon) async {
     final apiKey = await _apiKeyStorage.getGeminiApiKey();
     if (apiKey == null || apiKey.isEmpty) {
-      return missingKeyMessage;
+      return ClimatePhenomena.getFallbackSummary(phenomenon);
     }
 
     try {
@@ -30,10 +32,27 @@ class GeminiProvider implements AIProvider {
 
       final response = await model.generateContent([
         Content.text('Phenomenon: $phenomenon'),
-      ]);
-      return response.text ?? 'No explanation available at this time.';
+      ]).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          return GenerateContentResponse([
+            Candidate(
+              Content.model([
+                TextPart(ClimatePhenomena.getFallbackSummary(phenomenon)),
+              ]),
+              null,
+              null,
+              null,
+              null,
+            ),
+          ], null);
+        },
+      );
+      final text = response.text?.trim();
+      if (text != null && text.isNotEmpty) return text;
+      return ClimatePhenomena.getFallbackSummary(phenomenon);
     } catch (e) {
-      return 'Error generating explanation: $e';
+      return ClimatePhenomena.getFallbackSummary(phenomenon);
     }
   }
 

@@ -48,9 +48,10 @@ class HomeViewModel extends ChangeNotifier {
 
   Future<void> clearKML() async {
     await _tourService.stopTour();
-    PhenomenonCardService().clearCard(_sshClient);
+    await PhenomenonCardService().clearCard(_sshClient);
     await _sshClient.runCommand(SSHCommands.clearKML());
     await _sshClient.runCommand(SSHCommands.refreshKML());
+    await _sshClient.forceRefresh(1);
   }
 
   bool _isValidExplanation(String? text) {
@@ -66,11 +67,17 @@ class HomeViewModel extends ChangeNotifier {
     final cached = CacheService.getClimateInfo(phenomenon);
     if (_isValidExplanation(cached)) return cached!;
 
-    final explanation = await _aiRepository.getExplanation(phenomenon);
+    final explanation = await _aiRepository
+        .getExplanation(phenomenon)
+        .timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => ClimatePhenomena.getFallbackSummary(phenomenon),
+        );
     if (_isValidExplanation(explanation)) {
       await CacheService.saveClimateInfo(phenomenon, explanation);
+      return explanation;
     }
-    return explanation;
+    return ClimatePhenomena.getFallbackSummary(phenomenon);
   }
 
   Future<void> visualizeIndianMonsoon() async {
@@ -176,6 +183,27 @@ class HomeViewModel extends ChangeNotifier {
       isVisualisingElNino ||
       isVisualisingLaNina;
 
+  /// Retries an SSH command up to [maxRetries] times with a delay between
+  /// attempts. Returns true if the command eventually succeeds.
+  Future<bool> _retryCommand(
+    String command, {
+    int maxRetries = 2,
+    Duration retryDelay = const Duration(milliseconds: 300),
+  }) async {
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      final ok = await _sshClient.runCommand(command);
+      if (ok) return true;
+      if (attempt < maxRetries) {
+        debugPrint(
+          'HomeViewModel: Command failed (attempt ${attempt + 1}/$maxRetries), '
+          'retrying in ${retryDelay.inMilliseconds}ms…',
+        );
+        await Future.delayed(retryDelay);
+      }
+    }
+    return false;
+  }
+
   Future<void> _runVisualizationSequence({
     required String assetPath,
     required String fileName,
@@ -184,45 +212,92 @@ class HomeViewModel extends ChangeNotifier {
     required String tourName,
     String? phenomenonName,
   }) async {
+    // ── Phase 1: Unload previous visualization + pre-load assets in parallel ──
     await _tourService.stopTour();
-    await Future.delayed(const Duration(milliseconds: 150));
-    await _sshClient.runCommand(SSHCommands.clearKML());
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 300));
 
-    final kmlContent = await rootBundle.loadString(assetPath);
-    await _sshClient.uploadFile(
+    // Clear old card from slave screen.
+    await _phenomenonCardService.clearCard(_sshClient);
+
+    // [C] Batch: clear kmls.txt + refreshkml in one SSH round-trip.
+    await _retryCommand(SSHCommands.clearAndRefreshKML());
+    await _sshClient.forceRefresh(1);
+
+    // [A] Pre-load both asset strings from the bundle DURING the GE unload wait
+    //     (overlaps I/O with the 800ms delay — effectively free).
+    final assetFutures = Future.wait([
+      rootBundle.loadString(assetPath),
+      rootBundle.loadString(tourKmlPath),
+    ]);
+    await Future.delayed(const Duration(milliseconds: 800));
+    final assets = await assetFutures;
+    final kmlContent = assets[0];
+    final tourContent = assets[1];
+
+    // ── Phase 2: Upload KMLs sequentially (SSH only supports one SFTP channel), then load ──
+    final tourFileName = tourKmlPath.split('/').last;
+
+    final uploaded = await _sshClient.uploadFile(
       content: kmlContent,
       targetPath: '/var/www/html/$fileName',
     );
+    if (!uploaded) {
+      debugPrint('HomeViewModel: KML upload failed for $fileName — aborting.');
+      return;
+    }
 
-    final tourFileName = tourKmlPath.split('/').last;
-    final tourContent = await rootBundle.loadString(tourKmlPath);
-    await _sshClient.uploadFile(
+    final tourUploaded = await _sshClient.uploadFile(
       content: tourContent,
       targetPath: '/var/www/html/$tourFileName',
     );
+    if (!tourUploaded) {
+      debugPrint(
+        'HomeViewModel: Tour KML upload failed for $tourFileName — aborting.',
+      );
+      return;
+    }
 
-    await _sshClient.runCommand(SSHCommands.setKMLs([fileName, tourFileName]));
-    await _sshClient.runCommand(SSHCommands.refreshKML());
+    // [C] Batch: setKMLs + refreshkml in one SSH round-trip.
+    final setOk = await _retryCommand(
+      SSHCommands.setKMLsAndRefresh([fileName, tourFileName]),
+    );
+    if (!setOk) {
+      debugPrint('HomeViewModel: setKMLs failed after retries — aborting.');
+      return;
+    }
+    await _sshClient.forceRefresh(1);
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    // ── Phase 3: Wait for GE to load, deploy card in parallel, then play tour ──
+    await Future.delayed(const Duration(milliseconds: 1000));
     _mapSyncService.updateMapPositionFromLookAt(lookAt);
 
-    // Deploy the details card to the rightmost LG screen (Gemini-sourced).
+    // [B] Fire-and-forget with skipGlobalRefresh — no query.txt race with playTour.
+    //     deployCard only does forceRefresh on the slave screen (no refreshkml).
     _phenomenonCardService.deployCard(
       phenomenon: ClimatePhenomena.all.firstWhere(
         (p) => p.name == phenomenonName,
         orElse: () => ClimatePhenomena.indianMonsoon,
       ),
       lgClient: _sshClient,
+      skipGlobalRefresh: true,
     );
 
     if (phenomenonName != null) {
       getClimateExplanation(phenomenonName);
     }
 
-    await Future.delayed(const Duration(milliseconds: 1000));
-    await _sshClient.runCommand(SSHCommands.playTour(tourName));
+    // Play the tour.
+    await Future.delayed(const Duration(milliseconds: 500));
+    final tourStarted = await _retryCommand(SSHCommands.playTour(tourName));
+
+    if (!tourStarted) {
+      debugPrint(
+        'HomeViewModel: playTour failed — re-sending refresh + playTour.',
+      );
+      await _retryCommand(SSHCommands.refreshKML());
+      await Future.delayed(const Duration(milliseconds: 800));
+      await _retryCommand(SSHCommands.playTour(tourName));
+    }
   }
 
   @override
