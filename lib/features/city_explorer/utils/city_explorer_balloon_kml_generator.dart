@@ -104,7 +104,9 @@ class CityExplorerBalloonKmlGenerator {
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html, body {
-    width: 500px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
     font-family: 'Inter', system-ui, sans-serif;
     background: transparent;
     color: #E1E2E9;
@@ -112,14 +114,17 @@ class CityExplorerBalloonKmlGenerator {
   }
 
   .card {
-    width: 500px;
+    width: calc(100vw - 44px);
+    margin: 0 22px;
+    height: auto;
     background: linear-gradient(
       160deg,
       rgba(27, 32, 41, 0.98) 0%,
       rgba(15, 20, 28, 0.98) 100%
     );
     border: 1px solid rgba(158, 206, 255, 0.22);
-    border-radius: 20px;
+    border-radius: 18px;
+    padding: 16px;
     overflow: hidden;
     box-shadow:
       0 12px 40px rgba(0, 0, 0, 0.6),
@@ -128,7 +133,7 @@ class CityExplorerBalloonKmlGenerator {
 
   /* ── Header ────────────────────────────────────────── */
   .header {
-    padding: 22px 24px 16px;
+    padding: 16px;
     background: linear-gradient(
       180deg,
       rgba(0, 99, 155, 0.35) 0%,
@@ -178,16 +183,16 @@ class CityExplorerBalloonKmlGenerator {
 
   /* ── Weather hero ───────────────────────────────────── */
   .weather-hero {
-    padding: 20px 24px;
+    padding: 16px;
     display: flex;
     align-items: center;
-    gap: 22px;
+    gap: 16px;
     border-bottom: 1px solid rgba(194, 199, 211, 0.08);
   }
 
   .weather-icon {
-    width: 90px;
-    height: 90px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
     filter: drop-shadow(0 6px 16px rgba(158, 206, 255, 0.3));
     flex-shrink: 0;
@@ -216,7 +221,7 @@ class CityExplorerBalloonKmlGenerator {
 
   /* ── Metrics grid (Horizontal) ──────────────────────── */
   .metrics {
-    padding: 14px 24px;
+    padding: 14px 16px;
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -253,7 +258,7 @@ class CityExplorerBalloonKmlGenerator {
 
   /* ── Climate context ────────────────────────────────── */
   .climate-section {
-    padding: 16px 24px 0;
+    padding: 16px 16px 0;
   }
 
   .section-label {
@@ -279,7 +284,7 @@ class CityExplorerBalloonKmlGenerator {
 
   /* ── Narration ──────────────────────────────────────── */
   .narration-section {
-    padding: 14px 24px 20px;
+    padding: 14px 16px 16px;
   }
 
   .narration-label {
@@ -317,7 +322,7 @@ class CityExplorerBalloonKmlGenerator {
       rgba(0, 49, 91, 0.6) 0%,
       rgba(0, 73, 125, 0.3) 100%
     );
-    padding: 10px 24px;
+    padding: 10px 16px;
     display: flex;
     align-items: center;
     justify-content: center;

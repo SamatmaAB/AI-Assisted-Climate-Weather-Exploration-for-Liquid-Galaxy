@@ -7,7 +7,7 @@ import 'package:lg_connection/features/home/widgets/chatbot_entry_button.dart';
 import 'package:lg_connection/features/home/widgets/map_sync_panel.dart';
 import 'package:lg_connection/features/home/widgets/quick_action_card.dart';
 import 'package:lg_connection/features/home/widgets/visualization_action_card.dart';
-import 'package:lg_connection/features/onboarding/widgets/mascot_animation.dart';
+import 'package:lg_connection/shared/widgets/visualization_loading_box.dart';
 import 'package:lg_connection/main.dart';
 import 'package:lg_connection/services/tts/tts_service.dart';
 import 'package:lg_connection/services/tts/widgets/tts_playback_bar.dart';
@@ -48,29 +48,30 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showAiLoading() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const AlertDialog(
-        content: Row(
-          children: [
-            MascotAnimation(
-              assetPath: 'assets/spriteanimations/thinking.webp',
-              width: 54,
-              height: 54,
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                'Projecting visualization & generating climate insights...',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _handleVisualization(
+      String title, Future<void> Function() action) async {
+    try {
+      await TtsService.instance.stop();
+      if (!mounted) return;
+
+      // Show temporary floating loading window with mascot thinking sprite & loading indicator
+      VisualizationLoadingBox.show(
+        context,
+        title: 'Projecting $title...',
+        subtitle: 'Uploading KML & resolving AI climate telemetry',
+      );
+
+      await action();
+
+      final text = await _viewModel.getClimateExplanation(title);
+      if (mounted) VisualizationLoadingBox.hide(context);
+
+      _showFeedback('$title sent to Liquid Galaxy', true);
+      await _showClimatePopup(title, text);
+    } catch (e) {
+      if (mounted) VisualizationLoadingBox.hide(context);
+      _showFeedback('Could not send $title KML', false);
+    }
   }
 
   Future<void> _showClimatePopup(String title, String text) async {
@@ -164,24 +165,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     await TtsService.instance.stop();
     _viewModel.exitTour();
-  }
-
-  Future<void> _handleVisualization(
-      String title, Future<void> Function() action) async {
-    try {
-      await TtsService.instance.stop();
-      await action();
-      _showFeedback('$title sent to Liquid Galaxy', true);
-
-      _showAiLoading();
-      final text = await _viewModel.getClimateExplanation(title);
-      if (mounted) Navigator.of(context).pop();
-
-      await _showClimatePopup(title, text);
-    } catch (e) {
-      if (mounted && Navigator.canPop(context)) Navigator.of(context).pop();
-      _showFeedback('Could not send $title KML', false);
-    }
   }
 
   @override
