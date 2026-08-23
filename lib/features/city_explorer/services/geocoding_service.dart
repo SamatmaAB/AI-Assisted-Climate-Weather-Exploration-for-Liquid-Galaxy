@@ -4,8 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../models/city_landmark.dart';
 
-/// Fast, open-access fallback geocoding service using OpenStreetMap Nominatim API.
-/// Resolves city coordinates and display names in <300ms without requiring an API key.
 class GeocodingService {
   Future<CityLandmark?> geocodeCity(String city) async {
     final client = HttpClient();

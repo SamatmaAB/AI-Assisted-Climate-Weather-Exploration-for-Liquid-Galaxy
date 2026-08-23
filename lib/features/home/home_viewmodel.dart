@@ -12,12 +12,15 @@ import 'package:lg_connection/shared/services/tour_service.dart';
 import 'package:lg_connection/features/phenomena/services/phenomenon_card_service.dart';
 import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
 
+import 'package:lg_connection/shared/services/visualization_publisher.dart';
+
 class HomeViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final AIRepository _aiRepository;
   final MapSyncService _mapSyncService = MapSyncService();
   final TourService _tourService = TourService();
   final PhenomenonCardService _phenomenonCardService = PhenomenonCardService();
+  final VisualizationPublisher _visualizationPublisher = VisualizationPublisher();
 
   LatLng get lastTarget => _mapSyncService.lastTarget;
   double get lastZoom => _mapSyncService.lastZoom;
@@ -34,9 +37,6 @@ class HomeViewModel extends ChangeNotifier {
     await OrbitService().startOrbit();
   }
 
-
-  /// Exits any playing guided tour on the rig (e.g. Indian Monsoon tour)
-  /// by writing `exittour=true` to the query file, leaving the loaded KML.
   Future<bool> exitTour() async {
     try {
       return await _sshClient.runCommand(SSHCommands.stopTour());
@@ -183,8 +183,6 @@ class HomeViewModel extends ChangeNotifier {
       isVisualisingElNino ||
       isVisualisingLaNina;
 
-  /// Retries an SSH command up to [maxRetries] times with a delay between
-  /// attempts. Returns true if the command eventually succeeds.
   Future<bool> _retryCommand(
     String command, {
     int maxRetries = 2,
@@ -212,19 +210,14 @@ class HomeViewModel extends ChangeNotifier {
     required String tourName,
     String? phenomenonName,
   }) async {
-    // ── Phase 1: Unload previous visualization + pre-load assets in parallel ──
     await _tourService.stopTour();
     await Future.delayed(const Duration(milliseconds: 300));
 
-    // Clear old card from slave screen.
     await _phenomenonCardService.clearCard(_sshClient);
 
-    // [C] Batch: clear kmls.txt + refreshkml in one SSH round-trip.
     await _retryCommand(SSHCommands.clearAndRefreshKML());
     await _sshClient.forceRefresh(1);
 
-    // [A] Pre-load both asset strings from the bundle DURING the GE unload wait
-    //     (overlaps I/O with the 800ms delay — effectively free).
     final assetFutures = Future.wait([
       rootBundle.loadString(assetPath),
       rootBundle.loadString(tourKmlPath),
@@ -234,45 +227,22 @@ class HomeViewModel extends ChangeNotifier {
     final kmlContent = assets[0];
     final tourContent = assets[1];
 
-    // ── Phase 2: Upload KMLs sequentially (SSH only supports one SFTP channel), then load ──
     final tourFileName = tourKmlPath.split('/').last;
 
-    final uploaded = await _sshClient.uploadFile(
-      content: kmlContent,
-      targetPath: '/var/www/html/$fileName',
+    final published = await _visualizationPublisher.publishVisualizationKML(
+      kmlContent: kmlContent,
+      tourKmlContent: tourContent,
+      tourFileName: tourFileName,
     );
-    if (!uploaded) {
-      debugPrint('HomeViewModel: KML upload failed for $fileName — aborting.');
+
+    if (!published) {
+      debugPrint('HomeViewModel: Visualization publication failed — aborting.');
       return;
     }
 
-    final tourUploaded = await _sshClient.uploadFile(
-      content: tourContent,
-      targetPath: '/var/www/html/$tourFileName',
-    );
-    if (!tourUploaded) {
-      debugPrint(
-        'HomeViewModel: Tour KML upload failed for $tourFileName — aborting.',
-      );
-      return;
-    }
-
-    // [C] Batch: setKMLs + refreshkml in one SSH round-trip.
-    final setOk = await _retryCommand(
-      SSHCommands.setKMLsAndRefresh([fileName, tourFileName]),
-    );
-    if (!setOk) {
-      debugPrint('HomeViewModel: setKMLs failed after retries — aborting.');
-      return;
-    }
-    await _sshClient.forceRefresh(1);
-
-    // ── Phase 3: Wait for GE to load, deploy card in parallel, then play tour ──
     await Future.delayed(const Duration(milliseconds: 1000));
     _mapSyncService.updateMapPositionFromLookAt(lookAt);
 
-    // [B] Fire-and-forget with skipGlobalRefresh — no query.txt race with playTour.
-    //     deployCard only does forceRefresh on the slave screen (no refreshkml).
     _phenomenonCardService.deployCard(
       phenomenon: ClimatePhenomena.all.firstWhere(
         (p) => p.name == phenomenonName,
@@ -286,7 +256,6 @@ class HomeViewModel extends ChangeNotifier {
       getClimateExplanation(phenomenonName);
     }
 
-    // Play the tour.
     await Future.delayed(const Duration(milliseconds: 500));
     final tourStarted = await _retryCommand(SSHCommands.playTour(tourName));
 

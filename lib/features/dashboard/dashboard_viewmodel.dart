@@ -11,11 +11,14 @@ import 'package:lg_connection/features/phenomena/services/phenomenon_card_servic
 
 import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
 
+import 'package:lg_connection/shared/services/visualization_publisher.dart';
+
 class DashboardViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final MapSyncService _mapSyncService = MapSyncService();
   final TourService _tourService = TourService();
   final PhenomenonCardService _phenomenonCardService = PhenomenonCardService();
+  final VisualizationPublisher _visualizationPublisher = VisualizationPublisher();
   final AIRepository _aiRepository;
 
   DashboardViewModel(this._aiRepository);
@@ -110,8 +113,6 @@ class DashboardViewModel extends ChangeNotifier {
     await _sshClient.forceRefresh(1);
   }
 
-  /// Retries an SSH command up to [maxRetries] times with a delay between
-  /// attempts. Returns true if the command eventually succeeds.
   Future<bool> _retryCommand(
     String command, {
     int maxRetries = 2,
@@ -140,19 +141,14 @@ class DashboardViewModel extends ChangeNotifier {
     required String tourName,
     String? phenomenonName,
   }) async {
-
-    // ── Phase 1: Unload previous visualization + pre-load assets in parallel ──
     await _tourService.stopTour();
     await Future.delayed(const Duration(milliseconds: 300));
 
-    // Clear old card from slave screen.
     await _phenomenonCardService.clearCard(_sshClient);
 
-    // [C] Batch: clear kmls.txt + refreshkml in one SSH round-trip.
     await _retryCommand(SSHCommands.clearAndRefreshKML());
     await _sshClient.forceRefresh(1);
 
-    // [A] Pre-load both asset strings from the bundle DURING the GE unload wait.
     final assetFutures = Future.wait([
       rootBundle.loadString(assetPath),
       rootBundle.loadString(tourKmlPath),
@@ -162,50 +158,24 @@ class DashboardViewModel extends ChangeNotifier {
     final kmlContent = assets[0];
     final tourContent = assets[1];
 
-    // ── Phase 2: Upload both KMLs in parallel, then load ──
     final tourFileName = tourKmlPath.split('/').last;
 
-
-    // Upload KMLs sequentially (SSH only supports one SFTP channel at a time).
-    final uploaded = await _sshClient.uploadFile(
-      content: kmlContent,
-      targetPath: '/var/www/html/$fileName',
+    final published = await _visualizationPublisher.publishVisualizationKML(
+      kmlContent: kmlContent,
+      tourKmlContent: tourContent,
+      tourFileName: tourFileName,
     );
-    if (!uploaded) {
+
+    if (!published) {
       debugPrint(
-        'DashboardViewModel: KML upload failed for $fileName — aborting.',
+        'DashboardViewModel: Visualization publication failed — aborting.',
       );
       return;
     }
 
-    final tourUploaded = await _sshClient.uploadFile(
-      content: tourContent,
-      targetPath: '/var/www/html/$tourFileName',
-    );
-    if (!tourUploaded) {
-      debugPrint(
-        'DashboardViewModel: Tour KML upload failed for $tourFileName — aborting.',
-      );
-      return;
-    }
-
-    // [C] Batch: setKMLs + refreshkml in one SSH round-trip.
-    final setOk = await _retryCommand(
-      SSHCommands.setKMLsAndRefresh([fileName, tourFileName]),
-    );
-    if (!setOk) {
-      debugPrint(
-        'DashboardViewModel: setKMLs failed after retries — aborting.',
-      );
-      return;
-    }
-    await _sshClient.forceRefresh(1);
-
-    // ── Phase 3: Wait for GE to load, deploy card in parallel, then play tour ──
     await Future.delayed(const Duration(milliseconds: 1000));
     _mapSyncService.updateMapPositionFromLookAt(lookAt);
 
-    // [B] Fire-and-forget with skipGlobalRefresh — no query.txt race with playTour.
     _phenomenonCardService.deployCard(
       phenomenon: phenomenon,
       lgClient: _sshClient,
@@ -216,7 +186,6 @@ class DashboardViewModel extends ChangeNotifier {
       getClimateExplanation(phenomenonName);
     }
 
-    // Play the tour.
     await Future.delayed(const Duration(milliseconds: 500));
     final tourStarted = await _retryCommand(SSHCommands.playTour(tourName));
 

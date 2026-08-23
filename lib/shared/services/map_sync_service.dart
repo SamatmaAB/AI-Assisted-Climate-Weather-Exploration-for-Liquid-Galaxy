@@ -19,15 +19,9 @@ class MapSyncService extends ChangeNotifier {
   double lastTilt = 0.0;
   double lastBearing = 0.0;
 
-  /// When true the next [onPhoneCameraMoved] call is ignored.
-  /// Set before [_animateMobileMap] to break the rig→phone→rig feedback loop.
   bool _suppressNextCameraIdle = false;
 
-  /// Debounce timer that throttles outgoing SSH flytoview commands so rapid
-  /// drag gestures on the phone do not flood the LG rig with SSH calls.
   Timer? _debounceTimer;
-
-  // ── Controller registration ──────────────────────────────────────────────
 
   void setMapController(GoogleMapController? controller) {
     _mapController = controller;
@@ -35,8 +29,6 @@ class MapSyncService extends ChangeNotifier {
       _animateMobileMap();
     }
   }
-
-  // ── LG rig → Phone (existing, unchanged) ────────────────────────────────
 
   Future<void> flyTo(LookAt lookAt) async {
     lastTarget = LatLng(lookAt.latitude, lookAt.longitude);
@@ -69,41 +61,25 @@ class MapSyncService extends ChangeNotifier {
     updateMapPosition(lookAt);
   }
 
-  // ── Phone → LG rig (new bidirectional) ──────────────────────────────────
-
-  /// Called by [MapSyncPanel] via [GoogleMap.onCameraIdle] whenever the user
-  /// finishes a gesture on the phone map.
-  ///
-  /// The method:
-  ///   1. Skips one call after [_animateMobileMap] to break the feedback loop.
-  ///   2. Debounces rapid drags at 300 ms.
-  ///   3. Converts the [CameraPosition] to a KML LookAt and sends a
-  ///      `flytoview` SSH command to the LG rig.
   void onPhoneCameraMoved(CameraPosition position) {
-    // Break feedback loop: suppress the idle that fires right after we
-    // programmatically animate the phone map in response to the LG rig.
+    
     if (_suppressNextCameraIdle) {
       _suppressNextCameraIdle = false;
       return;
     }
 
-    // Update cached state immediately so other consumers (orbit, etc.) see it.
     lastTarget = position.target;
     lastZoom = position.zoom;
     lastTilt = position.tilt;
     lastBearing = position.bearing;
     notifyListeners();
 
-    // Debounce: cancel any pending SSH call and re-schedule.
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       _sendFlyToLG();
     });
   }
 
-  /// Converts the current cached position to a KML LookAt XML and sends it to
-  /// the LG rig via SSH, exactly as [SSHCommands.flyToCoordinates] would but
-  /// using the fields already stored in this service.
   Future<void> _sendFlyToLG() async {
     if (!_sshClient.isConnected.value) return;
 
@@ -122,13 +98,9 @@ class MapSyncService extends ChangeNotifier {
     }
   }
 
-  // ── Internal helpers ─────────────────────────────────────────────────────
-
   Future<void> _animateMobileMap() async {
     if (_mapController == null) return;
 
-    // Suppress the onCameraIdle that Google Maps fires after animateCamera
-    // so we don't echo the position back to the rig.
     _suppressNextCameraIdle = true;
 
     try {
@@ -143,9 +115,8 @@ class MapSyncService extends ChangeNotifier {
         ),
       );
     } catch (e) {
-      _suppressNextCameraIdle = false; // reset if animation fails
+      _suppressNextCameraIdle = false; 
       debugPrint('Error animating mobile Google Map: $e');
     }
   }
 }
-

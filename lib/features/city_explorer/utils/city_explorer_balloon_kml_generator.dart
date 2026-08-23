@@ -1,25 +1,9 @@
 import 'package:lg_connection/features/city_explorer/models/city_landmark.dart';
 import 'package:lg_connection/features/city_explorer/models/weather_data.dart';
 
-/// Generates the complete KML document for the City Explorer details balloon.
-///
-/// This class is a **pure generator** — it performs no SSH operations, no file
-/// uploads, and no side effects. It accepts all required data and returns a
-/// KML string ready to be uploaded to a slave_N.kml file on the LG rig.
-///
-/// The balloon renders via Google Earth's BalloonStyle mechanism:
-///   KML BalloonStyle → HTML/CSS inside CDATA → Google Earth renders the card
 class CityExplorerBalloonKmlGenerator {
   CityExplorerBalloonKmlGenerator._();
 
-  /// Generates a complete KML document string.
-  ///
-  /// [landmark]        – the resolved city landmark with coordinates and context.
-  /// [weather]         – current weather data for the landmark location.
-  /// [iconUrl]         – HTTP URL of the weather icon on the LG web server.
-  /// [narration]       – Gemini-generated climate/weather explanation.
-  /// [targetLatitude]  – optional custom latitude (e.g. offset for screen center).
-  /// [targetLongitude] – optional custom longitude (e.g. offset for screen center).
   static String generate({
     required CityLandmark landmark,
     required WeatherData weather,
@@ -73,8 +57,6 @@ class CityExplorerBalloonKmlGenerator {
 </kml>''';
   }
 
-  // ─── HTML / CSS builder ───────────────────────────────────────────────────
-
   static String _buildHtml({
     required CityLandmark landmark,
     required WeatherData weather,
@@ -86,7 +68,6 @@ class CityExplorerBalloonKmlGenerator {
     final windStr = '${weather.windSpeed.toStringAsFixed(0)} km/h';
     final precipStr = '${weather.precipitation.toStringAsFixed(1)} mm';
 
-    // Escape text for safe embedding in HTML
     final cityHtml = _esc(landmark.city.toUpperCase());
     final landmarkHtml = _esc(landmark.landmark);
     final conditionHtml = _esc(weather.condition);
@@ -399,18 +380,12 @@ class CityExplorerBalloonKmlGenerator {
 </html>''';
   }
 
-  // ─── XML / HTML escaping ──────────────────────────────────────────────────
-
-  /// Escapes characters that are special in XML/HTML attribute values and
-  /// text content. Used for KML element text nodes.
   static String _esc(String s) => s
       .replaceAll('&', '&amp;')
       .replaceAll('<', '&lt;')
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;');
 
-  /// Escapes for inclusion in HTML text nodes (ampersands, angle brackets).
-  /// Preserves line breaks as `<br>` tags.
   static String _escHtml(String s) => s
       .replaceAll('&', '&amp;')
       .replaceAll('<', '&lt;')

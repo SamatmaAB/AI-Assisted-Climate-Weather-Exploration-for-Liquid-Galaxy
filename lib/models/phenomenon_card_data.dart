@@ -1,8 +1,4 @@
-/// Gemini-sourced data for the climate-phenomenon details card.
-///
-/// Mirrors [CityLandmark]/[WeatherData] usage in the City Explorer balloon:
-/// a single plain-data object produced by the AI layer and consumed by the
-/// phenomenon card KML generator.
+
 class PhenomenonCardData {
   final String name;
   final String category;

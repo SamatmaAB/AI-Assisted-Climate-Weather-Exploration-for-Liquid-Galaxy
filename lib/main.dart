@@ -24,12 +24,6 @@ void main() async {
 
   await ThemeController.instance.loadFromPrefs();
 
-  // ── Seed Gemini API key from dart-define (dart_defines.json) ────────────
-  // The compile-time constant is only non-empty when the app is built with
-  // --dart-define-from-file=dart_defines.json and a real key is present.
-  // We write it to secure storage exactly once so that:
-  //  • The Settings screen immediately reflects the key.
-  //  • The user can still override it manually without it being clobbered.
   const buildApiKey = String.fromEnvironment('GEMINI_API_KEY');
   if (buildApiKey.isNotEmpty) {
     const _seedPrefKey = 'gemini_key_seeded_from_build';
@@ -40,8 +34,7 @@ void main() async {
       await prefs.setBool(_seedPrefKey, true);
     }
   }
-  // ────────────────────────────────────────────────────────────────────────
-
+  
   final provider = ProviderFactory.create();
   aiRepository = AIRepository(provider);
 

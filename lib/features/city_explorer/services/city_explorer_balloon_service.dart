@@ -8,26 +8,6 @@ import 'package:lg_connection/features/city_explorer/models/weather_data.dart';
 import 'package:lg_connection/features/city_explorer/utils/city_explorer_balloon_kml_generator.dart';
 import 'package:lg_connection/features/city_explorer/utils/weather_icon_mapper.dart';
 
-/// Orchestrates the full City Explorer balloon pipeline on the Liquid Galaxy.
-///
-/// Responsibilities:
-///   1. Map the WMO weather code to the correct local icon asset.
-///   2. Load the icon binary from the Flutter asset bundle.
-///   3. Upload the icon PNG to the LG web server (binary SFTP).
-///   4. Generate the balloon KML via [CityExplorerBalloonKmlGenerator].
-///   5. Write the KML to `slave_<rightMostScreen>.kml` on the LG rig.
-///   6. Refresh only the rightmost screen.
-///
-/// Also provides [clearBalloon] to remove the balloon when a new city is
-/// searched, preventing stale content from remaining visible.
-///
-/// This service only uses infrastructure that already exists in the project:
-///   • [LGSSHClient.uploadBinaryFile]
-///   • [LGSSHClient.uploadFile]
-///   • [LGSSHClient.forceRefresh]
-///   • [LGSSHClient.runCommand]
-///   • [SSHCommands.calculateRightMostScreen]
-///   • [SSHCommands.clearScreen]
 class CityExplorerBalloonService {
   CityExplorerBalloonService._();
 
@@ -35,13 +15,6 @@ class CityExplorerBalloonService {
       CityExplorerBalloonService._();
   factory CityExplorerBalloonService() => _instance;
 
-  // ─── Public API ────────────────────────────────────────────────────────────
-
-  /// Deploys the details balloon for [landmark] + [weather] + [narration] to
-  /// the rightmost LG screen.
-  ///
-  /// Returns `true` when the balloon was successfully deployed.
-  /// Failures are caught and logged; they do not propagate to the caller.
   Future<bool> deployBalloon({
     required CityLandmark landmark,
     required WeatherData weather,
@@ -52,13 +25,11 @@ class CityExplorerBalloonService {
       final screens = lgClient.numberOfRigs;
       final rightMostScreen = SSHCommands.calculateRightMostScreen(screens);
 
-      // ── 1. Determine asset path for this weather code ──────────────────
       final assetPath = WeatherIconMapper.assetPathFor(weather.weatherCode);
       debugPrint(
         'CityExplorerBalloon: weatherCode=${weather.weatherCode} → $assetPath',
       );
 
-      // ── 2. Load icon bytes from Flutter asset bundle ───────────────────
       Uint8List iconBytes;
       try {
         final byteData = await rootBundle.load(assetPath);
@@ -67,7 +38,7 @@ class CityExplorerBalloonService {
         debugPrint(
           'CityExplorerBalloon: Could not load icon asset "$assetPath": $e',
         );
-        // Fall back to cloudy icon
+        
         try {
           final byteData =
               await rootBundle.load('assets/weather_icons/cloudy.png');
@@ -80,7 +51,6 @@ class CityExplorerBalloonService {
         }
       }
 
-      // ── 3. Upload icon binary to LG web server ─────────────────────────
       bool iconUploaded = false;
       if (iconBytes.isNotEmpty) {
         iconUploaded = await lgClient.uploadBinaryFile(
@@ -95,12 +65,8 @@ class CityExplorerBalloonService {
         }
       }
 
-      // ── 4. Build the icon URL ──────────────────────────────────────────
-      // Even if the upload failed we still embed the URL in the KML so
-      // Google Earth will attempt to load it (it may succeed later from cache).
       const iconUrl = WeatherIconMapper.remoteUrl;
 
-      // ── 5. Calculate rightmost screen center coordinates & Generate KML ──
       double? targetLat;
       double? targetLng;
       if (screens > 1) {
@@ -121,7 +87,6 @@ class CityExplorerBalloonService {
         targetLongitude: targetLng,
       );
 
-      // ── 6. Upload KML to slave_<rightMostScreen>.kml ───────────────────
       final kmlPath =
           '/var/www/html/kml/slave_$rightMostScreen.kml';
       bool kmlUploaded = await lgClient.uploadFile(
@@ -129,8 +94,6 @@ class CityExplorerBalloonService {
         targetPath: kmlPath,
       );
 
-      // Fallback: If SFTP upload failed, attempt upload via SSH echo command
-      // (same mechanism as SSHCommands.sendLogoToScreen).
       if (!kmlUploaded) {
         debugPrint(
           'CityExplorerBalloon: SFTP upload failed for $kmlPath, trying SSH echo fallback...',
@@ -152,7 +115,6 @@ class CityExplorerBalloonService {
         '(screen $rightMostScreen of $screens)',
       );
 
-      // ── 7. Refresh the rightmost screen ────────────────────────────────
       await lgClient.runCommand(SSHCommands.refreshKML());
       await lgClient.forceRefresh(rightMostScreen);
 
@@ -166,11 +128,6 @@ class CityExplorerBalloonService {
     }
   }
 
-  /// Clears the balloon from the rightmost LG screen by writing an empty KML
-  /// document to the slave file.
-  ///
-  /// Should be called at the beginning of each new city exploration so stale
-  /// balloon content is removed before the new one is ready.
   Future<void> clearBalloon(LGSSHClient lgClient) async {
     try {
       final screens = lgClient.numberOfRigs;
@@ -196,11 +153,6 @@ class CityExplorerBalloonService {
     }
   }
 
-  /// Calculates coordinates shifted towards the center of the rightmost LG screen.
-  ///
-  /// In Liquid Galaxy, screen 1/2 is centered at the landmark coordinates.
-  /// The right screen (slave_N) is rotated clockwise to the right.
-  /// Offset is calculated perpendicular to camera approach bearing (30° + 90° = 120°).
   static Map<String, double> _calculateRightScreenCoordinates({
     required double lat,
     required double lng,

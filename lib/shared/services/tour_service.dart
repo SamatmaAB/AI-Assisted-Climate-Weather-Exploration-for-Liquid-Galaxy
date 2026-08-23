@@ -17,7 +17,6 @@ class TourService {
     }
   }
 
-  /// Retries an SSH command up to [maxRetries] times.
   Future<bool> _retryCommand(
     String command, {
     int maxRetries = 2,
@@ -64,7 +63,6 @@ class TourService {
       await Future.delayed(const Duration(milliseconds: 800));
       final tourStarted = await _retryCommand(SSHCommands.playTour(tourName));
 
-      // If playTour didn't take, re-send refresh + playTour once more.
       if (!tourStarted) {
         debugPrint(
           'TourService: playTour failed — re-sending refresh + playTour.',

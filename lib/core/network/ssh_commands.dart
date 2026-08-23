@@ -93,16 +93,17 @@ $playlist
     return "echo 'refreshkml=true' > /tmp/query.txt";
   }
 
-  /// Clears kmls.txt AND sends refreshkml in a single SSH round-trip.
   static String clearAndRefreshKML() {
     return 'echo "" > /var/www/html/kmls.txt && echo \'refreshkml=true\' > /tmp/query.txt';
   }
 
-  /// Writes KML URLs to kmls.txt AND sends refreshkml in a single SSH round-trip.
   static String setKMLsAndRefresh(List<String> fileNames) {
     final urls = fileNames.map((name) => 'http://lg1:81/$name').join('\\n');
     return 'echo -e "$urls" > /var/www/html/kmls.txt && echo \'refreshkml=true\' > /tmp/query.txt';
   }
+
+  static String masterKmlPath() => '/var/www/html/kml/master.kml';
+  static String masterKmlUrl() => 'http://lg1:81/kml/master.kml';
 
   static String setKML(String fileName) {
     return 'echo "http://lg1:81/$fileName" > /var/www/html/kmls.txt';

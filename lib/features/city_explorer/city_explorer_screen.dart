@@ -59,7 +59,7 @@ class _CityExplorerScreenState extends State<CityExplorerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Header ──────────────────────────────────────────────────
+                
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 32, 20, 0),
                   child: Row(
@@ -108,12 +108,10 @@ class _CityExplorerScreenState extends State<CityExplorerScreen> {
 
                 const SizedBox(height: 24),
 
-                // ── Search bar with Autocomplete ────────────────────────────
                 _buildSearchBar(context),
 
                 const SizedBox(height: 24),
 
-                // ── Body ────────────────────────────────────────────────────
                 Expanded(child: _buildBody(context)),
               ],
             ),
@@ -348,7 +346,7 @@ class _CityExplorerScreenState extends State<CityExplorerScreen> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       children: [
-        // ── Landmark card ──────────────────────────────────────────────────
+        
         Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -399,7 +397,6 @@ class _CityExplorerScreenState extends State<CityExplorerScreen> {
 
         const SizedBox(height: 12),
 
-        // ── Weather card (minimal — full card is a future task) ───────────
         if (weather != null)
           Card(
             child: Padding(
@@ -450,7 +447,6 @@ class _CityExplorerScreenState extends State<CityExplorerScreen> {
 
         const SizedBox(height: 12),
 
-        // ── Narration card with TTS controls ──────────────────────────────
         if (_viewModel.narration.isNotEmpty)
           Card(
             child: Padding(
@@ -487,7 +483,6 @@ class _CityExplorerScreenState extends State<CityExplorerScreen> {
 
         const SizedBox(height: 12),
 
-        // ── Orbit control ────────────────────────────────────────────────────
         FilledButton.icon(
           onPressed: () async {
             await _viewModel.toggleOrbit();

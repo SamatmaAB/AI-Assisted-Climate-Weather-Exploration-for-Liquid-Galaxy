@@ -4,7 +4,6 @@ import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
 import 'package:lg_connection/shared/services/orbit_service.dart';
 
-
 class ControlsViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
 
@@ -132,9 +131,6 @@ class ControlsViewModel extends ChangeNotifier {
     return await _sshClient.sendLogo();
   }
 
-  /// Exits any currently playing Liquid Galaxy tour by writing
-  /// `exittour=true` to the query file. This stops the guided tour (e.g.
-  /// Indian Monsoon / El Niño tour) while leaving the loaded KML in place.
   Future<bool> exitTour() async {
     try {
       final ok = await _sshClient.runCommand(SSHCommands.stopTour());
@@ -161,7 +157,6 @@ class ControlsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-
   Future<void> refreshSystem() async {
     await _sshClient.runCommand(SSHCommands.restartLGService());
   }
@@ -172,4 +167,3 @@ class ControlsViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
-

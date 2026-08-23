@@ -1,22 +1,9 @@
 import 'package:lg_connection/models/climate_phenomenon_model.dart';
 import 'package:lg_connection/models/phenomenon_card_data.dart';
 
-/// Generates the complete KML document for a climate-phenomenon details card.
-///
-/// This is a **pure generator** — no SSH, no uploads, no side effects. It
-/// produces a KML string ready to be written to `slave_N.kml` on the LG rig.
-///
-/// The card mirrors the City Explorer details card styling:
-///   KML BalloonStyle → HTML/CSS inside CDATA → Google Earth renders the card
 class PhenomenonCardKmlGenerator {
   PhenomenonCardKmlGenerator._();
 
-  /// Generates a complete KML document string.
-  ///
-  /// [phenomenon]   – the resolved climate phenomenon (provides id/name + coords).
-  /// [data]         – Gemini-sourced card content.
-  /// [iconUrl]      – HTTP URL of the phenomenon icon on the LG web server.
-  /// [targetLatitude] / [targetLongitude] – optional offset for screen center.
   static String generate({
     required ClimatePhenomenon phenomenon,
     required PhenomenonCardData data,
@@ -65,8 +52,6 @@ class PhenomenonCardKmlGenerator {
 </kml>''';
   }
 
-  /// Extracts lat/long from a phenomenon's hardcoded `<LookAt>` XML.
-  /// Public so the deploy service can reuse the same coordinate source.
   static Map<String, double> parseLookAt(String lookAtXml) {
     double lat = 0.0;
     double lng = 0.0;
@@ -78,8 +63,6 @@ class PhenomenonCardKmlGenerator {
     if (lngMatch != null) lng = double.tryParse(lngMatch.group(1)!) ?? 0.0;
     return {'latitude': lat, 'longitude': lng};
   }
-
-  // ─── HTML / CSS builder ───────────────────────────────────────────────────
 
   static String _buildHtml({
     required PhenomenonCardData data,
@@ -359,8 +342,6 @@ $factsHtml
 </body>
 </html>''';
   }
-
-  // ─── XML / HTML escaping ──────────────────────────────────────────────────
 
   static String _esc(String s) => s
       .replaceAll('&', '&amp;')

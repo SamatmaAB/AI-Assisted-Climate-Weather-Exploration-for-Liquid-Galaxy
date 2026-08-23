@@ -22,4 +22,3 @@ class ChatbotEntryButton extends StatelessWidget {
     );
   }
 }
-

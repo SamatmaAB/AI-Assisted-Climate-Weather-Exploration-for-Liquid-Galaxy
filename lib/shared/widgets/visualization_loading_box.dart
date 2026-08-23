@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/features/onboarding/widgets/mascot_animation.dart';
 
-/// A premium floating window / dialog box displaying the mascot thinking sprite animation
-/// alongside a loading indicator during Liquid Galaxy visualizations and AI operations.
 class VisualizationLoadingBox extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -13,7 +11,6 @@ class VisualizationLoadingBox extends StatelessWidget {
     this.subtitle = 'Uploading KML & resolving AI climate telemetry',
   });
 
-  /// Displays the temporary floating loading window.
   static Future<void> show(
     BuildContext context, {
     String title = 'Projecting to Liquid Galaxy...',
@@ -30,7 +27,6 @@ class VisualizationLoadingBox extends StatelessWidget {
     );
   }
 
-  /// Dismisses the floating loading window safely if open.
   static void hide(BuildContext context) {
     if (Navigator.of(context, rootNavigator: true).canPop()) {
       Navigator.of(context, rootNavigator: true).pop();
@@ -81,7 +77,7 @@ class VisualizationLoadingBox extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Mascot Thinking Animation
+              
               const MascotAnimation(
                 assetPath: 'assets/spriteanimations/thinking.webp',
                 width: 90,
@@ -89,7 +85,6 @@ class VisualizationLoadingBox extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Title
               Text(
                 title,
                 textAlign: TextAlign.center,
@@ -114,7 +109,6 @@ class VisualizationLoadingBox extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Loading indicator & active session badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(

@@ -29,7 +29,7 @@ class AiSettingsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Title row ──────────────────────────────────────────────────
+            
             Row(
               children: [
                 Expanded(
@@ -47,7 +47,6 @@ class AiSettingsCard extends StatelessWidget {
               ],
             ),
 
-            // ── Pre-configured info banner ──────────────────────────────
             if (isBuildConfigured) ...[
               const SizedBox(height: 10),
               Container(
@@ -81,7 +80,7 @@ class AiSettingsCard extends StatelessWidget {
             ],
 
             const SizedBox(height: 12),
-            // ── Key input ──────────────────────────────────────────────────
+            
             TextField(
               controller: apiKeyController,
               obscureText: isObscured,
@@ -122,8 +121,6 @@ class AiSettingsCard extends StatelessWidget {
   }
 }
 
-/// Small pill badge shown next to the card title when the key was injected
-/// at build time from dart_defines.json.
 class _BuildConfiguredBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -156,4 +153,3 @@ class _BuildConfiguredBadge extends StatelessWidget {
     );
   }
 }
-

@@ -153,12 +153,10 @@ const ColorScheme appColorblindLightColorScheme = ColorScheme(
 );
 
 extension AppColorSchemeExtension on ColorScheme {
-  /// Lighter green used for success banners / snackbars.
+  
   Color get bannerSuccess =>
       brightness == Brightness.dark ? const Color(0xFF1B5E3A) : const Color(0xFFB7F0CC);
 
-  /// Lighter red used for error banners / snackbars.
   Color get bannerError =>
       brightness == Brightness.dark ? const Color(0xFF5E1418) : const Color(0xFFFFC9C4);
 }
-

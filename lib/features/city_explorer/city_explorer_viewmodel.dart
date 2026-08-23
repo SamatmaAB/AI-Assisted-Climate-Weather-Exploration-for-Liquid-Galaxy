@@ -17,10 +17,6 @@ import 'package:lg_connection/shared/services/cache_service.dart';
 import 'package:lg_connection/shared/services/map_sync_service.dart';
 import 'package:lg_connection/shared/services/orbit_service.dart';
 
-// ─── Camera Presets ──────────────────────────────────────────────────────────
-
-/// Configurable camera parameters for the cinematic landmark approach.
-/// Tune these values on the physical Liquid Galaxy rig as needed.
 class LandmarkCameraPreset {
   final double range;
   final double tilt;
@@ -37,11 +33,7 @@ class LandmarkCameraPreset {
   static const groundLevel = LandmarkCameraPreset(range: 200,   tilt: 72, heading: 30);
 }
 
-// ─── Explorer State ──────────────────────────────────────────────────────────
-
 enum CityExplorerStatus { idle, loading, success, error }
-
-// ─── ViewModel ───────────────────────────────────────────────────────────────
 
 class CityExplorerViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
@@ -69,8 +61,6 @@ class CityExplorerViewModel extends ChangeNotifier {
 
   ValueListenable<bool> get isConnected => _sshClient.isConnected;
 
-  // ── Public entry point ────────────────────────────────────────────────────
-
   Future<void> exploreCity(String city) async {
     final trimmed = city.trim();
     if (trimmed.isEmpty) {
@@ -78,7 +68,6 @@ class CityExplorerViewModel extends ChangeNotifier {
       return;
     }
 
-    // Auto-stop ongoing narration when a new city/effect is searched
     await _tts.stop();
 
     _status = CityExplorerStatus.loading;
@@ -86,26 +75,22 @@ class CityExplorerViewModel extends ChangeNotifier {
     _narration = '';
     notifyListeners();
 
-    // Clear any previous City Explorer balloon before loading the new one.
     _balloonService.clearBalloon(_sshClient);
 
-    // Stop any running orbit from a previous exploration.
     if (OrbitService().isOrbiting) {
       await OrbitService().stopOrbit();
       notifyListeners();
     }
 
     try {
-      // Step 1: Resolve city landmark (Hive cache → Gemini / OpenStreetMap fallback)
+      
       final resolved = await _resolveLandmark(trimmed);
-      if (resolved == null) return; // error already set
+      if (resolved == null) return; 
       _landmark = resolved;
       notifyListeners();
 
-      // Step 2: Cinematic fly-to (fire-and-forget the slow sequence)
       _cinematicFlyTo(resolved);
 
-      // Step 3: Fetch weather
       WeatherData? weather;
       try {
         weather = await _weatherService.fetchWeather(resolved.latitude, resolved.longitude);
@@ -115,7 +100,6 @@ class CityExplorerViewModel extends ChangeNotifier {
         debugPrint('CityExplorer: Weather fetch failed: $e');
       }
 
-      // Step 4: Gemini narration → TTS (fire-and-forget)
       _status = CityExplorerStatus.success;
       notifyListeners();
 
@@ -126,21 +110,18 @@ class CityExplorerViewModel extends ChangeNotifier {
     }
   }
 
-  // ── Step 1: Landmark resolution ───────────────────────────────────────────
-
   Future<CityLandmark?> _resolveLandmark(String city) async {
-    // 1. Check Hive cache first (instant)
+    
     final cached = CacheService.getCityLandmark(city);
     if (cached != null) {
       try {
         final map = json.decode(cached) as Map<String, dynamic>;
         return CityLandmark.fromJson(map);
       } catch (_) {
-        // Corrupted cache entry — fall through
+        
       }
     }
 
-    // 2. Try Gemini with a 4s window if API key is present
     final apiKey = await _apiKeyStorage.getGeminiApiKey();
     if (apiKey != null && apiKey.isNotEmpty) {
       try {
@@ -174,7 +155,6 @@ class CityExplorerViewModel extends ChangeNotifier {
       );
     }
 
-    // 3. Fast Fallback: OpenStreetMap Nominatim API (<300ms, no API key needed)
     final fallback = await _geocodingService.geocodeCity(city);
     if (fallback != null) {
       await CacheService.saveCityLandmark(city, json.encode(fallback.toJson()));
@@ -194,11 +174,9 @@ class CityExplorerViewModel extends ChangeNotifier {
     return s.trim();
   }
 
-  // ── Step 2: Cinematic fly-to ──────────────────────────────────────────────
-
   Future<void> _cinematicFlyTo(CityLandmark resolved) async {
     try {
-      // Stage 1 – wide overview
+      
       await _mapSyncService.flyTo(LookAt(
         latitude: resolved.latitude,
         longitude: resolved.longitude,
@@ -208,7 +186,6 @@ class CityExplorerViewModel extends ChangeNotifier {
       ));
       await Future.delayed(const Duration(milliseconds: 3500));
 
-      // Stage 2 – approach
       await _mapSyncService.flyTo(LookAt(
         latitude: resolved.latitude,
         longitude: resolved.longitude,
@@ -218,7 +195,6 @@ class CityExplorerViewModel extends ChangeNotifier {
       ));
       await Future.delayed(const Duration(milliseconds: 3500));
 
-      // Stage 3 – near ground level
       await _mapSyncService.flyTo(LookAt(
         latitude: resolved.latitude,
         longitude: resolved.longitude,
@@ -227,30 +203,24 @@ class CityExplorerViewModel extends ChangeNotifier {
         bearing: LandmarkCameraPreset.groundLevel.heading,
       ));
 
-      // Begin orbiting the landmark as soon as the fly-to completes.
       await _startOrbit();
     } catch (e) {
       debugPrint('CityExplorer: Fly-to failed: $e');
     }
   }
 
-  // ── Orbit (shares the LG orbit implementation via OrbitService) ────────────
-
   bool get isOrbiting => OrbitService().isOrbiting;
 
-  /// Starts the cinematic orbit around the landmark.
   Future<void> _startOrbit() async {
     await OrbitService().startOrbit();
     notifyListeners();
   }
 
-  /// Stops the orbit (and returns the camera to the orbit start position).
   Future<void> stopOrbit() async {
     await OrbitService().stopOrbit();
     notifyListeners();
   }
 
-  /// Toggles orbit on/off.
   Future<void> toggleOrbit() async {
     if (OrbitService().isOrbiting) {
       await stopOrbit();
@@ -259,14 +229,10 @@ class CityExplorerViewModel extends ChangeNotifier {
     }
   }
 
-  /// Converts a LG range (metres) to a Google Maps zoom level.
-  /// Formula mirrors LookAt.fromXml so serialization round-trips correctly.
   double _rangeToZoom(double rangeMeters) {
     final zoom = (math.log(591657550.5 / rangeMeters) / math.log(2)) + 1.0 - 3.8;
     return zoom.clamp(1.0, 21.0);
   }
-
-  // ── Step 4: Gemini narration → TTS → Balloon ─────────────────────────
 
   Future<void> _fetchAndNarrate(CityLandmark resolved, WeatherData? weather) async {
     String narration = '';
@@ -315,7 +281,6 @@ class CityExplorerViewModel extends ChangeNotifier {
       debugPrint('CityExplorer: TTS speak error: $e');
     }
 
-    // Deploy the Google Earth balloon on the rightmost LG screen.
     if (weather != null) {
       _balloonService.deployBalloon(
         landmark: resolved,
@@ -325,8 +290,6 @@ class CityExplorerViewModel extends ChangeNotifier {
       );
     }
   }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
 
   void _setError(String message) {
     _status = CityExplorerStatus.error;

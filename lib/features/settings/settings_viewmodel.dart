@@ -22,8 +22,6 @@ class SettingsViewModel extends ChangeNotifier {
 
   bool get hasApiKey => apiKeyController.text.trim().isNotEmpty;
 
-  /// True when the key currently stored matches the one baked in at build
-  /// time via --dart-define-from-file=dart_defines.json.
   static const _buildApiKey = String.fromEnvironment('GEMINI_API_KEY');
   bool get isBuildConfigured =>
       _buildApiKey.isNotEmpty &&

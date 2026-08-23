@@ -44,4 +44,3 @@ class AboutCard extends StatelessWidget {
     );
   }
 }
-

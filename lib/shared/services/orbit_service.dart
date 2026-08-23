@@ -5,12 +5,6 @@ import 'package:lg_connection/core/network/ssh_client.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
 import 'package:lg_connection/shared/services/map_sync_service.dart';
 
-/// Shared orbit controller used across the app (Controls, City Explorer, …).
-///
-/// The orbit logic is identical to the original implementation in
-/// [ControlsViewModel]: it stops any running tour, then repeatedly sends
-/// `flytoview` LookAt commands with a rotating heading around the last
-/// synced camera target, producing a smooth cinematic orbit on the rig.
 class OrbitService {
   OrbitService._();
 
@@ -23,7 +17,6 @@ class OrbitService {
   Timer? _orbitTimer;
   String? _lastOrbitPosition;
 
-  /// Starts the orbit using native Google Earth KML gx:Tour for smooth camera animation.
   Future<void> startOrbit() async {
     if (_isOrbiting) {
       await stopOrbit();
@@ -61,7 +54,7 @@ class OrbitService {
         '</LookAt>';
 
     try {
-      // Build native KML tour with smooth 360-degree waypoints (5 full rotations)
+      
       const int rotations = 5;
       const int stepDegrees = 5;
       const double stepDuration = 0.5;
@@ -76,7 +69,6 @@ class OrbitService {
         stepDuration: stepDuration,
       );
 
-      // Upload KML to Liquid Galaxy web server
       await sshClient.uploadFile(
         content: tourKml,
         targetPath: '/var/www/html/Orbit.kml',
@@ -87,10 +79,8 @@ class OrbitService {
       await sshClient.forceRefresh(1);
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // Execute native Google Earth tour play command
       await sshClient.execute(SSHCommands.playTour('Orbit'));
 
-      // Schedule periodic re-play if orbit continues beyond rotation duration (~180s)
       final totalTourDuration = Duration(seconds: ((360 ~/ stepDegrees) * rotations * stepDuration).round() - 2);
       _orbitTimer?.cancel();
       _orbitTimer = Timer.periodic(totalTourDuration, (timer) async {
@@ -110,7 +100,6 @@ class OrbitService {
     }
   }
 
-  /// Stops the orbit and returns the camera to the position it started from.
   Future<void> stopOrbit() async {
     _orbitTimer?.cancel();
     _orbitTimer = null;
@@ -127,11 +116,9 @@ class OrbitService {
     }
   }
 
-  /// Cancels the timer without flying back (used on dispose).
   void dispose() {
     _orbitTimer?.cancel();
     _orbitTimer = null;
     _isOrbiting = false;
   }
 }
-

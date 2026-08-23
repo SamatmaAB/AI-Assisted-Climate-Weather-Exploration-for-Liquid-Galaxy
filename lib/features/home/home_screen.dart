@@ -54,7 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
       await TtsService.instance.stop();
       if (!mounted) return;
 
-      // Show temporary floating loading window with mascot thinking sprite & loading indicator
       VisualizationLoadingBox.show(
         context,
         title: 'Projecting $title...',
@@ -195,7 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
 
                       Text(
                         'Liquid Galaxy',

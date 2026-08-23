@@ -59,7 +59,6 @@ class CacheService {
     await box.clear();
   }
 
-
   static Box get settingsBox => Hive.box(_settingsBoxName);
 
   static Box<QAItem> get qaBox => Hive.box<QAItem>(_qaBoxName);

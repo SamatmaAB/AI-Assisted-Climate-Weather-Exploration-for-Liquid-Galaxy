@@ -134,13 +134,11 @@ class TtsService extends ChangeNotifier {
             .where((v) => v['name']!.isNotEmpty)
             .toList();
 
-        // Keep only English voices
         final englishVoices = allVoices
             .where((v) =>
                 v['locale']!.toLowerCase().startsWith('en'))
             .toList();
 
-        // Separate by gender hints in voice name
         String lowerName(Map<String, String> v) => v['name']!.toLowerCase();
         final femaleVoices = englishVoices
             .where((v) =>
@@ -159,11 +157,10 @@ class TtsService extends ChangeNotifier {
         if (femaleVoices.isNotEmpty || maleVoices.isNotEmpty) {
           _availableVoices = [...maleVoices, ...femaleVoices];
         } else {
-          // Fallback: take first 4 English voices if no gender info
+          
           _availableVoices = englishVoices.take(4).toList();
         }
       }
-
 
       final savedVoiceName = prefs.getString('tts_voice_name');
       final savedVoiceLocale = prefs.getString('tts_voice_locale');

@@ -14,25 +14,12 @@ import 'package:lg_connection/services/ai/api_key_storage.dart';
 import 'package:lg_connection/services/ai/prompts/ai_prompts.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
 
-/// Orchestrates the climate-phenomenon details-card pipeline on the LG rig.
-///
-/// Mirrors [CityExplorerBalloonService] exactly:
-///   1. Resolve Gemini-sourced card data (Hive cache → Gemini).
-///   2. Generate the card KML via [PhenomenonCardKmlGenerator].
-///   3. Write the KML to `slave_<rightMostScreen>.kml` on the LG rig.
-///   4. Refresh only the rightmost screen.
-///
-/// No weather icon is uploaded — the card is CSS-only (no binary asset).
 class PhenomenonCardService {
   PhenomenonCardService._();
 
   static final PhenomenonCardService _instance = PhenomenonCardService._();
   factory PhenomenonCardService() => _instance;
 
-  // ─── Public API ────────────────────────────────────────────────────────────
-
-  /// Deploys the details card for [phenomenon] to the rightmost LG screen.
-  /// Returns `true` when successfully deployed. Failures are logged, not thrown.
   Future<bool> deployCard({
     required ClimatePhenomenon phenomenon,
     required LGSSHClient lgClient,
@@ -50,8 +37,6 @@ class PhenomenonCardService {
       final screens = lgClient.numberOfRigs;
       final rightMostScreen = SSHCommands.calculateRightMostScreen(screens);
 
-      // Offset coordinates toward the center of the rightmost screen so the
-      // balloon appears centered there (same geometry as City Explorer).
       double? targetLat;
       double? targetLng;
       if (screens > 1) {
@@ -66,7 +51,6 @@ class PhenomenonCardService {
         targetLng = offset['longitude'];
       }
 
-      // ── Upload the phenomenon icon to the LG web server ─────────────────
       final assetPath = PhenomenonIconMapper.assetPathFor(phenomenon.id);
       try {
         final byteData = await rootBundle.load(assetPath);
@@ -101,7 +85,6 @@ class PhenomenonCardService {
         targetPath: kmlPath,
       );
 
-      // Fallback: SSH echo (same mechanism as City Explorer).
       if (!kmlUploaded) {
         debugPrint(
           'PhenomenonCard: SFTP upload failed for $kmlPath, trying SSH echo fallback...',
@@ -120,8 +103,6 @@ class PhenomenonCardService {
         'PhenomenonCard: KML uploaded to $kmlPath (screen $rightMostScreen of $screens)',
       );
 
-      // Only write refreshkml to query.txt when not running alongside a
-      // visualization sequence — otherwise it races with playTour.
       if (!skipGlobalRefresh) {
         await lgClient.runCommand(SSHCommands.refreshKML());
       }
@@ -137,7 +118,6 @@ class PhenomenonCardService {
     }
   }
 
-  /// Clears the card from the rightmost LG screen.
   Future<void> clearCard(LGSSHClient lgClient) async {
     try {
       final screens = lgClient.numberOfRigs;
@@ -160,8 +140,6 @@ class PhenomenonCardService {
     }
   }
 
-  // ─── Data resolution ────────────────────────────────────────────────────────
-
   Future<PhenomenonCardData?> _resolveCardData(
     ClimatePhenomenon phenomenon,
   ) async {
@@ -173,7 +151,7 @@ class PhenomenonCardService {
         final map = jsonDecode(cached) as Map<String, dynamic>;
         return PhenomenonCardData.fromJson(map, phenomenon.name);
       } catch (_) {
-        // Corrupted cache — fall through to Gemini.
+        
       }
     }
 
@@ -242,8 +220,6 @@ class PhenomenonCardService {
     return s.trim();
   }
 
-  /// Coordinates shifted toward the center of the rightmost LG screen.
-  /// Mirrors [CityExplorerBalloonService._calculateRightScreenCoordinates].
   static Map<String, double> _calculateRightScreenCoordinates({
     required double lat,
     required double lng,

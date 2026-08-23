@@ -19,7 +19,6 @@ class MapSyncPanel extends StatefulWidget {
 class _MapSyncPanelState extends State<MapSyncPanel> {
   final MapSyncService _mapSyncService = MapSyncService();
 
-  /// Tracks the current camera position so [onCameraIdle] can read it.
   CameraPosition? _currentPosition;
 
   @override
@@ -43,7 +42,7 @@ class _MapSyncPanelState extends State<MapSyncPanel> {
               zoomControlsEnabled: false,
               compassEnabled: true,
               mapToolbarEnabled: false,
-              // ── Gestures enabled for bidirectional control ──
+              
               rotateGesturesEnabled: true,
               scrollGesturesEnabled: true,
               tiltGesturesEnabled: true,
@@ -54,7 +53,7 @@ class _MapSyncPanelState extends State<MapSyncPanel> {
               onCameraMove: (position) {
                 _currentPosition = position;
               },
-              // Fires once the user lifts their finger and the map settles.
+              
               onCameraIdle: () {
                 if (_currentPosition != null) {
                   _mapSyncService.onPhoneCameraMoved(_currentPosition!);
@@ -62,7 +61,6 @@ class _MapSyncPanelState extends State<MapSyncPanel> {
               },
             ),
 
-            // ── Bidirectional sync badge ─────────────────────────────────
             Positioned(
               top: 12,
               right: 12,
@@ -89,7 +87,6 @@ class _MapSyncPanelState extends State<MapSyncPanel> {
               ),
             ),
 
-            // ── Interactive hint label ────────────────────────────────────
             Positioned(
               bottom: 10,
               left: 0,
@@ -132,4 +129,3 @@ class _MapSyncPanelState extends State<MapSyncPanel> {
     super.dispose();
   }
 }
-

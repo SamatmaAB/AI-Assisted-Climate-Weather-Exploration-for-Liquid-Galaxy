@@ -176,8 +176,6 @@ class LGSSHClient {
     }
   }
 
-  /// Ensures the remote directory exists by running `mkdir -p <dir>` via SSH.
-  /// Must be called before any SFTP upload whose parent directory may be absent.
   Future<void> ensureRemoteDirectory(String remoteDirPath) async {
     try {
       await runCommand('mkdir -p "$remoteDirPath"');
@@ -195,8 +193,6 @@ class LGSSHClient {
       if (!connected) return false;
     }
 
-    // Ensure the parent directory exists before opening the file over SFTP.
-    // Without this, sftp.open() throws SftpStatusError code 2 (No such file).
     final dir = targetPath.contains('/')
         ? targetPath.substring(0, targetPath.lastIndexOf('/'))
         : '.';
