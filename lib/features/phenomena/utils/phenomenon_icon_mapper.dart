@@ -18,7 +18,7 @@ class PhenomenonIconMapper {
         return 'monsoon.png';
       case 'kuroshio_current':
       case 'gulf_stream':
-        return 'coastline.png';
+        return 'coastal_flooding.png';
       case 'el_nino':
         return 'heatwave.png';
       case 'la_nina':

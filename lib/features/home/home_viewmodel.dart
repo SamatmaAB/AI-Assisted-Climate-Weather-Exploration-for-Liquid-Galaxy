@@ -216,7 +216,6 @@ class HomeViewModel extends ChangeNotifier {
     await _phenomenonCardService.clearCard(_sshClient);
 
     await _retryCommand(SSHCommands.clearAndRefreshKML());
-    await _sshClient.forceRefresh(1);
 
     final assetFutures = Future.wait([
       rootBundle.loadString(assetPath),
@@ -256,7 +255,7 @@ class HomeViewModel extends ChangeNotifier {
       getClimateExplanation(phenomenonName);
     }
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 5000));
     final tourStarted = await _retryCommand(SSHCommands.playTour(tourName));
 
     if (!tourStarted) {

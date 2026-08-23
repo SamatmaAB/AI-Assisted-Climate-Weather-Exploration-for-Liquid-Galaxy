@@ -86,15 +86,15 @@ $playlist
   }
 
   static String clearKML() {
-    return 'echo "" > /var/www/html/kmls.txt';
+    return 'echo "" > /var/www/html/kmls.txt && echo \'<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document/></kml>\' > /var/www/html/kml/master.kml';
   }
 
   static String refreshKML() {
-    return "echo 'refreshkml=true' > /tmp/query.txt";
+    return "echo 'refreshkml=1' > /tmp/query.txt";
   }
 
   static String clearAndRefreshKML() {
-    return 'echo "" > /var/www/html/kmls.txt && echo \'refreshkml=true\' > /tmp/query.txt';
+    return 'echo "" > /var/www/html/kmls.txt && echo \'refreshkml=1\' > /tmp/query.txt';
   }
 
   static String setKMLsAndRefresh(List<String> fileNames) {
@@ -104,6 +104,13 @@ $playlist
 
   static String masterKmlPath() => '/var/www/html/kml/master.kml';
   static String masterKmlUrl() => 'http://lg1:81/kml/master.kml';
+
+  static String setMasterPersistentRefresh(int interval) {
+    return 'sed -i "s|<href>##LG_PHPIFACE##/kml/master.kml</href><refreshMode>onInterval</refreshMode><refreshInterval>[0-9]*</refreshInterval>|<href>##LG_PHPIFACE##/kml/master.kml</href>|g" /home/lg/earth/kml/master/myplaces.kml && '
+        'sed -i "s|<href>##LG_PHPIFACE##/kml/master.kml</href>|<href>##LG_PHPIFACE##/kml/master.kml</href><refreshMode>onInterval</refreshMode><refreshInterval>$interval</refreshInterval>|g" /home/lg/earth/kml/master/myplaces.kml && '
+        'grep -q "tour.kml" /home/lg/earth/kml/master/myplaces.kml || '
+        'sed -i "s|</Document>|<NetworkLink><name>Tour KML</name><Link><href>##LG_PHPIFACE##/kml/tour.kml</href><refreshMode>onInterval</refreshMode><refreshInterval>$interval</refreshInterval></Link></NetworkLink></Document>|g" /home/lg/earth/kml/master/myplaces.kml';
+  }
 
   static String setKML(String fileName) {
     return 'echo "http://lg1:81/$fileName" > /var/www/html/kmls.txt';

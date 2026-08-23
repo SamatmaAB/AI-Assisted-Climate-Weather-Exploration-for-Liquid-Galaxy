@@ -156,8 +156,9 @@ class LGSSHClient {
         : '.';
     await ensureRemoteDirectory(dir);
 
+    SftpClient? sftp;
     try {
-      final sftp = await _client!.sftp();
+      sftp = await _client!.sftp();
       final file = await sftp.open(
         targetPath,
         mode:
@@ -173,6 +174,8 @@ class LGSSHClient {
     } catch (e) {
       debugPrint('SFTP Upload failed: $e');
       return false;
+    } finally {
+      sftp?.close();
     }
   }
 
@@ -198,8 +201,9 @@ class LGSSHClient {
         : '.';
     await ensureRemoteDirectory(dir);
 
+    SftpClient? sftp;
     try {
-      final sftp = await _client!.sftp();
+      sftp = await _client!.sftp();
       final file = await sftp.open(
         targetPath,
         mode:
@@ -214,6 +218,8 @@ class LGSSHClient {
     } catch (e) {
       debugPrint('SFTP Binary Upload failed: $e');
       return false;
+    } finally {
+      sftp?.close();
     }
   }
 
@@ -300,6 +306,23 @@ class LGSSHClient {
       return success;
     } catch (e) {
       debugPrint('LGSSHClient: forceRefresh FAILED for screen $screen: $e');
+      return false;
+    }
+  }
+
+  Future<bool> ensureMasterPersistentRefresh() async {
+    try {
+      final ok = await runCommand(
+        SSHCommands.setMasterPersistentRefresh(2),
+      );
+      if (ok) {
+        debugPrint(
+          'LGSSHClient: Persistent 2s refresh interval verified on /home/lg/earth/kml/master/myplaces.kml.',
+        );
+      }
+      return ok;
+    } catch (e) {
+      debugPrint('LGSSHClient: ensureMasterPersistentRefresh FAILED: $e');
       return false;
     }
   }

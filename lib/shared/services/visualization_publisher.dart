@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:lg_connection/core/network/ssh_client.dart';
+import 'package:lg_connection/core/network/ssh_commands.dart';
 
 class VisualizationPublisher {
   final LGSSHClient _sshClient;
@@ -8,6 +9,7 @@ class VisualizationPublisher {
       : _sshClient = sshClient ?? LGSSHClient();
 
   static const String masterKmlPath = '/var/www/html/kml/master.kml';
+  static const String tourKmlPath = '/var/www/html/kml/tour.kml';
   static const String kmlsTxtPath = '/var/www/html/kmls.txt';
 
   Future<bool> publishVisualizationKML({
@@ -36,46 +38,37 @@ class VisualizationPublisher {
       return false;
     }
 
-    if (tourKmlContent != null && tourFileName != null && tourFileName.isNotEmpty) {
-      final tourTargetPath = '/var/www/html/$tourFileName';
+    if (tourKmlContent != null && tourKmlContent.isNotEmpty) {
       final tourUploaded = await _uploadWithRetry(
         content: tourKmlContent,
-        targetPath: tourTargetPath,
-        label: tourFileName,
+        targetPath: tourKmlPath,
+        label: 'tour.kml',
         maxRetries: maxRetries,
       );
       if (!tourUploaded) {
-        debugPrint('VisualizationPublisher: Failed to upload tour KML ($tourFileName) — aborting.');
-        return false;
+        debugPrint('VisualizationPublisher: Failed to upload tour.kml — continuing.');
       }
     }
 
-    final List<String> urls = ['http://lg1:81/kml/master.kml'];
-    if (tourFileName != null && tourFileName.isNotEmpty) {
-      urls.add('http://lg1:81/$tourFileName');
-    }
-    final String kmlsTxtContent = '${urls.join('\n')}\n';
+    await _sshClient.ensureMasterPersistentRefresh();
 
-    final registryUploaded = await _uploadWithRetry(
+    final int timestamp = DateTime.now().millisecondsSinceEpoch;
+    final String kmlsTxtContent = 'http://lg1:81/kml/master.kml?t=$timestamp\nhttp://lg1:81/kml/tour.kml?t=$timestamp\n';
+
+    await _uploadWithRetry(
       content: kmlsTxtContent,
       targetPath: kmlsTxtPath,
       label: 'kmls.txt',
       maxRetries: maxRetries,
     );
-    if (!registryUploaded) {
-      debugPrint('VisualizationPublisher: Failed to update kmls.txt — aborting.');
-      return false;
-    }
 
-    final refreshOk = await _sshClient.forceRefresh(1);
-    if (!refreshOk) {
-      debugPrint('VisualizationPublisher: Warning: forceRefresh(1) returned false.');
-    } else {
-      debugPrint('VisualizationPublisher: Successfully published visualization KML to master.kml.');
-    }
+    await _sshClient.runCommand(SSHCommands.refreshKML());
+    debugPrint('VisualizationPublisher: Successfully published visualization KML & tour KML ($timestamp).');
 
-    return refreshOk;
+    return true;
   }
+
+
 
   Future<bool> _uploadWithRetry({
     required String content,
