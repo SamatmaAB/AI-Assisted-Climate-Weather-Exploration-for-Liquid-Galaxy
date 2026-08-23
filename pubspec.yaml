@@ -12,13 +12,16 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.2.2
-  dartssh2: ^2.13.0
+  dartssh2: ^2.22.5
   google_fonts: ^6.1.0
   google_maps_flutter: ^2.5.3
   google_generative_ai: ^0.4.7
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   flutter_secure_storage: ^9.2.4
+  flutter_markdown_plus: ^1.0.5
+  flutter_tts: ^4.2.0
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:
@@ -40,3 +43,5 @@ flutter:
   assets:
     - assets/icon/
     - assets/kml/
+    - assets/spriteanimations/
+    - assets/weather_icons/

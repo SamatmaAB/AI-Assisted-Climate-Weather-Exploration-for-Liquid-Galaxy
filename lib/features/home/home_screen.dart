@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:lg_connection/core/common_widgets/status_badge.dart';
+import 'package:lg_connection/core/theme/app_color_scheme.dart';
 import 'package:lg_connection/features/home/home_viewmodel.dart';
 import 'package:lg_connection/features/home/widgets/chatbot_entry_button.dart';
-import 'package:lg_connection/features/home/widgets/explore_card.dart';
 import 'package:lg_connection/features/home/widgets/map_sync_panel.dart';
 import 'package:lg_connection/features/home/widgets/quick_action_card.dart';
 import 'package:lg_connection/features/home/widgets/visualization_action_card.dart';
+import 'package:lg_connection/shared/widgets/visualization_loading_box.dart';
 import 'package:lg_connection/main.dart';
+import 'package:lg_connection/services/tts/tts_service.dart';
+import 'package:lg_connection/services/tts/widgets/tts_playback_bar.dart';
 
-/// The main landing screen for Earth Systems Explorer.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -27,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    TtsService.instance.stop();
     _viewModel.dispose();
     super.dispose();
   }
@@ -38,32 +42,45 @@ class _HomeScreenState extends State<HomeScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: isSuccess
-            ? Theme.of(context).colorScheme.secondaryContainer
-            : Theme.of(context).colorScheme.errorContainer,
+            ? Theme.of(context).colorScheme.bannerSuccess
+            : Theme.of(context).colorScheme.bannerError,
       ),
     );
   }
 
-  void _showAiLoading() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 20),
-            Expanded(
-              child: Text('Generating climate explanation...'),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _handleVisualization(
+      String title, Future<void> Function() action) async {
+    try {
+      await TtsService.instance.stop();
+      if (!mounted) return;
+
+      // Show temporary floating loading window with mascot thinking sprite & loading indicator
+      VisualizationLoadingBox.show(
+        context,
+        title: 'Projecting $title...',
+        subtitle: 'Uploading KML & resolving AI climate telemetry',
+      );
+
+      await action();
+
+      final text = await _viewModel.getClimateExplanation(title);
+      if (mounted) VisualizationLoadingBox.hide(context);
+
+      _showFeedback('$title sent to Liquid Galaxy', true);
+      await _showClimatePopup(title, text);
+    } catch (e) {
+      if (mounted) VisualizationLoadingBox.hide(context);
+      _showFeedback('Could not send $title KML', false);
+    }
   }
 
   Future<void> _showClimatePopup(String title, String text) async {
     if (!mounted) return;
+
+    if (TtsService.instance.autoNarrate && text.trim().isNotEmpty) {
+      TtsService.instance.speak(text);
+    }
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -74,49 +91,80 @@ class _HomeScreenState extends State<HomeScreen> {
           initialChildSize: 0.55,
           maxChildSize: 0.85,
           builder: (context, controller) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 8),
-                  Text(title, style: Theme.of(context).textTheme.headlineMedium),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      controller: controller,
-                      child: Text(
-                        text,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                              height: 1.7,
-                            ),
+            return ListView(
+              controller: controller,
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              children: [
+                Text(title,
+                    style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 8),
+                TtsPlaybackBar(text: text),
+                const SizedBox(height: 12),
+                Builder(
+                  builder: (btnContext) {
+                    final errorBg =
+                        Theme.of(btnContext).colorScheme.errorContainer;
+                    final onErrorBg =
+                        Theme.of(btnContext).colorScheme.onErrorContainer;
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: FilledButton.icon(
+                        icon: const Icon(Icons.exit_to_app_outlined),
+                        label: const Text('Exit Tour'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: errorBg,
+                          foregroundColor: onErrorBg,
+                        ),
+                        onPressed: () async {
+                          final navigator = Navigator.of(context);
+                          final ok = await _viewModel.exitTour();
+                          if (!mounted) return;
+                          navigator.pop();
+                          _showFeedback(
+                            ok
+                                ? 'Tour exited'
+                                : 'Exit tour failed — check connection',
+                            ok,
+                          );
+                        },
                       ),
-                    ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                MarkdownBody(
+                  data: text,
+                  styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                      .copyWith(
+                    h3: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                    p: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.85),
+                          height: 1.65,
+                        ),
+                    listBullet: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.85),
+                        ),
+                    blockSpacing: 8,
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           },
         );
       },
     );
-  }
 
-  Future<void> _handleVisualization(String title, Future<void> Function() action) async {
-    try {
-      await action();
-      _showFeedback('$title sent to Liquid Galaxy', true);
-
-      _showAiLoading();
-      final text = await _viewModel.getClimateExplanation(title);
-      if (mounted) Navigator.of(context).pop();
-
-      await _showClimatePopup(title, text);
-    } catch (e) {
-      if (mounted && Navigator.canPop(context)) Navigator.of(context).pop();
-      _showFeedback('Could not send $title KML', false);
-    }
+    await TtsService.instance.stop();
+    _viewModel.exitTour();
   }
 
   @override
@@ -125,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      floatingActionButton: const ChatbotEntryButton(),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, child) {
@@ -136,20 +185,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       const SizedBox(height: 20),
-                      // Header row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ValueListenableBuilder<bool>(
-                            valueListenable: _viewModel.isConnected,
-                            builder: (context, connected, _) =>
-                                StatusBadge(isConnected: connected),
-                          ),
-                          const ChatbotEntryButton(),
-                        ],
+
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: _viewModel.isConnected,
+                          builder: (context, connected, _) =>
+                              StatusBadge(isConnected: connected),
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      // Page heading
+
+
                       Text(
                         'Liquid Galaxy',
                         style: textTheme.displaySmall?.copyWith(
@@ -174,13 +221,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Visualization action cards
                       VisualizationActionCard(
                         title: 'Indian Monsoon',
                         description: 'Loads the pre-generated KML and overwrites master.kml on Liquid Galaxy.',
                         icon: Icons.water_drop_outlined,
                         climateName: 'Indian Monsoon',
                         isLoading: _viewModel.isVisualisingMonsoon,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingMonsoon,
                         onTap: () => _handleVisualization('Indian Monsoon', _viewModel.visualizeIndianMonsoon),
                       ),
                       const SizedBox(height: 12),
@@ -190,6 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.waves_outlined,
                         climateName: 'Kuroshio Current',
                         isLoading: _viewModel.isVisualisingKuroshio,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingKuroshio,
                         onTap: () => _handleVisualization('Kuroshio Current', _viewModel.visualizeKuroshioCurrent),
                       ),
                       const SizedBox(height: 12),
@@ -199,6 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.air_outlined,
                         climateName: 'Gulf Stream',
                         isLoading: _viewModel.isVisualisingGulfStream,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingGulfStream,
                         onTap: () => _handleVisualization('Gulf Stream', _viewModel.visualizeGulfStream),
                       ),
                       const SizedBox(height: 12),
@@ -208,6 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.wb_sunny_outlined,
                         climateName: 'El Niño',
                         isLoading: _viewModel.isVisualisingElNino,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingElNino,
                         onTap: () => _handleVisualization('El Niño', _viewModel.visualizeElNino),
                       ),
                       const SizedBox(height: 12),
@@ -217,20 +267,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.cloud_outlined,
                         climateName: 'La Niña',
                         isLoading: _viewModel.isVisualisingLaNina,
+                        isEnabled: !_viewModel.isAnyVisualising || _viewModel.isVisualisingLaNina,
                         onTap: () => _handleVisualization('La Niña', _viewModel.visualizeLaNina),
                       ),
                       const SizedBox(height: 12),
-                      VisualizationActionCard(
-                        title: 'Mumbai Monsoon',
-                        description: 'Loads the pre-generated Mumbai Monsoon KML and flies to Gateway of India.',
-                        icon: Icons.grain_outlined,
-                        climateName: 'Mumbai Monsoon',
-                        isLoading: _viewModel.isVisualisingMumbaiMonsoon,
-                        onTap: () => _handleVisualization('Mumbai Monsoon', _viewModel.visualizeMumbaiMonsoon),
-                      ),
-                      const SizedBox(height: 12),
 
-                      // Destructive quick action
                       QuickActionCard(
                         label: 'Clear All Layers',
                         icon: Icons.layers_clear_outlined,
@@ -242,7 +283,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      // Map Sync section
                       _buildSectionLabel(context, 'Map Sync', Icons.map_outlined),
                       const SizedBox(height: 12),
                       MapSyncPanel(
@@ -251,7 +291,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Orbit button
                       FilledButton.icon(
                         onPressed: () async {
                           await _viewModel.orbit();
@@ -265,30 +304,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      // More Patterns section
-                      _buildSectionLabel(context, 'More Patterns', Icons.grid_view_outlined),
-                      const SizedBox(height: 12),
-                      const Row(
-                        children: [
-                          Expanded(
-                            child: ExploreCard(
-                              title: 'Winds',
-                              icon: Icons.air,
-                              climateName: 'Global Wind Systems',
-                              categoryName: 'Global Wind Systems',
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: ExploreCard(
-                              title: 'Currents',
-                              icon: Icons.waves,
-                              climateName: 'Ocean Currents',
-                              categoryName: 'Ocean Currents',
-                            ),
-                          ),
-                        ],
-                      ),
                       const SizedBox(height: 32),
                     ]),
                   ),

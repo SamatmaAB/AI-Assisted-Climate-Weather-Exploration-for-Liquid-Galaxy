@@ -5,9 +5,9 @@ import 'package:lg_connection/features/dashboard/data/category_metadata_provider
 import 'package:lg_connection/features/dashboard/widgets/action_item_card.dart';
 import 'package:lg_connection/features/dashboard/widgets/info_card.dart';
 import 'package:lg_connection/features/dashboard/widgets/specs_card.dart';
+import 'package:lg_connection/shared/widgets/visualization_loading_box.dart';
 import 'package:lg_connection/main.dart';
 
-/// Detailed view for a specific climate category.
 class CategoryDetailScreen extends StatelessWidget {
   final String categoryName;
   late final DashboardViewModel _viewModel = DashboardViewModel(aiRepository);
@@ -101,6 +101,22 @@ class CategoryDetailScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _handleVisualization(
+      BuildContext context, String title, Future<void> Function() action) async {
+    try {
+      VisualizationLoadingBox.show(
+        context,
+        title: 'Projecting $title...',
+        subtitle: 'Uploading KML & resolving AI climate telemetry',
+      );
+      await action();
+    } finally {
+      if (context.mounted) {
+        VisualizationLoadingBox.hide(context);
+      }
+    }
+  }
+
   List<Widget> _buildCategoryActions(BuildContext context, dynamic metadata) {
     List<Widget> actions = [];
     final colorScheme = Theme.of(context).colorScheme;
@@ -112,17 +128,11 @@ class CategoryDetailScreen extends StatelessWidget {
           subtitle: 'Load the pre-generated KML and project to the rig',
           icon: Icons.air_outlined,
           color: ClimateColors.monsoon,
-          onTap: () => _viewModel.visualizeIndianMonsoon(),
-        ),
-      );
-      actions.add(const SizedBox(height: 12));
-      actions.add(
-        ActionItemCard(
-          title: 'Visualize Mumbai Monsoon',
-          subtitle: 'Project Mumbai monsoon KML & fly to Gateway of India',
-          icon: Icons.grain_outlined,
-          color: ClimateColors.mumbaiMonsoon,
-          onTap: () => _viewModel.visualizeMumbaiMonsoon(),
+          onTap: () => _handleVisualization(
+            context,
+            'Indian Monsoon',
+            _viewModel.visualizeIndianMonsoon,
+          ),
         ),
       );
       actions.add(const SizedBox(height: 12));
@@ -135,7 +145,11 @@ class CategoryDetailScreen extends StatelessWidget {
           subtitle: 'Visualize the North Pacific western boundary current',
           icon: Icons.waves_outlined,
           color: ClimateColors.kuroshio,
-          onTap: () => _viewModel.visualizeKuroshioCurrent(),
+          onTap: () => _handleVisualization(
+            context,
+            'Kuroshio Current',
+            _viewModel.visualizeKuroshioCurrent,
+          ),
         ),
       );
       actions.add(const SizedBox(height: 12));
@@ -145,7 +159,11 @@ class CategoryDetailScreen extends StatelessWidget {
           subtitle: 'Visualize warm ocean current anomaly in the Pacific',
           icon: Icons.wb_sunny_outlined,
           color: ClimateColors.elNino,
-          onTap: () => _viewModel.visualizeElNino(),
+          onTap: () => _handleVisualization(
+            context,
+            'El Niño Pacific Conveyor',
+            _viewModel.visualizeElNino,
+          ),
         ),
       );
       actions.add(const SizedBox(height: 12));
@@ -155,7 +173,11 @@ class CategoryDetailScreen extends StatelessWidget {
           subtitle: 'Visualize cold upwelling anomaly in the Pacific',
           icon: Icons.cloud_outlined,
           color: ClimateColors.laNina,
-          onTap: () => _viewModel.visualizeLaNina(),
+          onTap: () => _handleVisualization(
+            context,
+            'La Niña Pacific Trade Wind',
+            _viewModel.visualizeLaNina,
+          ),
         ),
       );
       actions.add(const SizedBox(height: 12));

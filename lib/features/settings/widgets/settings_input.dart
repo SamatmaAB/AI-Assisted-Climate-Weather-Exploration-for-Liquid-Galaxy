@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// A styled text input for settings forms.
-///
-/// Uses the global InputDecorationTheme. Do NOT redefine border or fill inline.
 class SettingsInput extends StatelessWidget {
   final String label;
   final TextEditingController controller;

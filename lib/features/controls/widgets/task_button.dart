@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 
-/// Semantic role classification for TaskButton styling.
 enum TaskButtonRole {
-  /// Standard operation — uses FilledButton.tonal.
+
   normal,
 
-  /// Requires user attention — uses warning-tinted tonal button.
   warning,
 
-  /// Destructive / irreversible action — uses error-role colors.
   destructive,
 }
 
-/// A compact task button for Rig control operations.
-///
-/// Hierarchy is communicated through semantic role rather than arbitrary colors.
 class TaskButton extends StatelessWidget {
   final String label;
   final IconData icon;

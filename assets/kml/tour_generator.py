@@ -7,11 +7,6 @@ Provides functions for creating scientific LookAt exploration stops and complete
 
 import os
 
-
-# ------------------------------------------------------------------------------
-# SCIENTIFIC TOUR STOPS (LookAt)
-# ------------------------------------------------------------------------------
-
 EL_NINO_TOUR_STOPS = [
     {
         "name": "Pacific Overview",
@@ -327,10 +322,6 @@ INDIAN_MONSOON_TOUR_STOPS = [
     }
 ]
 
-# ------------------------------------------------------------------------------
-# TOUR CONFIGURATION REGISTRY
-# ------------------------------------------------------------------------------
-
 TOURS_CONFIG = [
     {
         "stops": EL_NINO_TOUR_STOPS,
@@ -359,14 +350,9 @@ TOURS_CONFIG = [
     },
 ]
 
-
-# ------------------------------------------------------------------------------
-# REUSABLE KML GENERATOR HELPERS
-# ------------------------------------------------------------------------------
-
 def generate_lookat_flyto(stop):
     """
-    Generates a gx:FlyTo KML XML element for a scientific LookAt viewpoint.
+    Generates a gx:FlyTo KML XML element for a continuous, smooth LookAt camera transition.
     """
     name = stop.get("name", "")
     lat = stop.get("latitude", 0.0)
@@ -375,7 +361,7 @@ def generate_lookat_flyto(stop):
     rng = stop.get("range", 10000000.0)
     tilt = stop.get("tilt", 45.0)
     heading = stop.get("heading", 0.0)
-    duration = stop.get("duration", 8.0)
+    duration = stop.get("duration", 10.0)
     fly_mode = stop.get("fly_to_mode", "smooth")
     alt_mode = stop.get("altitude_mode", "relativeToGround")
 
@@ -395,18 +381,15 @@ def generate_lookat_flyto(stop):
           </LookAt>
         </gx:FlyTo>"""
 
-
 def calculate_tour_duration(tour_stops):
     """Calculates the total duration of all scientific FlyTo stops."""
     return sum(float(stop.get("duration", 8.0)) for stop in tour_stops)
-
 
 def generate_tour_playlist(tour_stops):
     """Generates a playlist containing only scientific LookAt FlyTo stops."""
     return "\n\n        ".join(
         generate_lookat_flyto(stop) for stop in tour_stops
     )
-
 
 def generate_tour_kml(tour_stops, output_path, tour_name=None):
     """
@@ -453,7 +436,6 @@ def generate_tour_kml(tour_stops, output_path, tour_name=None):
     print(f"Generated tour KML: {output_path} (Total Duration: {total_duration:.1f}s)")
     return os.path.abspath(output_path)
 
-
 def generate_all_tours(output_dir=None):
     """Generates tour KML files for all configured scientific tours."""
     print("Generating all tour KML files...")
@@ -482,10 +464,8 @@ def generate_all_tours(output_dir=None):
 
     return results
 
-
 def main():
     generate_all_tours()
-
 
 if __name__ == "__main__":
     main()

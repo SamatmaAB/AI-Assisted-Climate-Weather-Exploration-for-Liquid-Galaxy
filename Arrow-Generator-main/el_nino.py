@@ -2,30 +2,30 @@ import math
 import random
 import os
 
-# =====================================================
-# CONFIG & ICONS
-# =====================================================
+def xml_escape(text):
+    """Escape special characters so placemark names stay valid XML."""
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
 
-RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
-DROUGHT_ICON = "https://i.imgur.com/p7WHxlT.png"
-FLOOD_ICON = "h"
+RAIN_ICON = "https://i.imgur.com/CBHL5zR.png"
+DROUGHT_ICON = "https://i.imgur.com/J4my1UV.png"
+FLOOD_ICON = "https://i.imgur.com/4qzQsht.png"
 
-MONSOON_ICON = "https://i.imgur.com/qoXQjzD.png"
-STORM_ICON = "https://i.imgur.com/UbtYVUx.png"
-WARM_ICON = "https://i.imgur.com/RXrha0q.png"
+MONSOON_ICON = "https://i.imgur.com/CBHL5zR.png"
+STORM_ICON = "https://i.imgur.com/5r49jF2.png"
+WARM_ICON = "https://i.imgur.com/FIIwqqB.png"
 
 ICON_SCALE = 5.5
 
-# Arrow configuration for main ENSO flow  (-15% from previous)
 SHAFT_WIDTH = 0.51
 HEAD_LENGTH = 2.04
 HEAD_WIDTH = 1.02
 
 BEZIER_STEPS = 120
 
-# Oceanographically refined lane geometries (3 distinct branches)
-
-# Top Lane: Northern Branch (-20% curvature from previous)
 LANE_TOP_SEGMENTS = [
     ((130, 4.5), (140, 9.2),  (150, 6.0)),
     ((153, 6.0), (163, 10.4), (173, 7.2)),
@@ -35,7 +35,6 @@ LANE_TOP_SEGMENTS = [
     ((-101, 3.5), (-95,  5.6), (-90,  2.0))
 ]
 
-# Middle Lane: Equatorial Core (-20% curvature from previous)
 LANE_MIDDLE_SEGMENTS = [
     ((130, -0.8), (140, 3.2),  (150, -0.2)),
     ((153, -0.2), (163, 3.6),  (173, 0.4)),
@@ -45,7 +44,6 @@ LANE_MIDDLE_SEGMENTS = [
     ((-101, 0.0), (-95,  2.0), (-90,  0.0))
 ]
 
-# Bottom Lane: Southern Branch (-20% curvature from previous)
 LANE_BOTTOM_SEGMENTS = [
     ((130, -6.0), (140, -10.4), (150, -6.8)),
     ((153, -6.8), (163, -10.8), (173, -7.0)),
@@ -61,18 +59,12 @@ ALL_LANES = [
     LANE_TOP_SEGMENTS
 ]
 
-# Warm-water palette: Red -> Orange -> Yellow
 WARM_PALETTE = [
-    (220, 30, 30),    # hot red
-    (255, 100, 0),    # deep orange
-    (255, 170, 0),    # orange-yellow
-    (255, 220, 0)     # yellow
+    (220, 30, 30),
+    (255, 100, 0),
+    (255, 170, 0),
+    (255, 220, 0)
 ]
-
-
-# =====================================================
-# GEOMETRY & COORDINATE UTILITIES
-# =====================================================
 
 def normalize_lon(lon):
     """
@@ -83,7 +75,6 @@ def normalize_lon(lon):
     while lon < -180.0:
         lon += 360.0
     return lon
-
 
 def unwrap_lon(ref_lon, target_lon):
     """
@@ -98,7 +89,6 @@ def unwrap_lon(ref_lon, target_lon):
         diff = target_lon - ref_lon
     return target_lon
 
-
 def has_antimeridian_jump(coords):
     """
     Prevent polygons from spanning > 180 deg longitude across the globe.
@@ -111,14 +101,8 @@ def has_antimeridian_jump(coords):
             return True
     return False
 
-
-# =====================================================
-# COLOR SYSTEM & INTERPOLATION
-# =====================================================
-
 def rgb_to_kml(r, g, b, alpha="ff"):
     return f"{alpha}{b:02x}{g:02x}{r:02x}"
-
 
 def interpolate_rgb(start_rgb, end_rgb, t):
     r = int(start_rgb[0] + (end_rgb[0] - start_rgb[0]) * t)
@@ -126,11 +110,9 @@ def interpolate_rgb(start_rgb, end_rgb, t):
     b = int(start_rgb[2] + (end_rgb[2] - start_rgb[2]) * t)
     return (r, g, b)
 
-
 def interpolate_color(start_rgb, end_rgb, t):
     r, g, b = interpolate_rgb(start_rgb, end_rgb, t)
     return rgb_to_kml(r, g, b)
-
 
 def get_warm_palette_color(t):
     """
@@ -144,11 +126,6 @@ def get_warm_palette_color(t):
         return WARM_PALETTE[-1]
     local_t = scaled - idx
     return interpolate_rgb(WARM_PALETTE[idx], WARM_PALETTE[idx + 1], local_t)
-
-
-# =====================================================
-# BEZIER CURVE
-# =====================================================
 
 def bezier_curve(start, control, end, steps=BEZIER_STEPS):
     pts = []
@@ -173,11 +150,6 @@ def bezier_curve(start, control, end, steps=BEZIER_STEPS):
         pts.append((lon, lat))
     return pts
 
-
-# =====================================================
-# TRUNCATE CURVE FOR ARROWHEAD
-# =====================================================
-
 def truncate_for_head(points, head_length):
     accumulated = 0
     for i in range(len(points) - 2, -1, -1):
@@ -195,12 +167,6 @@ def truncate_for_head(points, head_length):
             return points[:i + 1] + [(x, y)]
         accumulated += seg
     return points
-
-
-# =====================================================
-# =====================================================
-# VERTEX BOUNDARY & SHAFT QUAD
-# =====================================================
 
 def compute_boundary_vertices(points, shaft_width=SHAFT_WIDTH):
     n = len(points)
@@ -251,7 +217,6 @@ def compute_boundary_vertices(points, shaft_width=SHAFT_WIDTH):
 
     return left_boundary, right_boundary
 
-
 def create_quad_polygon(left1, left2, right2, right1, color):
     ring_coords = [left1, left2, right2, right1, left1]
     if has_antimeridian_jump(ring_coords):
@@ -290,11 +255,6 @@ def create_quad_polygon(left1, left2, right2, right1, color):
 </Placemark>
 """
 
-
-# =====================================================
-# SHAFT
-# =====================================================
-
 def create_shaft(points, start_rgb, end_rgb, shaft_width=SHAFT_WIDTH):
     left_boundary, right_boundary = compute_boundary_vertices(points, shaft_width)
 
@@ -320,12 +280,6 @@ def create_shaft(points, start_rgb, end_rgb, shaft_width=SHAFT_WIDTH):
         )
 
     return kml, left_boundary[-1], right_boundary[-1]
-
-
-
-# =====================================================
-# ARROWHEAD
-# =====================================================
 
 def create_head(base, tip, color, head_length=HEAD_LENGTH, head_width=HEAD_WIDTH,
                 shaft_left_end=None, shaft_right_end=None):
@@ -441,11 +395,6 @@ def create_head(base, tip, color, head_length=HEAD_LENGTH, head_width=HEAD_WIDTH
 </Placemark>
 """
 
-
-# =====================================================
-# COMPLETE ARROW
-# =====================================================
-
 def create_arrow(
     start,
     control,
@@ -494,13 +443,9 @@ def create_arrow(
 
     return shaft + head
 
-
-# =====================================================
-# PLACEMARK ICON
-# =====================================================
-
 def climate_icon(name, lon, lat, icon_url, scale=ICON_SCALE):
     norm_lon = normalize_lon(lon)
+    name = xml_escape(name)
     return f"""
 <Placemark>
 
@@ -527,14 +472,9 @@ def climate_icon(name, lon, lat, icon_url, scale=ICON_SCALE):
 </Placemark>
 """
 
-
-# =====================================================
-# EL NIÑO MAIN FLOW & PERU UPWELLING & CLIMATE ICONS
-# =====================================================
-
 def generate_enso_flow():
     kml = ""
-    # Seeded RNG — reproducible organic variation without full chaos
+
     rng = random.Random(17)
 
     for lane_idx, lane_segments in enumerate(ALL_LANES):
@@ -544,12 +484,10 @@ def generate_enso_flow():
             s_pt = (start[0], start[1])
             e_pt = (end[0], end[1])
 
-            # Add ±1.8° lat jitter to control point — each arrow curves differently
             c_lat_jitter = rng.uniform(-1.8, 1.8)
             c_lon_jitter = rng.uniform(-0.8, 0.8)
             c_pt = (control[0] + c_lon_jitter, control[1] + c_lat_jitter)
 
-            # Warm palette gradient (Red -> Orange -> Yellow)
             t_start = seg_idx / float(num_segments)
             t_end = (seg_idx + 1) / float(num_segments)
 
@@ -570,12 +508,10 @@ def generate_enso_flow():
 
     return kml
 
-
 def generate_peru_upwelling():
     kml = ""
     upwelling_lons = [-88, -84, -80]
 
-    # Smaller than main ENSO flow
     small_shaft_width = 0.28
     small_head_length = 1.4
     small_head_width = 0.70
@@ -602,11 +538,9 @@ def generate_peru_upwelling():
 
     return kml
 
-
 def generate_climate_icons():
     kml = ""
 
-    # Drought Regions
     drought_locations = [
         ("Indonesia Drought", 118, -3),
         ("Western Indonesia Drought", 110, -6),
@@ -620,7 +554,6 @@ def generate_climate_icons():
     for name, lon, lat in drought_locations:
         kml += climate_icon(name, lon, lat, DROUGHT_ICON)
 
-    # Weak Monsoon Regions
     monsoon_locations = [
         ("India Weak Monsoon", 78, 20),
         ("Sri Lanka Weak Monsoon", 80, 7),
@@ -630,7 +563,6 @@ def generate_climate_icons():
     for name, lon, lat in monsoon_locations:
         kml += climate_icon(name, lon, lat, RAIN_ICON)
 
-    # Flooding Regions
     flooding_locations = [
         ("Peru Flooding", -77, -10),
         ("Northern Peru Flooding", -79, -5),
@@ -641,7 +573,6 @@ def generate_climate_icons():
     for name, lon, lat in flooding_locations:
         kml += climate_icon(name, lon, lat, FLOOD_ICON)
 
-    # Wetter North America
     wetter_na_locations = [
         ("Southern USA Wetter", -95, 31),
         ("Texas Wetter", -99, 31),
@@ -651,7 +582,6 @@ def generate_climate_icons():
     for name, lon, lat in wetter_na_locations:
         kml += climate_icon(name, lon, lat, RAIN_ICON)
 
-    # Pacific Storm Regions
     storm_locations = [
         ("Central Pacific Storms", -145, 10),
         ("Eastern Pacific Storms", -120, 15),
@@ -661,11 +591,6 @@ def generate_climate_icons():
         kml += climate_icon(name, lon, lat, RAIN_ICON)
 
     return kml
-
-
-# =====================================================
-# WRAP KML
-# =====================================================
 
 def wrap(content):
     return f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -678,11 +603,6 @@ def wrap(content):
 </Document>
 </kml>
 """
-
-
-# =====================================================
-# MAIN
-# =====================================================
 
 def main():
     content = generate_enso_flow() + generate_peru_upwelling() + generate_climate_icons()
@@ -700,7 +620,6 @@ def main():
         f.write(final_kml)
 
     print(f"el_nino.kml generated successfully in current directory and {asset_path}")
-
 
 if __name__ == "__main__":
     main()

@@ -6,7 +6,6 @@ import 'package:lg_connection/services/ai/api_key_storage.dart';
 import 'package:lg_connection/services/ai/gemini_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// ViewModel for managing app configuration, Gemini model selection, and Liquid Galaxy settings.
 class SettingsViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final ApiKeyStorage _apiKeyStorage = const ApiKeyStorage();
@@ -22,9 +21,17 @@ class SettingsViewModel extends ChangeNotifier {
   String selectedModel = GeminiModels.defaultModel;
 
   bool get hasApiKey => apiKeyController.text.trim().isNotEmpty;
+
+  /// True when the key currently stored matches the one baked in at build
+  /// time via --dart-define-from-file=dart_defines.json.
+  static const _buildApiKey = String.fromEnvironment('GEMINI_API_KEY');
+  bool get isBuildConfigured =>
+      _buildApiKey.isNotEmpty &&
+      apiKeyController.text.trim() == _buildApiKey.trim();
   bool get isDarkMode => ThemeController.instance.isDarkMode;
   bool get isColorblindMode => ThemeController.instance.isColorblindMode;
   bool isConnecting = false;
+  bool isSendingLogo = false;
 
   ValueListenable<bool> get isConnected => _sshClient.isConnected;
 
@@ -32,7 +39,6 @@ class SettingsViewModel extends ChangeNotifier {
     loadSettings();
   }
 
-  /// Loads settings from SharedPreferences and ApiKeyStorage into controllers and state.
   Future<void> loadSettings() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     usernameController.text = prefs.getString('username') ?? 'lg';
@@ -49,7 +55,6 @@ class SettingsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Saves current connection settings to SharedPreferences.
   Future<void> saveSettings() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', usernameController.text);
@@ -59,35 +64,32 @@ class SettingsViewModel extends ChangeNotifier {
     await prefs.setString('numberOfRigs', rigsController.text);
   }
 
-  /// Saves Gemini API Key securely.
   Future<void> saveApiKey() async {
     final key = apiKeyController.text.trim();
     await _apiKeyStorage.saveGeminiApiKey(key);
     notifyListeners();
   }
 
-  /// Removes Gemini API Key securely.
   Future<void> deleteApiKey() async {
     await _apiKeyStorage.deleteGeminiApiKey();
     apiKeyController.clear();
     notifyListeners();
   }
 
-  /// Updates selected Gemini model and persists immediately to secure storage.
   Future<void> updateSelectedModel(String model) async {
     selectedModel = model;
     await _apiKeyStorage.saveSelectedModel(model);
     notifyListeners();
   }
 
-  /// Toggles visibility of the Gemini API Key text field.
   void toggleApiKeyVisibility() {
     isApiKeyObscured = !isApiKeyObscured;
     notifyListeners();
   }
 
-  /// Triggers a connection attempt to the Liquid Galaxy rig.
-  Future<bool> connect() async {
+  Future<bool> connect({
+    void Function(String message, bool isSuccess)? onFeedback,
+  }) async {
     if (ipController.text.isEmpty) return false;
 
     isConnecting = true;
@@ -97,6 +99,37 @@ class SettingsViewModel extends ChangeNotifier {
     final success = await _sshClient.connect();
 
     isConnecting = false;
+    notifyListeners();
+
+    if (success) {
+      onFeedback?.call('Successfully connected! Uploading logo to Liquid Galaxy...', true);
+      isSendingLogo = true;
+      notifyListeners();
+
+      final logoSent = await _sshClient.sendLogo();
+
+      isSendingLogo = false;
+      notifyListeners();
+
+      if (logoSent) {
+        onFeedback?.call('Logo uploaded & sent successfully!', true);
+      } else {
+        onFeedback?.call('Connected to Liquid Galaxy, but logo upload failed.', false);
+      }
+    } else {
+      onFeedback?.call('Connection failed. Verify IP and credentials.', false);
+    }
+
+    return success;
+  }
+
+  Future<bool> sendLogo() async {
+    isSendingLogo = true;
+    notifyListeners();
+
+    final success = await _sshClient.sendLogo();
+
+    isSendingLogo = false;
     notifyListeners();
     return success;
   }

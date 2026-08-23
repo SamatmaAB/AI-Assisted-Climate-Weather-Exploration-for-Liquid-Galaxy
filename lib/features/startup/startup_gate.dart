@@ -3,8 +3,6 @@ import 'package:lg_connection/features/main/main_container.dart';
 import 'package:lg_connection/features/onboarding/initial_setup_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Startup Gate determines whether the application should enter initial setup
-/// or launch directly into the main application shell.
 class StartupGate extends StatefulWidget {
   const StartupGate({super.key});
 

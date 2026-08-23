@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:lg_connection/core/theme/app_color_scheme.dart';
 import 'package:lg_connection/features/controls/controls_viewmodel.dart';
 import 'package:lg_connection/features/controls/widgets/availability_card.dart';
 import 'package:lg_connection/features/controls/widgets/task_button.dart';
 
-/// Screen for managing Liquid Galaxy rig services and system tasks.
 class ControlsScreen extends StatefulWidget {
   const ControlsScreen({super.key});
 
@@ -33,8 +33,8 @@ class _ControlsScreenState extends State<ControlsScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: isSuccess
-            ? Theme.of(context).colorScheme.secondaryContainer
-            : Theme.of(context).colorScheme.errorContainer,
+            ? Theme.of(context).colorScheme.bannerSuccess
+            : Theme.of(context).colorScheme.bannerError,
       ),
     );
   }
@@ -66,6 +66,28 @@ class _ControlsScreenState extends State<ControlsScreen> {
             ListenableBuilder(
               listenable: _viewModel,
               builder: (context, _) => _buildVisualControls(colorScheme),
+            ),
+
+            const SizedBox(height: 28),
+            _buildSectionLabel(context, 'Tour'),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TaskButton(
+                    label: 'Exit Tour',
+                    icon: Icons.exit_to_app_outlined,
+                    role: TaskButtonRole.destructive,
+                    onPressed: () async {
+                      final ok = await _viewModel.exitTour();
+                      _showFeedback(
+                        ok ? 'Tour exited' : 'Exit tour failed — check connection',
+                        ok,
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 28),

@@ -1,43 +1,66 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lg_connection/models/qa_item.dart';
 
-/// A unified caching service using Hive for local data persistence.
 class CacheService {
   static const String _qaBoxName = 'qaBox';
   static const String _settingsBoxName = 'settingsBox';
   static const String _climateBoxName = 'climateBox';
+  static const String _cityExplorerBoxName = 'cityExplorerBox';
+  static const String _phenomenonCardBoxName = 'phenomenonCardBox';
 
-  /// Initializes all Hive boxes required for the application.
   static Future<void> init() async {
     await Hive.initFlutter();
     Hive.registerAdapter(QAItemAdapter());
-    
+
     await Hive.openBox<QAItem>(_qaBoxName);
     await Hive.openBox(_settingsBoxName);
     await Hive.openBox<String>(_climateBoxName);
+    await Hive.openBox<String>(_cityExplorerBoxName);
+    await Hive.openBox<String>(_phenomenonCardBoxName);
   }
 
-  /// Saves a climate phenomenon explanation to the cache.
   static Future<void> saveClimateInfo(String phenomenon, String explanation) async {
     final box = Hive.box<String>(_climateBoxName);
     await box.put(phenomenon, explanation);
   }
 
-  /// Retrieves a climate phenomenon explanation from the cache.
   static String? getClimateInfo(String phenomenon) {
     final box = Hive.box<String>(_climateBoxName);
     return box.get(phenomenon);
   }
 
-  /// Clears all cached climate information.
   static Future<void> clearClimateCache() async {
     final box = Hive.box<String>(_climateBoxName);
     await box.clear();
   }
 
-  /// Gets the settings box for general preferences.
+  static Future<void> saveCityLandmark(String city, String jsonString) async {
+    final box = Hive.box<String>(_cityExplorerBoxName);
+    await box.put(city.trim().toLowerCase(), jsonString);
+  }
+
+  static String? getCityLandmark(String city) {
+    final box = Hive.box<String>(_cityExplorerBoxName);
+    return box.get(city.trim().toLowerCase());
+  }
+
+  static Future<void> savePhenomenonCard(String phenomenon, String jsonString) async {
+    final box = Hive.box<String>(_phenomenonCardBoxName);
+    await box.put(phenomenon.trim().toLowerCase(), jsonString);
+  }
+
+  static String? getPhenomenonCard(String phenomenon) {
+    final box = Hive.box<String>(_phenomenonCardBoxName);
+    return box.get(phenomenon.trim().toLowerCase());
+  }
+
+  static Future<void> clearPhenomenonCardCache() async {
+    final box = Hive.box<String>(_phenomenonCardBoxName);
+    await box.clear();
+  }
+
+
   static Box get settingsBox => Hive.box(_settingsBoxName);
 
-  /// Gets the QA box for chatbot history.
   static Box<QAItem> get qaBox => Hive.box<QAItem>(_qaBoxName);
 }

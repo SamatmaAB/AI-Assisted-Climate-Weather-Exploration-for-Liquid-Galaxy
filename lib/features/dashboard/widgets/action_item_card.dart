@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// An interactive card representing an action related to a climate category.
 class ActionItemCard extends StatelessWidget {
   final String title;
   final String subtitle;

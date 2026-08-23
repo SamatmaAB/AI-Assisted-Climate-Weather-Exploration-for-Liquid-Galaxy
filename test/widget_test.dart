@@ -20,7 +20,7 @@ void main() {
       expect(lookAt.longitude, closeTo(78.9629, 0.0001));
       expect(lookAt.tilt, closeTo(45.0, 0.0001));
       expect(lookAt.bearing, closeTo(10.0, 0.0001));
-      // Range 5000000 should convert to a valid zoom level (~7.88 - 3.8 = 4.08)
+
       expect(lookAt.zoom, closeTo(4.08, 0.01));
     });
 
@@ -28,7 +28,7 @@ void main() {
       const lookAt = LookAt(
         latitude: 35.0,
         longitude: 135.0,
-        zoom: 4.4, // Maps to 4.4 + 3.8 = 8.2 adjusted zoom
+        zoom: 4.4,
         tilt: 30.0,
         bearing: 0.0,
       );

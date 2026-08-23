@@ -10,11 +10,6 @@ import numpy as np
 import xarray as xr
 from scipy.interpolate import RegularGridInterpolator
 
-
-# ============================================================
-# PATHS
-# ============================================================
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 DATA_FILE = (
@@ -35,11 +30,6 @@ JSON_FILE = OUTPUT_DIR / "monsoon_paths_2025.json"
 
 PLOT_FILE = OUTPUT_DIR / "jjas_2025_selected_paths.png"
 
-
-# ============================================================
-# DOMAIN / INTEGRATION
-# ============================================================
-
 WEST = 50.0
 EAST = 100.0
 SOUTH = -10.0
@@ -50,19 +40,6 @@ MAX_STREAMLINE_STEPS = 450
 MIN_WIND_SPEED = 0.5
 
 SIMPLIFIED_POINTS = 45
-
-
-# ============================================================
-# DENSE CANDIDATE SEEDS
-# ============================================================
-#
-# 14 longitudes x 16 latitudes = 224 Arabian seeds
-# 14 longitudes x 16 latitudes = 224 Bay seeds
-#
-# Total = 448 seeds.
-#
-# Each seed is integrated both upstream and downstream.
-# ============================================================
 
 ARABIAN_SEED_LONGITUDES = np.arange(
     51.0,
@@ -87,11 +64,6 @@ BAY_SEED_LATITUDES = np.arange(
     21.0,
     1.0,
 )
-
-
-# ============================================================
-# TARGET REGIONS
-# ============================================================
 
 TARGET_REGIONS = {
 
@@ -179,20 +151,6 @@ TARGET_REGIONS = {
         "north": 29.0,
     },
 }
-
-
-# ============================================================
-# FINAL VISUAL ROLES
-# ============================================================
-#
-# Five final ribbons:
-#
-#   Arabian / peninsular: 3
-#   Northern India:       1
-#   Bay of Bengal:        1
-#
-# east_northeast has intentionally been removed.
-# ============================================================
 
 FINAL_ROLES = [
 
@@ -322,11 +280,6 @@ FINAL_ROLES = [
     },
 ]
 
-
-# ============================================================
-# DATASET INSPECTION
-# ============================================================
-
 def inspect_dataset(ds: xr.Dataset) -> None:
     """Validate and summarize the ERA5 source."""
 
@@ -371,11 +324,6 @@ def inspect_dataset(ds: xr.Dataset) -> None:
         f"{float(speed.min()):.2f} to "
         f"{float(speed.max()):.2f} m/s"
     )
-
-
-# ============================================================
-# DAY-WEIGHTED JJAS MEAN
-# ============================================================
 
 def calculate_jjas_mean(ds: xr.Dataset):
     """
@@ -514,11 +462,6 @@ def calculate_jjas_mean(ds: xr.Dataset):
         v_mean,
         speed_mean,
     )
-
-
-# ============================================================
-# FAST WIND FIELD
-# ============================================================
 
 class WindField:
     """Fast bilinear interpolation of the JJAS mean U/V field."""
@@ -681,11 +624,6 @@ class WindField:
             "speed": float(speed),
         }
 
-
-# ============================================================
-# STREAMLINE DIRECTION
-# ============================================================
-
 def streamline_direction(
     wind_field: WindField,
     lon: float,
@@ -746,11 +684,6 @@ def streamline_direction(
         dlon / magnitude,
         dlat / magnitude,
     )
-
-
-# ============================================================
-# RK4 INTEGRATION
-# ============================================================
 
 def rk4_step(
     wind_field: WindField,
@@ -841,11 +774,6 @@ def rk4_step(
         float(next_lat),
     )
 
-
-# ============================================================
-# STREAMLINE TRACING
-# ============================================================
-
 def trace_streamline(
     wind_field: WindField,
     start_lon: float,
@@ -906,7 +834,6 @@ def trace_streamline(
 
     return points
 
-
 def trace_full_streamline(
     wind_field: WindField,
     seed_lon: float,
@@ -942,11 +869,6 @@ def trace_full_streamline(
         forward
     )
 
-
-# ============================================================
-# GEOGRAPHIC UTILITIES
-# ============================================================
-
 def point_in_region(
     point,
     region,
@@ -966,7 +888,6 @@ def point_in_region(
         <= region["north"]
     )
 
-
 def count_points_in_region(
     points,
     region,
@@ -980,7 +901,6 @@ def count_points_in_region(
             region,
         )
     )
-
 
 def longest_contiguous_segment(
     points,
@@ -1024,11 +944,6 @@ def longest_contiguous_segment(
         key=len,
     )
 
-
-# ============================================================
-# PATH GEOMETRY
-# ============================================================
-
 def path_length_degrees(
     points,
 ) -> float:
@@ -1053,7 +968,6 @@ def path_length_degrees(
         ).sum()
     )
 
-
 def longitude_span(
     points,
 ) -> float:
@@ -1072,7 +986,6 @@ def longitude_span(
         min(longitudes)
     )
 
-
 def latitude_span(
     points,
 ) -> float:
@@ -1090,11 +1003,6 @@ def latitude_span(
         -
         min(latitudes)
     )
-
-
-# ============================================================
-# GEOGRAPHIC COVERAGE
-# ============================================================
 
 def count_crossed_regions(
     points,
@@ -1132,11 +1040,6 @@ def count_crossed_regions(
 
     return crossed
 
-
-# ============================================================
-# SEED GENERATION
-# ============================================================
-
 def generate_seed_grid(
     source: str,
 ):
@@ -1166,11 +1069,6 @@ def generate_seed_grid(
     raise ValueError(
         f"Unknown source: {source}"
     )
-
-
-# ============================================================
-# CANDIDATE GENERATION
-# ============================================================
 
 def generate_candidates(
     wind_field: WindField,
@@ -1275,11 +1173,6 @@ def generate_candidates(
     )
 
     return candidates
-
-
-# ============================================================
-# TARGET SCORING
-# ============================================================
 
 def candidate_target_score(
     candidate,
@@ -1410,11 +1303,6 @@ def candidate_target_score(
         score
     )
 
-
-# ============================================================
-# PATH SIMILARITY
-# ============================================================
-
 def sample_path(
     points,
     sample_count=25,
@@ -1446,7 +1334,6 @@ def sample_path(
         ],
         dtype=float,
     )
-
 
 def directed_path_distance(
     path_a,
@@ -1488,7 +1375,6 @@ def directed_path_distance(
         )
     )
 
-
 def path_similarity_distance(
     path_a,
     path_b,
@@ -1507,11 +1393,6 @@ def path_similarity_distance(
             path_a,
         )
     ) / 2.0
-
-
-# ============================================================
-# VISUAL OVERLAP PENALTY
-# ============================================================
 
 def trajectory_overlap_penalty(
     candidate_path,
@@ -1560,11 +1441,6 @@ def trajectory_overlap_penalty(
                 penalty += 20.0
 
     return penalty
-
-
-# ============================================================
-# FINAL SELECTION
-# ============================================================
 
 def select_final_paths(
     candidates,
@@ -1805,11 +1681,6 @@ def select_final_paths(
 
     return selected
 
-
-# ============================================================
-# SIMPLIFICATION
-# ============================================================
-
 def simplify_path(
     points,
     target_points=SIMPLIFIED_POINTS,
@@ -1841,11 +1712,6 @@ def simplify_path(
     simplified[-1] = points[-1]
 
     return simplified
-
-
-# ============================================================
-# WIND DATA ALONG FINAL PATH
-# ============================================================
 
 def enrich_path_with_wind(
     wind_field: WindField,
@@ -1896,11 +1762,6 @@ def enrich_path_with_wind(
         )
 
     return enriched
-
-
-# ============================================================
-# JSON EXPORT
-# ============================================================
 
 def export_paths_json(
     paths,
@@ -2113,11 +1974,6 @@ def export_paths_json(
         f"\nJSON exported to:\n"
         f"{JSON_FILE}"
     )
-
-
-# ============================================================
-# DIAGNOSTIC PLOT
-# ============================================================
 
 def plot_selected_paths(
     ds: xr.Dataset,
@@ -2383,11 +2239,6 @@ def plot_selected_paths(
         fig
     )
 
-
-# ============================================================
-# MAIN
-# ============================================================
-
 def main() -> None:
 
     if not DATA_FILE.exists():
@@ -2415,12 +2266,10 @@ def main() -> None:
         DATA_FILE
     ) as ds:
 
-        # 1. Validate ERA5 source.
         inspect_dataset(
             ds
         )
 
-        # 2. Calculate day-weighted JJAS mean.
         (
             u_mean,
             v_mean,
@@ -2429,7 +2278,6 @@ def main() -> None:
             ds
         )
 
-        # 3. Build interpolation field.
         print(
             "\nBuilding fast wind interpolators..."
         )
@@ -2443,7 +2291,6 @@ def main() -> None:
             "Wind interpolators ready."
         )
 
-        # 4. Generate dense candidate library.
         candidates = (
             generate_candidates(
                 wind_field
@@ -2457,7 +2304,6 @@ def main() -> None:
                 "were generated."
             )
 
-        # 5. Select five representative ribbons.
         selected = (
             select_final_paths(
                 candidates
@@ -2471,7 +2317,6 @@ def main() -> None:
                 "could be selected."
             )
 
-        # 6. Create diagnostic plot.
         plot_selected_paths(
             ds,
             u_mean,
@@ -2481,7 +2326,6 @@ def main() -> None:
             selected,
         )
 
-        # 7. Export final paths.
         export_paths_json(
             selected,
             wind_field,
@@ -2521,7 +2365,6 @@ def main() -> None:
         f"\nJSON:\n"
         f"{JSON_FILE}"
     )
-
 
 if __name__ == "__main__":
     main()

@@ -3,33 +3,10 @@ import math
 import os
 from pathlib import Path
 
-
-# ============================================================
-# ICON LINKS
-# ============================================================
-
-RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
-LOW_ICON = "https://i.imgur.com/VJIrVJN.png"
-
-
-# ============================================================
-# PATHS
-# ============================================================
-#
-# This file is expected to live in:
-#
-#   <project>/Arrow-Generator-main/indian_monsoon.py
-#
-# while the processed ERA5 data lives in:
-#
-#   <project>/data/processed/monsoon/monsoon_paths_2025.json
-#
-# We locate the project root dynamically so the generator
-# does not depend on the current working directory.
-# ============================================================
+RAIN_ICON = "https://i.imgur.com/CBHL5zR.png"
+LOW_ICON = "https://i.imgur.com/5r49jF2.png"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-
 
 def find_project_root() -> Path:
     """
@@ -65,7 +42,6 @@ def find_project_root() -> Path:
         f"Generator location:\n{SCRIPT_DIR}"
     )
 
-
 PROJECT_ROOT = find_project_root()
 
 MONSOON_DATA_FILE = (
@@ -76,19 +52,9 @@ MONSOON_DATA_FILE = (
     / "monsoon_paths_2025.json"
 )
 
-
-# ============================================================
-# VISUAL SETTINGS
-# ============================================================
-
 RIBBON_WIDTH = 0.35
 ARROWHEAD_SIZE = 1.2
 ARROW_GAP = 0.30
-
-
-# ============================================================
-# 1. LOAD ERA5-DERIVED MONSOON PATHS
-# ============================================================
 
 def load_monsoon_paths():
     """
@@ -138,22 +104,6 @@ def load_monsoon_paths():
 
     return data
 
-
-# ============================================================
-# 2. COLOR GRADIENT
-# ============================================================
-#
-# Existing visual style:
-#
-# Blue -> Cyan
-#
-# KML color format:
-#
-#   AABBGGRR
-#
-# b3 = approximately 70% opacity
-# ============================================================
-
 def interpolate_color(t):
     """
     Interpolate from blue at the beginning of the trajectory
@@ -173,11 +123,6 @@ def interpolate_color(t):
     b = 255
 
     return f"d9{b:02x}{g:02x}{r:02x}"
-
-
-# ============================================================
-# 3. VERTEX BOUNDARY
-# ============================================================
 
 def compute_boundary_vertices(
     points,
@@ -312,11 +257,6 @@ def compute_boundary_vertices(
         right_boundary,
     )
 
-
-# ============================================================
-# 4. SHAFT QUAD
-# ============================================================
-
 def create_quad_polygon(
     left1,
     left2,
@@ -358,11 +298,6 @@ def create_quad_polygon(
 
     </Placemark>
     """
-
-
-# ============================================================
-# 5. FULL GRADIENT RIBBON
-# ============================================================
 
 def create_gradient_ribbon(
     points,
@@ -408,11 +343,6 @@ def create_gradient_ribbon(
         left_boundary[-1],
         right_boundary[-1],
     )
-
-
-# ============================================================
-# 6. ARROWHEAD
-# ============================================================
 
 def create_arrowhead(
     p1,
@@ -544,11 +474,6 @@ def create_arrowhead(
     </Placemark>
     """
 
-
-# ============================================================
-# 7. TRUNCATE PATH FOR ARROWHEAD
-# ============================================================
-
 def truncate_curve_by_distance(
     curve,
     target_distance,
@@ -642,17 +567,10 @@ def truncate_curve_by_distance(
             distance
         )
 
-    # The path is shorter than the requested arrowhead length.
-    # Keep enough geometry to construct an arrow.
     return [
         curve[0],
         curve[-1],
     ]
-
-
-# ============================================================
-# 8. TRIM PATH START FOR INTER-ARROW GAP
-# ============================================================
 
 def trim_curve_start_by_distance(
     curve,
@@ -698,11 +616,6 @@ def trim_curve_start_by_distance(
 
     return list(curve)
 
-
-# ============================================================
-# 9. ERA5 PATH -> GRADIENT ARROW
-# ============================================================
-
 def generate_arrow_from_path(
     points,
     width=RIBBON_WIDTH,
@@ -720,8 +633,6 @@ def generate_arrow_from_path(
     if len(points) < 2:
         return ""
 
-    # Trim half the configured gap from the beginning.
-    # The trajectory itself is not displaced.
     points = trim_curve_start_by_distance(
         points,
         ARROW_GAP / 2,
@@ -738,8 +649,6 @@ def generate_arrow_from_path(
         )
     )
 
-    # Reserve the normal arrowhead length plus half the gap
-    # at the end of the shaft.
     truncated_curve = (
         truncate_curve_by_distance(
             points,
@@ -781,11 +690,6 @@ def generate_arrow_from_path(
         +
         arrowhead_kml
     )
-
-
-# ============================================================
-# 10. CONVERT JSON PATH TO COORDINATES
-# ============================================================
 
 def extract_coordinates(
     path_data,
@@ -850,11 +754,6 @@ def extract_coordinates(
 
     return coordinates
 
-
-# ============================================================
-# 11. ICON FUNCTION
-# ============================================================
-
 def create_icon(
     lon,
     lat,
@@ -883,11 +782,6 @@ def create_icon(
 
     </Placemark>
     """
-
-
-# ============================================================
-# 12. MONSOON VISUALIZATION
-# ============================================================
 
 def monsoon():
 
@@ -951,13 +845,6 @@ def monsoon():
         f"ERA5-derived gradient ribbons."
     )
 
-    # --------------------------------------------------------
-    # LOW PRESSURE ICON
-    # --------------------------------------------------------
-    #
-    # Existing visualization marker retained.
-    # --------------------------------------------------------
-
     kml += create_icon(
         73,
         27,
@@ -965,23 +852,15 @@ def monsoon():
         scale=5.0,
     )
 
-    # --------------------------------------------------------
-    # RAIN ICONS
-    # --------------------------------------------------------
-    #
-    # Existing precipitation-zone markers retained.
-    # These are independent of the ribbon geometry.
-    # --------------------------------------------------------
-
     rain_points = [
-        (76.2, 10.5),   # Kerala
-        (75.5, 13.5),   # Karnataka Coast
-        (73.5, 19.2),   # Mumbai / Western Ghats
-        (79, 21),       # Central India
-        (85.5, 18.5),   # Odisha Coast
-        (92.5, 25.2),   # Northeast India
-        (85, 24.5),     # Gangetic Plain
-        (77, 28.5),     # North India
+        (76.2, 10.5),
+        (75.5, 13.5),
+        (73.5, 19.2),
+        (79, 21),
+        (85.5, 18.5),
+        (92.5, 25.2),
+        (85, 24.5),
+        (77, 28.5),
     ]
 
     for lon, lat in rain_points:
@@ -994,11 +873,6 @@ def monsoon():
         )
 
     return kml
-
-
-# ============================================================
-# 13. WRAP KML
-# ============================================================
 
 def wrap_kml(
     content,
@@ -1017,11 +891,6 @@ def wrap_kml(
 
 </kml>
 """
-
-
-# ============================================================
-# 14. WRITE FILE
-# ============================================================
 
 def write_kml(
     path,
@@ -1046,11 +915,6 @@ def write_kml(
             content
         )
 
-
-# ============================================================
-# 15. MAIN
-# ============================================================
-
 def main():
 
     print(
@@ -1067,19 +931,11 @@ def main():
         f"{MONSOON_DATA_FILE}"
     )
 
-    # --------------------------------------------------------
-    # Generate KML content
-    # --------------------------------------------------------
-
     kml = monsoon()
 
     final = wrap_kml(
         kml
     )
-
-    # --------------------------------------------------------
-    # Current directory output
-    # --------------------------------------------------------
 
     current_output = (
         Path.cwd()
@@ -1091,16 +947,6 @@ def main():
         current_output,
         final,
     )
-
-    # --------------------------------------------------------
-    # Existing assets/kml output
-    # --------------------------------------------------------
-    #
-    # Preserve the behavior of the old generator:
-    #
-    #   <script directory>/../assets/kml/
-    #
-    # --------------------------------------------------------
 
     assets_dir = (
         SCRIPT_DIR.parent
@@ -1150,7 +996,6 @@ def main():
         f"\nIndian monsoon asset:\n"
         f"{asset_path_indian}"
     )
-
 
 if __name__ == "__main__":
     main()

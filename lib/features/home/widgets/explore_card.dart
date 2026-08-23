@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lg_connection/core/theme/climate_colors.dart';
 import 'package:lg_connection/features/dashboard/category_detail_screen.dart';
 
-/// A compact explore card linking to a climate category detail page.
 class ExploreCard extends StatelessWidget {
   final String title;
   final IconData icon;

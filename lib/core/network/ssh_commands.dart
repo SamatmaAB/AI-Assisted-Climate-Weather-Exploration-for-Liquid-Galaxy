@@ -1,30 +1,61 @@
 import 'dart:math';
 
-/// Holds all SSH command templates and KML generation logic for Liquid Galaxy.
 class SSHCommands {
 
-  // ── Screen Helpers ───────────────────────────────────────────────────────────
-
-  /// Returns the leftmost screen index for a given total screen count.
-  ///
-  /// LG lays out screens as:  [left … center … right]
-  /// Slave indices (for a 5-screen rig): 4 | 2 | 1 | 3 | 5
-  /// The leftmost slave for N screens = floor(N/2) + 2  (N > 1).
   static int calculateLeftMostScreen(int screens) {
     if (screens == 1) return 1;
     return (screens / 2).floor() + 2;
   }
 
-  /// Returns the rightmost screen index for a given total screen count.
   static int calculateRightMostScreen(int screens) {
     if (screens == 1) return 1;
     return (screens / 2).floor() + 1;
   }
 
-  // ── Navigation ───────────────────────────────────────────────────────────────
-
   static String buildOrbit() {
-    return 'echo "search=orbit" > /tmp/query.txt';
+    return 'echo "playtour=Orbit" > /tmp/query.txt';
+  }
+
+  static String buildOrbitTourKml({
+    required double latitude,
+    required double longitude,
+    required double range,
+    required double tilt,
+    required double heading,
+    int rotations = 3,
+    int stepDegrees = 10,
+    double stepDuration = 1.0,
+  }) {
+    final StringBuffer playlist = StringBuffer();
+    final int totalSteps = (360 ~/ stepDegrees) * rotations;
+
+    for (int i = 0; i <= totalSteps; i++) {
+      final double currentHeading = (heading + (i * stepDegrees)) % 360;
+      playlist.write('''
+      <gx:FlyTo>
+        <gx:duration>$stepDuration</gx:duration>
+        <gx:flyToMode>smooth</gx:flyToMode>
+        <LookAt>
+          <longitude>$longitude</longitude>
+          <latitude>$latitude</latitude>
+          <altitude>0</altitude>
+          <heading>$currentHeading</heading>
+          <tilt>$tilt</tilt>
+          <range>$range</range>
+          <gx:altitudeMode>relativeToGround</gx:altitudeMode>
+        </LookAt>
+      </gx:FlyTo>''');
+    }
+
+    return '''<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+  <gx:Tour>
+    <name>Orbit</name>
+    <gx:Playlist>
+$playlist
+    </gx:Playlist>
+  </gx:Tour>
+</kml>''';
   }
 
   static String flyTo(String lookAt) {
@@ -54,16 +85,23 @@ class SSHCommands {
     return 'echo "playtour=$tourName" > /tmp/query.txt';
   }
 
-  // ── KML Management (kmls.txt-based overlays) ─────────────────────────────────
-
-  /// Clears the main KML list file. Does NOT clear slave screen overlays.
   static String clearKML() {
     return 'echo "" > /var/www/html/kmls.txt';
   }
 
-  /// Tells Google Earth to re-read kmls.txt. Does NOT affect slave_N.kml files.
   static String refreshKML() {
     return "echo 'refreshkml=true' > /tmp/query.txt";
+  }
+
+  /// Clears kmls.txt AND sends refreshkml in a single SSH round-trip.
+  static String clearAndRefreshKML() {
+    return 'echo "" > /var/www/html/kmls.txt && echo \'refreshkml=true\' > /tmp/query.txt';
+  }
+
+  /// Writes KML URLs to kmls.txt AND sends refreshkml in a single SSH round-trip.
+  static String setKMLsAndRefresh(List<String> fileNames) {
+    final urls = fileNames.map((name) => 'http://lg1:81/$name').join('\\n');
+    return 'echo -e "$urls" > /var/www/html/kmls.txt && echo \'refreshkml=true\' > /tmp/query.txt';
   }
 
   static String setKML(String fileName) {
@@ -79,29 +117,15 @@ class SSHCommands {
     return 'echo "http://$host:81/$fileName" > /var/www/html/kmls.txt';
   }
 
-  // ── Slave Screen Overlays (slave_N.kml) ──────────────────────────────────────
-
-  /// Writes an empty KML to a slave screen, clearing any overlay displayed there.
-  /// Target path is /var/www/html/kml/slave_N.kml (the correct LG directory).
   static String clearScreen(int screen) {
     return "echo '${emptyKML()}' > /var/www/html/kml/slave_$screen.kml";
   }
 
-  /// Sends the LG logo directly to the specified slave screen via SSH echo.
-  /// Uses the correct path (/var/www/html/kml/) and avoids SFTP overhead.
   static String sendLogoToScreen(int screen) {
     final kml = buildLogoKML();
     return "echo '$kml' > /var/www/html/kml/slave_$screen.kml";
   }
 
-  // ── Slave Screen Force-Refresh (myplaces.kml sed method) ────────────────────
-  //
-  // Google Earth on slave rigs only re-reads slave_N.kml when the LG
-  // myplaces.kml entry has a refreshMode. The two-step add→remove approach
-  // (from the reference LgService) triggers one reload without leaving a
-  // permanent poll interval.
-
-  /// Step 1: Temporarily adds onInterval refresh to a slave's myplaces entry.
   static String addRefreshInterval(
       int screen, int interval, String password) {
     final search =
@@ -116,7 +140,6 @@ class SSHCommands {
     return "sshpass -p $password ssh -t lg$screen '$sedCmd'";
   }
 
-  /// Step 2: Removes the temporary refreshInterval so polling doesn't persist.
   static String removeRefreshInterval(int screen, String password) {
     final search =
         '<href>##LG_PHPIFACE##kml\\/slave_$screen.kml<\\/href>'
@@ -130,19 +153,15 @@ class SSHCommands {
     return "sshpass -p $password ssh -t lg$screen '$sedCmd'";
   }
 
-  // ── System Commands ──────────────────────────────────────────────────────────
-
   static String powerOff(String password) {
     return 'echo "$password" | sudo -S poweroff';
   }
 
-  /// Shuts down a single rig by index using the user's configured password.
   static String shutdownRig(String password, int rigIndex) {
     return 'sshpass -p $password ssh -t lg$rigIndex '
         '"echo $password | sudo -S shutdown now"';
   }
 
-  /// Reboots a single rig by index using the user's configured password.
   static String rebootRig(String password, int rigIndex) {
     return 'sshpass -p $password ssh -t lg$rigIndex '
         '"echo $password | sudo -S reboot"';
@@ -151,8 +170,6 @@ class SSHCommands {
   static String restartLGService() {
     return 'sudo systemctl restart lg';
   }
-
-  // ── KML Builders ─────────────────────────────────────────────────────────────
 
   static String buildLogoKML() {
     return '''<?xml version="1.0" encoding="UTF-8"?>

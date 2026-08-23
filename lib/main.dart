@@ -4,12 +4,14 @@ import 'package:lg_connection/core/theme/app_theme.dart';
 import 'package:lg_connection/core/theme/theme_controller.dart';
 import 'package:lg_connection/features/startup/startup_gate.dart';
 import 'package:lg_connection/services/ai/ai_repository.dart';
+import 'package:lg_connection/services/ai/api_key_storage.dart';
 import 'package:lg_connection/services/ai/provider_factory.dart';
+import 'package:lg_connection/services/tts/tts_service.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-/// Single [AIRepository] instance created once at the composition root.
-/// Every ViewModel and screen accesses AI capabilities through this instance.
 late final AIRepository aiRepository;
+late final TtsService ttsService;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,15 +20,33 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
 
-  // Initialize unified Cache Service (Hive)
   await CacheService.init();
 
-  // Restore persisted theme preferences before first frame
   await ThemeController.instance.loadFromPrefs();
 
-  // Create the single AI repository at the composition root
+  // ── Seed Gemini API key from dart-define (dart_defines.json) ────────────
+  // The compile-time constant is only non-empty when the app is built with
+  // --dart-define-from-file=dart_defines.json and a real key is present.
+  // We write it to secure storage exactly once so that:
+  //  • The Settings screen immediately reflects the key.
+  //  • The user can still override it manually without it being clobbered.
+  const buildApiKey = String.fromEnvironment('GEMINI_API_KEY');
+  if (buildApiKey.isNotEmpty) {
+    const _seedPrefKey = 'gemini_key_seeded_from_build';
+    final prefs = await SharedPreferences.getInstance();
+    final alreadySeeded = prefs.getBool(_seedPrefKey) ?? false;
+    if (!alreadySeeded) {
+      await const ApiKeyStorage().saveGeminiApiKey(buildApiKey);
+      await prefs.setBool(_seedPrefKey, true);
+    }
+  }
+  // ────────────────────────────────────────────────────────────────────────
+
   final provider = ProviderFactory.create();
   aiRepository = AIRepository(provider);
+
+  ttsService = TtsService.instance;
+  await ttsService.initialize();
 
   runApp(const EarthSystemsExplorerApp());
 }
@@ -44,9 +64,7 @@ class EarthSystemsExplorerApp extends StatelessWidget {
           title: 'Earth Systems Explorer',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.resolve(controller),
-          // themeMode is implicit because we always pass a fully resolved
-          // ThemeData. Setting it to ThemeMode.light ensures MaterialApp does
-          // not apply its own dark-override on top of our resolved theme.
+
           themeMode: ThemeMode.light,
           home: const StartupGate(),
         );

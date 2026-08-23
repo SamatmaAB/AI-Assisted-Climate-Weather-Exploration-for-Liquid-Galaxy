@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// A card for displaying high-level information or descriptions.
 class InfoCard extends StatelessWidget {
   final String title;
   final IconData icon;

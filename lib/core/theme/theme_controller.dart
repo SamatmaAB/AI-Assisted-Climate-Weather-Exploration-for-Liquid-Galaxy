@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Singleton [ChangeNotifier] that owns the app-wide theme state.
-///
-/// [MaterialApp] listens to this and rebuilds when [themeMode] or
-/// [isColorblindMode] changes. The [SettingsViewModel] calls [setDarkMode]
-/// and [setColorblindMode] so the UI reacts immediately.
 class ThemeController extends ChangeNotifier {
   ThemeController._();
 
@@ -18,7 +13,6 @@ class ThemeController extends ChangeNotifier {
   bool get isColorblindMode => _isColorblindMode;
   bool get isDarkMode => _themeMode == ThemeMode.dark;
 
-  /// Call once at startup to restore persisted preferences.
   Future<void> loadFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     final darkMode = prefs.getBool('isDarkMode') ?? true;

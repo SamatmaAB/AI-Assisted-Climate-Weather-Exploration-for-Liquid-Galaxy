@@ -7,17 +7,18 @@ import 'package:lg_connection/models/climate_phenomenon_model.dart';
 import 'package:lg_connection/services/ai/ai_repository.dart';
 import 'package:lg_connection/shared/services/cache_service.dart';
 import 'package:lg_connection/shared/services/map_sync_service.dart';
+import 'package:lg_connection/shared/services/orbit_service.dart';
 import 'package:lg_connection/shared/services/tour_service.dart';
+import 'package:lg_connection/features/phenomena/services/phenomenon_card_service.dart';
 import 'package:lg_connection/services/ai/providers/gemini_provider.dart';
 
-/// ViewModel for the Home Screen, managing state and business logic.
 class HomeViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final AIRepository _aiRepository;
   final MapSyncService _mapSyncService = MapSyncService();
   final TourService _tourService = TourService();
+  final PhenomenonCardService _phenomenonCardService = PhenomenonCardService();
 
-  // Map State - Delegated to MapSyncService
   LatLng get lastTarget => _mapSyncService.lastTarget;
   double get lastZoom => _mapSyncService.lastZoom;
   double get lastTilt => _mapSyncService.lastTilt;
@@ -29,16 +30,28 @@ class HomeViewModel extends ChangeNotifier {
     _mapSyncService.addListener(notifyListeners);
   }
 
-  /// Commands the Liquid Galaxy to orbit the current view.
   Future<void> orbit() async {
-    await _sshClient.runCommand(SSHCommands.buildOrbit());
+    await OrbitService().startOrbit();
   }
 
-  /// Clears all KML layers and stops any active tour on Liquid Galaxy.
+
+  /// Exits any playing guided tour on the rig (e.g. Indian Monsoon tour)
+  /// by writing `exittour=true` to the query file, leaving the loaded KML.
+  Future<bool> exitTour() async {
+    try {
+      return await _sshClient.runCommand(SSHCommands.stopTour());
+    } catch (e) {
+      debugPrint('HomeViewModel: exitTour failed: $e');
+      return false;
+    }
+  }
+
   Future<void> clearKML() async {
     await _tourService.stopTour();
+    await PhenomenonCardService().clearCard(_sshClient);
     await _sshClient.runCommand(SSHCommands.clearKML());
     await _sshClient.runCommand(SSHCommands.refreshKML());
+    await _sshClient.forceRefresh(1);
   }
 
   bool _isValidExplanation(String? text) {
@@ -50,19 +63,22 @@ class HomeViewModel extends ChangeNotifier {
     return true;
   }
 
-  /// Retrieves a climate explanation, using cache if available.
   Future<String> getClimateExplanation(String phenomenon) async {
     final cached = CacheService.getClimateInfo(phenomenon);
     if (_isValidExplanation(cached)) return cached!;
 
-    final explanation = await _aiRepository.getExplanation(phenomenon);
+    final explanation = await _aiRepository
+        .getExplanation(phenomenon)
+        .timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => ClimatePhenomena.getFallbackSummary(phenomenon),
+        );
     if (_isValidExplanation(explanation)) {
       await CacheService.saveClimateInfo(phenomenon, explanation);
+      return explanation;
     }
-    return explanation;
+    return ClimatePhenomena.getFallbackSummary(phenomenon);
   }
-
-  // --- Visualization Actions ---
 
   Future<void> visualizeIndianMonsoon() async {
     isVisualisingMonsoon = true;
@@ -154,40 +170,40 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> visualizeMumbaiMonsoon() async {
-    isVisualisingMumbaiMonsoon = true;
-    notifyListeners();
-    try {
-      await _runVisualizationSequence(
-        assetPath: ClimatePhenomena.mumbaiMonsoon.kmlAssetPath,
-        fileName: ClimatePhenomena.mumbaiMonsoon.fileName,
-        lookAt: ClimatePhenomena.mumbaiMonsoon.lookAtXml,
-        tourKmlPath: ClimatePhenomena.mumbaiMonsoon.tourKmlPath,
-        tourName: ClimatePhenomena.mumbaiMonsoon.tourName,
-        phenomenonName: ClimatePhenomena.mumbaiMonsoon.name,
-      );
-    } finally {
-      isVisualisingMumbaiMonsoon = false;
-      notifyListeners();
-    }
-  }
-
-  // Loading States for Visualizations
   bool isVisualisingMonsoon = false;
   bool isVisualisingKuroshio = false;
   bool isVisualisingGulfStream = false;
   bool isVisualisingElNino = false;
   bool isVisualisingLaNina = false;
-  bool isVisualisingMumbaiMonsoon = false;
 
-  /// Orchestrates the sequence:
-  /// 1. Stop active tour & clear old KML
-  /// 2. Upload visualization KML
-  /// 3. Upload tour KML
-  /// 4. Register both KMLs in kmls.txt & refresh
-  /// 5. Fly camera to region LookAt
-  /// 6. Initiate Gemini summary generation
-  /// 7. Automatically start tour playback
+  bool get isAnyVisualising =>
+      isVisualisingMonsoon ||
+      isVisualisingKuroshio ||
+      isVisualisingGulfStream ||
+      isVisualisingElNino ||
+      isVisualisingLaNina;
+
+  /// Retries an SSH command up to [maxRetries] times with a delay between
+  /// attempts. Returns true if the command eventually succeeds.
+  Future<bool> _retryCommand(
+    String command, {
+    int maxRetries = 2,
+    Duration retryDelay = const Duration(milliseconds: 300),
+  }) async {
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      final ok = await _sshClient.runCommand(command);
+      if (ok) return true;
+      if (attempt < maxRetries) {
+        debugPrint(
+          'HomeViewModel: Command failed (attempt ${attempt + 1}/$maxRetries), '
+          'retrying in ${retryDelay.inMilliseconds}ms…',
+        );
+        await Future.delayed(retryDelay);
+      }
+    }
+    return false;
+  }
+
   Future<void> _runVisualizationSequence({
     required String assetPath,
     required String fileName,
@@ -196,42 +212,92 @@ class HomeViewModel extends ChangeNotifier {
     required String tourName,
     String? phenomenonName,
   }) async {
+    // ── Phase 1: Unload previous visualization + pre-load assets in parallel ──
     await _tourService.stopTour();
-    await Future.delayed(const Duration(milliseconds: 150));
-    await _sshClient.runCommand(SSHCommands.clearKML());
-    await Future.delayed(const Duration(milliseconds: 100));
-    
-    // Upload Visualization KML
-    final kmlContent = await rootBundle.loadString(assetPath);
-    await _sshClient.uploadFile(
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // Clear old card from slave screen.
+    await _phenomenonCardService.clearCard(_sshClient);
+
+    // [C] Batch: clear kmls.txt + refreshkml in one SSH round-trip.
+    await _retryCommand(SSHCommands.clearAndRefreshKML());
+    await _sshClient.forceRefresh(1);
+
+    // [A] Pre-load both asset strings from the bundle DURING the GE unload wait
+    //     (overlaps I/O with the 800ms delay — effectively free).
+    final assetFutures = Future.wait([
+      rootBundle.loadString(assetPath),
+      rootBundle.loadString(tourKmlPath),
+    ]);
+    await Future.delayed(const Duration(milliseconds: 800));
+    final assets = await assetFutures;
+    final kmlContent = assets[0];
+    final tourContent = assets[1];
+
+    // ── Phase 2: Upload KMLs sequentially (SSH only supports one SFTP channel), then load ──
+    final tourFileName = tourKmlPath.split('/').last;
+
+    final uploaded = await _sshClient.uploadFile(
       content: kmlContent,
       targetPath: '/var/www/html/$fileName',
     );
+    if (!uploaded) {
+      debugPrint('HomeViewModel: KML upload failed for $fileName — aborting.');
+      return;
+    }
 
-    // Upload Tour KML
-    final tourFileName = tourKmlPath.split('/').last;
-    final tourContent = await rootBundle.loadString(tourKmlPath);
-    await _sshClient.uploadFile(
+    final tourUploaded = await _sshClient.uploadFile(
       content: tourContent,
       targetPath: '/var/www/html/$tourFileName',
     );
-    
-    // Register both visualization KML and tour KML in kmls.txt
-    await _sshClient.runCommand(SSHCommands.setKMLs([fileName, tourFileName]));
-    await _sshClient.runCommand(SSHCommands.refreshKML());
-    
-    // Fly to position
-    await Future.delayed(const Duration(milliseconds: 500));
-    await _mapSyncService.flyToLookAt(lookAt);
+    if (!tourUploaded) {
+      debugPrint(
+        'HomeViewModel: Tour KML upload failed for $tourFileName — aborting.',
+      );
+      return;
+    }
 
-    // Start Gemini summary generation asynchronously
+    // [C] Batch: setKMLs + refreshkml in one SSH round-trip.
+    final setOk = await _retryCommand(
+      SSHCommands.setKMLsAndRefresh([fileName, tourFileName]),
+    );
+    if (!setOk) {
+      debugPrint('HomeViewModel: setKMLs failed after retries — aborting.');
+      return;
+    }
+    await _sshClient.forceRefresh(1);
+
+    // ── Phase 3: Wait for GE to load, deploy card in parallel, then play tour ──
+    await Future.delayed(const Duration(milliseconds: 1000));
+    _mapSyncService.updateMapPositionFromLookAt(lookAt);
+
+    // [B] Fire-and-forget with skipGlobalRefresh — no query.txt race with playTour.
+    //     deployCard only does forceRefresh on the slave screen (no refreshkml).
+    _phenomenonCardService.deployCard(
+      phenomenon: ClimatePhenomena.all.firstWhere(
+        (p) => p.name == phenomenonName,
+        orElse: () => ClimatePhenomena.indianMonsoon,
+      ),
+      lgClient: _sshClient,
+      skipGlobalRefresh: true,
+    );
+
     if (phenomenonName != null) {
       getClimateExplanation(phenomenonName);
     }
 
-    // Automatically trigger tour playback after camera stabilization
-    await Future.delayed(const Duration(milliseconds: 1000));
-    await _sshClient.runCommand(SSHCommands.playTour(tourName));
+    // Play the tour.
+    await Future.delayed(const Duration(milliseconds: 500));
+    final tourStarted = await _retryCommand(SSHCommands.playTour(tourName));
+
+    if (!tourStarted) {
+      debugPrint(
+        'HomeViewModel: playTour failed — re-sending refresh + playTour.',
+      );
+      await _retryCommand(SSHCommands.refreshKML());
+      await Future.delayed(const Duration(milliseconds: 800));
+      await _retryCommand(SSHCommands.playTour(tourName));
+    }
   }
 
   @override

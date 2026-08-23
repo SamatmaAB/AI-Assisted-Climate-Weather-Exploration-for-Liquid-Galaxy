@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/features/datasets/models/dataset_model.dart';
 
-/// Detailed view for a specific climate dataset.
 class DatasetDetailScreen extends StatelessWidget {
   final Dataset dataset;
 

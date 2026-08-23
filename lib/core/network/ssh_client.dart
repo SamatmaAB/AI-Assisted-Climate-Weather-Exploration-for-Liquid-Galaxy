@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lg_connection/core/network/ssh_commands.dart';
 
-/// A low-level SSH client that handles connection and command execution for Liquid Galaxy.
 class LGSSHClient {
   static final LGSSHClient _instance = LGSSHClient._internal();
   factory LGSSHClient() => _instance;
@@ -24,14 +23,10 @@ class LGSSHClient {
   int _reconnectAttempts = 0;
   static const int _maxReconnectAttempts = 3;
 
-  /// Exposes the number of configured LG screens (read from SharedPreferences).
   int get numberOfRigs => _numberOfRigs;
 
-  /// Exposes the configured password so ViewModels can build sudo commands for
-  /// slave rigs (e.g. shutdown, reboot, force-refresh via myplaces.kml).
   String get password => _passwordOrKey;
 
-  /// Initializes connection details from SharedPreferences.
   Future<void> initConnectionDetails() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     _host = prefs.getString('ipAddress') ?? '';
@@ -42,7 +37,6 @@ class LGSSHClient {
         int.tryParse(prefs.getString('numberOfRigs') ?? '3') ?? 3;
   }
 
-  /// Establishes an SSH connection to the Liquid Galaxy master rig.
   Future<bool> connect() async {
     await initConnectionDetails();
 
@@ -62,7 +56,7 @@ class LGSSHClient {
         socket,
         username: _username,
         onPasswordRequest: () => _passwordOrKey,
-        // Sends SSH keep-alive packets every 10 s to prevent idle disconnects.
+
         keepAliveInterval: const Duration(seconds: 10),
       );
 
@@ -70,7 +64,6 @@ class LGSSHClient {
       isConnected.value = true;
       _reconnectAttempts = 0;
 
-      // Start heartbeat BEFORE listening to done so we detect drops early.
       _startHeartbeat();
 
       _client!.done.then((_) {
@@ -85,24 +78,21 @@ class LGSSHClient {
     }
   }
 
-  /// Starts a 5-second periodic heartbeat. If the ping times out the connection
-  /// is treated as lost and auto-reconnect is triggered.
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      if (_client == null) return;
-      try {
-        await _client!
-            .execute('echo "ping"')
-            .timeout(const Duration(seconds: 3));
-      } catch (_) {
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (_client == null || !isConnected.value) return;
+      _client!
+          .execute('echo "ping"')
+          .timeout(const Duration(seconds: 3))
+          .then((_) {})
+          .catchError((e) {
+        debugPrint('SSH Heartbeat error: $e');
         _handleDisconnection();
-      }
+      });
     });
   }
 
-  /// Called when the SSH connection is lost. Cleans up state and schedules up
-  /// to [_maxReconnectAttempts] reconnect retries (3 s apart).
   void _handleDisconnection() {
     if (!isConnected.value) return;
     isConnected.value = false;
@@ -119,6 +109,8 @@ class LGSSHClient {
       Future.delayed(const Duration(seconds: 3), () async {
         final ok = await connect();
         if (ok) _reconnectAttempts = 0;
+      }).catchError((e) {
+        debugPrint('SSH: Reconnect attempt failed: $e');
       });
     } else {
       debugPrint('SSH: Max reconnect attempts reached. Giving up.');
@@ -126,7 +118,6 @@ class LGSSHClient {
     }
   }
 
-  /// Executes a single SSH command on the master rig.
   Future<SSHSession?> execute(String command) async {
     try {
       if (_client == null || !isConnected.value) {
@@ -144,7 +135,6 @@ class LGSSHClient {
     }
   }
 
-  /// Simple command execution that awaits session completion and returns success.
   Future<bool> runCommand(String command) async {
     final session = await execute(command);
     if (session == null) return false;
@@ -152,8 +142,6 @@ class LGSSHClient {
     return true;
   }
 
-  /// Uploads file content to the Liquid Galaxy rig via SFTP.
-  /// Used for larger KML assets (visualization overlays in home_viewmodel).
   Future<bool> uploadFile({
     required String content,
     required String targetPath,
@@ -162,6 +150,11 @@ class LGSSHClient {
       bool connected = await connect();
       if (!connected) return false;
     }
+
+    final dir = targetPath.contains('/')
+        ? targetPath.substring(0, targetPath.lastIndexOf('/'))
+        : '.';
+    await ensureRemoteDirectory(dir);
 
     try {
       final sftp = await _client!.sftp();
@@ -183,7 +176,51 @@ class LGSSHClient {
     }
   }
 
-  /// Establishes an SSH connection using provided credentials without requiring prior persistence.
+  /// Ensures the remote directory exists by running `mkdir -p <dir>` via SSH.
+  /// Must be called before any SFTP upload whose parent directory may be absent.
+  Future<void> ensureRemoteDirectory(String remoteDirPath) async {
+    try {
+      await runCommand('mkdir -p "$remoteDirPath"');
+    } catch (e) {
+      debugPrint('ensureRemoteDirectory failed for $remoteDirPath: $e');
+    }
+  }
+
+  Future<bool> uploadBinaryFile({
+    required Uint8List bytes,
+    required String targetPath,
+  }) async {
+    if (_client == null || !isConnected.value) {
+      bool connected = await connect();
+      if (!connected) return false;
+    }
+
+    // Ensure the parent directory exists before opening the file over SFTP.
+    // Without this, sftp.open() throws SftpStatusError code 2 (No such file).
+    final dir = targetPath.contains('/')
+        ? targetPath.substring(0, targetPath.lastIndexOf('/'))
+        : '.';
+    await ensureRemoteDirectory(dir);
+
+    try {
+      final sftp = await _client!.sftp();
+      final file = await sftp.open(
+        targetPath,
+        mode:
+            SftpFileOpenMode.truncate |
+            SftpFileOpenMode.create |
+            SftpFileOpenMode.write,
+      );
+
+      await file.write(Stream.fromIterable([bytes]), offset: 0);
+      await file.close();
+      return true;
+    } catch (e) {
+      debugPrint('SFTP Binary Upload failed: $e');
+      return false;
+    }
+  }
+
   Future<bool> connectWithCredentials({
     required String host,
     required String port,
@@ -234,7 +271,6 @@ class LGSSHClient {
     }
   }
 
-  /// Sends the Liquid Galaxy logo to the leftmost screen.
   Future<bool> sendLogo() async {
     final screens = numberOfRigs;
     final leftScreen = SSHCommands.calculateLeftMostScreen(screens);
@@ -246,22 +282,32 @@ class LGSSHClient {
     return ok;
   }
 
-  /// Forces Google Earth on a slave screen to reload its KML.
-  Future<void> forceRefresh(int screen) async {
+  Future<bool> forceRefresh(int screen) async {
     final pwd = password;
     try {
-      await runCommand(
+      final okAdd = await runCommand(
         SSHCommands.addRefreshInterval(screen, 2, pwd),
       );
-      await runCommand(
+      final okRemove = await runCommand(
         SSHCommands.removeRefreshInterval(screen, pwd),
       );
+      final success = okAdd && okRemove;
+      if (success) {
+        debugPrint(
+          'LGSSHClient: forceRefresh SUCCESSFUL for screen $screen (myplaces.kml updated & reset).',
+        );
+      } else {
+        debugPrint(
+          'LGSSHClient: forceRefresh FAILED for screen $screen (SSH command returned error status).',
+        );
+      }
+      return success;
     } catch (e) {
-      debugPrint('forceRefresh failed for screen $screen: $e');
+      debugPrint('LGSSHClient: forceRefresh FAILED for screen $screen: $e');
+      return false;
     }
   }
 
-  /// Closes the current SSH connection and cancels the heartbeat timer.
   void disconnect() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;

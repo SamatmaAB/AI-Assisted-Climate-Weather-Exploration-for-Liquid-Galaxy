@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pulse_indicator.dart';
 
-/// Displays the Liquid Galaxy rig connection status using M3 semantic colors.
-///
-/// The status is communicated via both color AND a text label so it is not
-/// conveyed by color alone (accessibility requirement).
 class StatusBadge extends StatelessWidget {
   final bool isConnected;
 

@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-/// Card displaying application version, guide links, and open-source references.
 class AboutCard extends StatelessWidget {
   const AboutCard({super.key});
+
+  static const String _sourceCodeUrl =
+      'https://github.com/SamatmaAB/AI-Assisted-Climate-Weather-Exploration-for-Liquid-Galaxy';
+
+  Future<void> _openSourceCode() async {
+    final uri = Uri.parse(_sourceCodeUrl);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('AboutCard: Could not launch $_sourceCodeUrl');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +37,11 @@ class AboutCard extends StatelessWidget {
             leading: const Icon(Icons.code_outlined),
             title: const Text('Open Source Code'),
             trailing: const Icon(Icons.open_in_new_outlined, size: 18),
-            onTap: () {},
+            onTap: _openSourceCode,
           ),
         ],
       ),
     );
   }
 }
+

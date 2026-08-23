@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// A card displaying the current Liquid Galaxy rig connection status and cluster info.
-///
-/// Status is communicated through both icon, label text, AND color to meet
-/// accessibility requirements.
 class AvailabilityCard extends StatelessWidget {
   final bool isConnected;
 
@@ -57,7 +53,7 @@ class AvailabilityCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            // Linear progress showing connection health
+
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(

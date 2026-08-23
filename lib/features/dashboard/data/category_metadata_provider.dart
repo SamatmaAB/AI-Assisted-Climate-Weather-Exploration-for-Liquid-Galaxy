@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lg_connection/core/theme/climate_colors.dart';
 import 'package:lg_connection/features/dashboard/models/category_model.dart';
 
-/// Provides metadata for different climate categories.
 class CategoryMetadataProvider {
   static CategoryMetadata getMetadata(String categoryName) {
     switch (categoryName) {

@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Animated pulsing dot indicating live connection or active status.
-///
-/// Uses a subtle fade animation. Color is provided by the caller using
-/// a semantic ColorScheme color.
 class PulseIndicator extends StatefulWidget {
   final Color color;
   final double size;

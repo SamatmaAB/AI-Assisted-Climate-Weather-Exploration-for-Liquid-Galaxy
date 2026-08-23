@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/features/tours/tour_viewmodel.dart';
 import 'package:lg_connection/main.dart';
+import 'package:lg_connection/services/tts/tts_service.dart';
+import 'package:lg_connection/services/tts/widgets/tts_playback_bar.dart';
 
-/// Screen for managing and playing planetary tours / simulations.
 class TourScreen extends StatefulWidget {
   final String phenomenon;
 
@@ -24,6 +25,7 @@ class _TourScreenState extends State<TourScreen> {
 
   @override
   void dispose() {
+    TtsService.instance.stop();
     _viewModel.dispose();
     super.dispose();
   }
@@ -116,7 +118,17 @@ class _TourScreenState extends State<TourScreen> {
               ),
               const SizedBox(height: 24),
 
-              _buildSectionHeader(context, 'MECHANISM ANALYSIS'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildSectionHeader(context, 'MECHANISM ANALYSIS'),
+                  if (!_viewModel.isLoadingExplanation && _viewModel.explanation.isNotEmpty)
+                    TtsPlaybackBar(
+                      text: _viewModel.explanation,
+                      compact: true,
+                    ),
+                ],
+              ),
               const SizedBox(height: 12),
               Card(
                 child: Padding(

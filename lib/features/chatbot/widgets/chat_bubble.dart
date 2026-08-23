@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:lg_connection/services/tts/widgets/tts_playback_bar.dart';
 
-/// A single message bubble in the chatbot conversation.
-///
-/// User messages use [primaryContainer] and assistant messages use [surfaceContainerHighest].
 class ChatBubble extends StatelessWidget {
   final String text;
   final bool isUser;
@@ -26,10 +25,11 @@ class ChatBubble extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.78,
+          maxWidth: MediaQuery.of(context).size.width * 0.82,
         ),
         child: Column(
-          crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment:
+              isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -42,20 +42,52 @@ class ChatBubble extends StatelessWidget {
                   bottomRight: Radius.circular(isUser ? 4 : 16),
                 ),
               ),
-              child: Text(
-                text,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: fg,
-                  height: 1.45,
-                ),
-              ),
+              child: isUser
+                  ? Text(
+                      text,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: fg,
+                        height: 1.45,
+                      ),
+                    )
+                  : MarkdownBody(
+                      data: text,
+                      styleSheet:
+                          MarkdownStyleSheet.fromTheme(Theme.of(context))
+                              .copyWith(
+                        p: textTheme.bodyMedium?.copyWith(
+                          color: fg,
+                          height: 1.5,
+                        ),
+                        h3: textTheme.titleSmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        h2: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        listBullet: textTheme.bodyMedium?.copyWith(
+                          color: fg,
+                          height: 1.45,
+                        ),
+                        blockSpacing: 6,
+                      ),
+                    ),
             ),
             const SizedBox(height: 4),
-            Text(
-              isUser ? 'You' : 'Climate AI',
-              style: textTheme.labelSmall?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.4),
-              ),
+            Row(
+              mainAxisAlignment:
+                  isUser ? MainAxisAlignment.end : MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  isUser ? 'You' : 'Climate AI',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                ),
+                if (!isUser) TtsPlaybackBar(text: text, compact: true),
+              ],
             ),
           ],
         ),

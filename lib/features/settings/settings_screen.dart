@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/core/common_widgets/status_badge.dart';
+import 'package:lg_connection/core/theme/app_color_scheme.dart';
 import 'package:lg_connection/features/settings/settings_viewmodel.dart';
 import 'package:lg_connection/features/settings/widgets/about_card.dart';
 import 'package:lg_connection/features/settings/widgets/ai_settings_card.dart';
 import 'package:lg_connection/features/settings/widgets/appearance_card.dart';
 import 'package:lg_connection/features/settings/widgets/connection_settings_card.dart';
+import 'package:lg_connection/features/settings/widgets/tts_settings_card.dart';
 
-/// Screen for configuring application preferences and Liquid Galaxy connection.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -35,8 +36,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: isSuccess
-            ? Theme.of(context).colorScheme.secondaryContainer
-            : Theme.of(context).colorScheme.errorContainer,
+            ? Theme.of(context).colorScheme.bannerSuccess
+            : Theme.of(context).colorScheme.bannerError,
       ),
     );
   }
@@ -78,18 +79,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   usernameController: _viewModel.usernameController,
                   passwordController: _viewModel.passwordController,
                   rigsController: _viewModel.rigsController,
-                  isConnecting: _viewModel.isConnecting,
+                  isConnecting: _viewModel.isConnecting || _viewModel.isSendingLogo,
                   onSave: () async {
                     await _viewModel.saveSettings();
                     _showFeedback('Settings saved successfully', true);
                   },
                   onConnect: () async {
-                    final success = await _viewModel.connect();
-                    _showFeedback(
-                      success
-                          ? 'Successfully connected to Liquid Galaxy!'
-                          : 'Connection failed. Verify IP and credentials.',
-                      success,
+                    _showFeedback('Connecting to Liquid Galaxy...', true);
+                    await _viewModel.connect(
+                      onFeedback: (message, isSuccess) {
+                        _showFeedback(message, isSuccess);
+                      },
                     );
                   },
                 ),
@@ -100,6 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 AiSettingsCard(
                   apiKeyController: _viewModel.apiKeyController,
                   isObscured: _viewModel.isApiKeyObscured,
+                  isBuildConfigured: _viewModel.isBuildConfigured,
                   onToggleVisibility: _viewModel.toggleApiKeyVisibility,
                   onSave: () async {
                     await _viewModel.saveApiKey();
@@ -122,6 +123,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 28),
 
+                _buildSectionLabel(context, 'Voice & Speech (TTS)'),
+                const SizedBox(height: 12),
+                const TtsSettingsCard(),
+                const SizedBox(height: 28),
+
                 _buildSectionLabel(context, 'About'),
                 const SizedBox(height: 12),
                 const AboutCard(),
@@ -137,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                       Text(
-                        'Liquid Galaxy Project 2026',
+                        '',
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurface.withValues(alpha: 0.4),
                         ),

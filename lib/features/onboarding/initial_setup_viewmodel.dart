@@ -4,14 +4,12 @@ import 'package:lg_connection/features/startup/startup_gate.dart';
 import 'package:lg_connection/services/ai/api_key_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// The 3 stages of initial first-run onboarding.
 enum OnboardingStage {
-  welcome,    // Stage 1: Get Started
-  connection, // Stage 2: Connect to Liquid Galaxy
-  ready,      // Stage 3: Start Exploring & optional Send Logo
+  welcome,
+  connection,
+  ready,
 }
 
-/// Operation state during SSH connection verification.
 enum ConnectionOpState {
   idle,
   connecting,
@@ -19,7 +17,6 @@ enum ConnectionOpState {
   failure,
 }
 
-/// Operation state for optional Send Logo action.
 enum LogoOpState {
   idle,
   sending,
@@ -27,7 +24,6 @@ enum LogoOpState {
   failure,
 }
 
-/// ViewModel managing the three-stage first-run onboarding flow.
 class InitialSetupViewModel extends ChangeNotifier {
   final LGSSHClient _sshClient = LGSSHClient();
   final ApiKeyStorage _apiKeyStorage = const ApiKeyStorage();
@@ -70,16 +66,16 @@ class InitialSetupViewModel extends ChangeNotifier {
       ipController.text = prefs.getString('ipAddress') ?? '';
     }
     if (usernameController.text.isEmpty) {
-      usernameController.text = prefs.getString('username') ?? 'lg';
+      usernameController.text = prefs.getString('username') ?? '';
     }
     if (passwordController.text.isEmpty) {
-      passwordController.text = prefs.getString('password') ?? 'lg';
+      passwordController.text = prefs.getString('password') ?? '';
     }
     if (portController.text.isEmpty) {
-      portController.text = prefs.getString('sshPort') ?? '22';
+      portController.text = prefs.getString('sshPort') ?? '';
     }
     if (rigsController.text.isEmpty) {
-      rigsController.text = prefs.getString('numberOfRigs') ?? '3';
+      rigsController.text = prefs.getString('numberOfRigs') ?? '';
     }
     if (apiKeyController.text.isEmpty) {
       final storedKey = await _apiKeyStorage.getGeminiApiKey();
@@ -95,13 +91,11 @@ class InitialSetupViewModel extends ChangeNotifier {
     if (!_isDisposed) notifyListeners();
   }
 
-  /// Advances from Stage 1 (Welcome) to Stage 2 (Connection).
   void goToConnection() {
     _stage = OnboardingStage.connection;
     if (!_isDisposed) notifyListeners();
   }
 
-  /// Handles linear back navigation during onboarding.
   void goBack() {
     if (_stage == OnboardingStage.ready) {
       _stage = OnboardingStage.connection;
@@ -111,7 +105,6 @@ class InitialSetupViewModel extends ChangeNotifier {
     if (!_isDisposed) notifyListeners();
   }
 
-  /// Validates required configuration inputs.
   bool validate() {
     bool isValid = true;
     ipError = null;
@@ -148,7 +141,6 @@ class InitialSetupViewModel extends ChangeNotifier {
     return isValid;
   }
 
-  /// Attempts SSH connection to Liquid Galaxy (Stage 2 primary action).
   Future<bool> connect() async {
     if (!validate()) return false;
 
@@ -176,6 +168,7 @@ class InitialSetupViewModel extends ChangeNotifier {
       _connectionState = ConnectionOpState.connected;
       _stage = OnboardingStage.ready;
       notifyListeners();
+      sendLogo();
       return true;
     } else {
       _connectionState = ConnectionOpState.failure;
@@ -185,10 +178,9 @@ class InitialSetupViewModel extends ChangeNotifier {
     }
   }
 
-  /// Optional action to send logo once connected (Stage 3 action).
   Future<bool> sendLogo() async {
     _logoState = LogoOpState.sending;
-    logoFeedback = null;
+    logoFeedback = 'Uploading logo to Liquid Galaxy...';
     if (!_isDisposed) notifyListeners();
 
     final bool logoSent = await _sshClient.sendLogo();
@@ -197,17 +189,16 @@ class InitialSetupViewModel extends ChangeNotifier {
 
     if (logoSent) {
       _logoState = LogoOpState.success;
-      logoFeedback = '✓ Logo sent successfully';
+      logoFeedback = '✓ Logo sent successfully to slave rig';
     } else {
       _logoState = LogoOpState.failure;
-      logoFeedback = 'Unable to send logo.';
+      logoFeedback = 'Unable to send logo to slave rig.';
     }
 
     if (!_isDisposed) notifyListeners();
     return logoSent;
   }
 
-  /// Saves verified connection details and marks initial setup as complete.
   Future<void> completeSetup() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('ipAddress', ipController.text.trim());

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Screen providing technical documentation and operational guidelines.
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
 

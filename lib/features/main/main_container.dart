@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lg_connection/features/home/home_screen.dart';
-import 'package:lg_connection/features/datasets/datasets_screen.dart';
+import 'package:lg_connection/features/city_explorer/city_explorer_screen.dart';
 import 'package:lg_connection/features/controls/controls_screen.dart';
 import 'package:lg_connection/features/settings/settings_screen.dart';
 
-/// The root shell that manages M3 NavigationBar and screen switching.
 class MainContainer extends StatefulWidget {
   const MainContainer({super.key});
 
@@ -15,10 +14,9 @@ class MainContainer extends StatefulWidget {
 class _MainContainerState extends State<MainContainer> {
   int _selectedIndex = 0;
 
-  // Screens are kept as constants to avoid recreation on tab switch.
   static const List<Widget> _screens = [
     HomeScreen(),
-    DatasetsScreen(),
+    CityExplorerScreen(),
     ControlsScreen(),
     SettingsScreen(),
   ];
@@ -43,10 +41,10 @@ class _MainContainerState extends State<MainContainer> {
             tooltip: 'Climate View',
           ),
           NavigationDestination(
-            icon: Icon(Icons.dataset_outlined),
-            selectedIcon: Icon(Icons.dataset),
-            label: 'Data',
-            tooltip: 'Data Sources',
+            icon: Icon(Icons.travel_explore_outlined),
+            selectedIcon: Icon(Icons.travel_explore),
+            label: 'Explorer',
+            tooltip: 'City Explorer',
           ),
           NavigationDestination(
             icon: Icon(Icons.display_settings_outlined),

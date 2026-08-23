@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lg_connection/services/ai/ai_repository.dart';
+import 'package:lg_connection/services/tts/tts_service.dart';
 
-/// Manages the state and business logic for the Climate AI Chatbot.
 class ChatbotViewModel extends ChangeNotifier {
   final AIRepository _aiRepository;
   final ScrollController scrollController = ScrollController();
   final TextEditingController messageController = TextEditingController();
 
   ChatbotViewModel(this._aiRepository);
+
+  bool _isTyping = false;
+  bool get isTyping => _isTyping;
 
   final List<Map<String, dynamic>> _messages = [
     {
@@ -19,7 +22,6 @@ class ChatbotViewModel extends ChangeNotifier {
 
   List<Map<String, dynamic>> get messages => List.unmodifiable(_messages);
 
-  /// Sends a message, triggers AI response, and handles UI auto-scrolling.
   Future<void> sendMessage({String? text}) async {
     final messageText = text ?? messageController.text.trim();
     if (messageText.isEmpty) return;
@@ -28,25 +30,32 @@ class ChatbotViewModel extends ChangeNotifier {
       'text': messageText,
       'isUser': true,
     });
-    
+
     if (text == null) messageController.clear();
     notifyListeners();
     _scrollToBottom();
 
-    // Trigger AI response
     await _generateAiResponse(messageText);
   }
 
   Future<void> _generateAiResponse(String userMessage) async {
-    // Note: In a real app, we'd add a "typing..." indicator here.
+    _isTyping = true;
+    notifyListeners();
+    _scrollToBottom();
+
     final response = await _aiRepository.ask(userMessage);
 
+    _isTyping = false;
     _messages.add({
       'text': response,
       'isUser': false,
     });
     notifyListeners();
     _scrollToBottom();
+
+    if (TtsService.instance.autoNarrate && response.trim().isNotEmpty) {
+      TtsService.instance.speak(response);
+    }
   }
 
   void _scrollToBottom() {

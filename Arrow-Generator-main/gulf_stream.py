@@ -1,31 +1,29 @@
 import math
 import os
 
-# =====================================================
-# CONFIG
-# =====================================================
+def xml_escape(text):
+    """Escape special characters so placemark names stay valid XML."""
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
 
-RAIN_ICON = "https://i.imgur.com/qoXQjzD.png"
-DROUGHT_ICON = "https://i.imgur.com/p7WHxlT.png"
-FLOOD_ICON = "https://i.imgur.com/FE0MzOA.jpeg"
+RAIN_ICON = "https://i.imgur.com/CBHL5zR.png"
+DROUGHT_ICON = "https://i.imgur.com/J4my1UV.png"
+FLOOD_ICON = "https://i.imgur.com/4qzQsht.png"
 
-MONSOON_ICON = "https://i.imgur.com/qoXQjzD.png"
-STORM_ICON = "https://i.imgur.com/UbtYVUx.png"
-WARM_ICON = "https://i.imgur.com/RXrha0q.png"
-
+MONSOON_ICON = "https://i.imgur.com/CBHL5zR.png"
+STORM_ICON = "https://i.imgur.com/5r49jF2.png"
+WARM_ICON = "https://i.imgur.com/FIIwqqB.png"
 
 SHAFT_WIDTH = 0.45
 HEAD_LENGTH = 2.2
 HEAD_WIDTH = 1.15
 CITY_SCALE = 3
 
-# =====================================================
-# COLOR UTILITIES
-# =====================================================
-
 def rgb_to_kml(r, g, b, alpha="ff"):
     return f"{alpha}{b:02x}{g:02x}{r:02x}"
-
 
 def interpolate_color(start_rgb, end_rgb, t):
     r = int(start_rgb[0] + (end_rgb[0] - start_rgb[0]) * t)
@@ -33,11 +31,6 @@ def interpolate_color(start_rgb, end_rgb, t):
     b = int(start_rgb[2] + (end_rgb[2] - start_rgb[2]) * t)
 
     return rgb_to_kml(r, g, b)
-
-
-# =====================================================
-# BEZIER CURVE
-# =====================================================
 
 def bezier_curve(start, control, end, steps=80):
     pts = []
@@ -60,11 +53,6 @@ def bezier_curve(start, control, end, steps=80):
         pts.append((lon, lat))
 
     return pts
-
-
-# =====================================================
-# TRUNCATE CURVE
-# =====================================================
 
 def truncate_for_head(points, head_length):
     accumulated = 0
@@ -92,12 +80,6 @@ def truncate_for_head(points, head_length):
         accumulated += seg
 
     return points
-
-
-# =====================================================
-# =====================================================
-# VERTEX BOUNDARY & SHAFT QUAD
-# =====================================================
 
 def compute_boundary_vertices(points, shaft_width=SHAFT_WIDTH):
     n = len(points)
@@ -148,7 +130,6 @@ def compute_boundary_vertices(points, shaft_width=SHAFT_WIDTH):
 
     return left_boundary, right_boundary
 
-
 def create_quad_polygon(left1, left2, right2, right1, color):
     return f"""
 <Placemark>
@@ -183,11 +164,6 @@ def create_quad_polygon(left1, left2, right2, right1, color):
 </Placemark>
 """
 
-
-# =====================================================
-# SHAFT
-# =====================================================
-
 def create_shaft(points, start_rgb, end_rgb, shaft_width=SHAFT_WIDTH):
     left_boundary, right_boundary = compute_boundary_vertices(points, shaft_width)
 
@@ -215,12 +191,6 @@ def create_shaft(points, start_rgb, end_rgb, shaft_width=SHAFT_WIDTH):
         )
 
     return kml, left_boundary[-1], right_boundary[-1]
-
-
-
-# =====================================================
-# ARROWHEAD
-# =====================================================
 
 def create_head(base, tip, color, shaft_left_end=None, shaft_right_end=None):
 
@@ -316,11 +286,6 @@ def create_head(base, tip, color, shaft_left_end=None, shaft_right_end=None):
 </Placemark>
 """
 
-
-# =====================================================
-# COMPLETE ARROW
-# =====================================================
-
 def create_arrow(
         start,
         control,
@@ -362,12 +327,8 @@ def create_arrow(
 
     return shaft + head
 
-
-# =====================================================
-# CITY MARKERS
-# =====================================================
-
 def city(name, lon, lat, icon=WARM_ICON):
+    name = xml_escape(name)
     return f"""
 <Placemark>
 
@@ -391,20 +352,10 @@ def city(name, lon, lat, icon=WARM_ICON):
 </Placemark>
 """
 
-
-# =====================================================
-# GULF STREAM
-# =====================================================
-
-# =====================================================
-# GULF STREAM
-# =====================================================
-
 def gulf_stream():
 
     kml = ""
 
-    # Gulf of Mexico -> Florida
     kml += create_arrow(
         start=(-86, 22),
         control=(-83.5, 24),
@@ -413,7 +364,6 @@ def gulf_stream():
         end_rgb=(255, 80, 0)
     )
 
-    # Florida -> Cape Hatteras
     kml += create_arrow(
         start=(-78.5, 28),
         control=(-75, 34),
@@ -422,7 +372,6 @@ def gulf_stream():
         end_rgb=(255, 180, 0)
     )
 
-    # Cape Hatteras -> Newfoundland
     kml += create_arrow(
         start=(-70, 37),
         control=(-61, 45),
@@ -431,7 +380,6 @@ def gulf_stream():
         end_rgb=(255, 255, 0)
     )
 
-    # Newfoundland -> British Isles
     kml += create_arrow(
         start=(-49, 47),
         control=(-27, 60),
@@ -440,7 +388,6 @@ def gulf_stream():
         end_rgb=(0, 220, 255)
     )
 
-    # British Isles -> Norway
     kml += create_arrow(
         start=(-5, 59),
         control=(4, 65),
@@ -449,18 +396,16 @@ def gulf_stream():
         end_rgb=(0, 100, 255)
     )
 
-    # Cities & Climate / Weather Feature Symbols
     kml += city("Miami", -80.19, 25.76, WARM_ICON)
     kml += city("New York", -74.00, 40.71, STORM_ICON)
     kml += city("St. John's", -52.71, 47.56, RAIN_ICON)
     kml += city("London", -0.12, 51.50, RAIN_ICON)
     kml += city("Bergen", 5.32, 60.39, FLOOD_ICON)
 
-    # Weather & Climate Symbols
     kml += city("Florida Straits Heat Flow", -81.5, 24.0, WARM_ICON)
     kml += city("Hatteras Storm Corridor", -75.0, 35.5, STORM_ICON)
     kml += city("Mid-Atlantic Storm Track", -76.0, 36.8, STORM_ICON)
-    kml += city("Georges Bank Fog & Rain", -67.0, 41.5, RAIN_ICON)
+    kml += city("Georges Bank Fog &amp; Rain", -67.0, 41.5, RAIN_ICON)
     kml += city("Grand Banks Front Storms", -50.0, 43.5, STORM_ICON)
     kml += city("Sargasso Warm Pool", -65.0, 30.0, WARM_ICON)
     kml += city("North Atlantic Drift", -35.0, 50.0, WARM_ICON)
@@ -470,10 +415,6 @@ def gulf_stream():
     kml += city("Icelandic Low Storm Basin", -18.0, 64.0, STORM_ICON)
 
     return kml
-
-# =====================================================
-# WRAP KML
-# =====================================================
 
 def wrap(content):
 
@@ -491,11 +432,6 @@ def wrap(content):
 
 </kml>
 """
-
-
-# =====================================================
-# MAIN
-# =====================================================
 
 def main():
 
@@ -520,7 +456,6 @@ def main():
         f.write(final_kml)
 
     print(f"gulf_stream.kml generated successfully in current directory and {asset_path}")
-
 
 if __name__ == "__main__":
     main()

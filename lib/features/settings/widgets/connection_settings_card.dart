@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'settings_input.dart';
 
-/// Card containing the Liquid Galaxy SSH connection form fields and action buttons.
 class ConnectionSettingsCard extends StatelessWidget {
   final TextEditingController ipController;
   final TextEditingController portController;
